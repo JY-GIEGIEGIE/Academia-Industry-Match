@@ -903,6 +903,59 @@ def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args:
     return counts
 
 
+def insert_pipeline_run(
+    psql: str,
+    dsn: str,
+    run_id: str,
+    started: datetime,
+    finished: datetime,
+    status: str,
+    input_count: int,
+    output_count: int,
+    args: argparse.Namespace,
+) -> None:
+    config = json.dumps({"source": "load_db.py", "limit": args.limit}, ensure_ascii=False)
+    sql = (
+        "INSERT INTO pipeline_run (run_id, stage, started_at, finished_at, status, input_count, output_count, config, git_commit, dataset_version, log_path) "
+        f"VALUES ({sql_literal(run_id)}, 'load', {sql_literal(iso(started))}::timestamptz, {sql_literal(iso(finished))}::timestamptz, "
+        f"{sql_literal(status)}, {input_count}, {output_count}, {sql_literal(config)}::jsonb, {sql_literal(git_commit())}, "
+        f"{sql_literal(args.dataset_version)}, {sql_literal(str(args.report))}) "
+        "ON CONFLICT (run_id) DO UPDATE SET finished_at = EXCLUDED.finished_at, status = EXCLUDED.status, "
+        "output_count = EXCLUDED.output_count, config = EXCLUDED.config;"
+    )
+    psql_run(psql, dsn, sql=sql)
+
+
+def update_pipeline_run_status(psql: str, dsn: str, run_id: str, status: str, finished: datetime) -> None:
+    sql = (
+        f"UPDATE pipeline_run SET status = {sql_literal(status)}, finished_at = {sql_literal(iso(finished))}::timestamptz "
+        f"WHERE run_id = {sql_literal(run_id)};"
+    )
+    psql_run(psql, dsn, sql=sql)
+
+
+def insert_dataset_manifest(
+    psql: str,
+    dsn: str,
+    run_id: str,
+    counts: dict[str, int],
+    data: dict[str, list[dict[str, Any]]],
+    args: argparse.Namespace,
+    notes: str,
+) -> None:
+    manifest_id = "manifest-" + run_id
+    files = source_files(data, args)
+    hashes = {entry["path"]: entry["sha256"] for entry in files}
+    sql = (
+        "INSERT INTO dataset_manifest (manifest_id, run_id, dataset_version, taxonomy_version, embedding_model, source, counts, hashes, notes) "
+        f"VALUES ({sql_literal(manifest_id)}, {sql_literal(run_id)}, {sql_literal(args.dataset_version)}, 'v0.1', "
+        f"{sql_literal(args.embedding_model_version)}, 'load_db.py', {sql_literal(json.dumps(counts, ensure_ascii=False))}::jsonb, "
+        f"{sql_literal(json.dumps(hashes, ensure_ascii=False))}::jsonb, {sql_literal(notes)}) "
+        "ON CONFLICT (manifest_id) DO UPDATE SET counts = EXCLUDED.counts, hashes = EXCLUDED.hashes, notes = EXCLUDED.notes;"
+    )
+    psql_run(psql, dsn, sql=sql)
+
+
 def write_report(
     path: Path,
     run_id: str,
@@ -1058,14 +1111,22 @@ def main() -> int:
             apply_migrations(psql, args.dsn)
         print("Importing")
         counts = import_all(psql, args.dsn, data, args)
-        checks = consistency_checks(psql, args.dsn)
         finished = now_utc()
+        input_count = sum(len(rows) for rows in data.values())
+        output_count = sum(counts.values())
+        insert_pipeline_run(psql, args.dsn, run_id, started, finished, "running", input_count, output_count, args)
+        insert_dataset_manifest(
+            psql, args.dsn, run_id, counts, data, args,
+            notes=f"input={input_count}; output={output_count}; warnings={len(v.warnings)}",
+        )
+        checks = consistency_checks(psql, args.dsn)
         hard_zero = {
             "duplicate_doi", "orphan_embeddings", "vector_dim_mismatch",
             "fk_demand_enterprise", "fk_eval_label_achievement", "fk_eval_label_demand",
             "simulated_demand_false", "simulated_enterprise_false",
         }
         status = "success" if all(checks.get(name, 0) == 0 for name in hard_zero) else "partial"
+        update_pipeline_run_status(psql, args.dsn, run_id, status, finished)
         write_report(args.report, run_id, args.dsn, started, finished, status, counts, checks, v.warnings, v.errors, args)
         write_import_manifest(args.import_manifest, run_id, status, started, finished, data, counts, checks, v.warnings, v.errors, args)
         print(f"  imported: {counts}")
