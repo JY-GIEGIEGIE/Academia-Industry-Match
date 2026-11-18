@@ -1,0 +1,21 @@
+﻿demand_id,enterprise_id,title,tech_fields,application_scenarios,required_trl,cooperation_modes,budget_range,timeline,is_simulated
+dem_001,ent_001,高镍单晶三元正极材料开发,['cathode_material'],['ev_power'],5,"['joint_rd', 'license']",800—1500 万元,18 个月,True
+dem_002,ent_001,磷酸铁锂快充正极材料,['cathode_material'],['ev_power'],6,['joint_rd'],500—1000 万元,12 个月,True
+dem_003,ent_005,高首效硅碳负极材料,['anode_material'],['ev_power'],5,['joint_rd'],600—1200 万元,18 个月,True
+dem_004,ent_005,钠离子电池硬碳负极,['anode_material'],['grid_storage'],4,['joint_rd'],300—600 万元,12 个月,True
+dem_005,ent_006,硫化物固态电解质中试放大,['electrolyte'],['ev_power'],5,"['joint_rd', 'joint_lab']",1000—2000 万元,24 个月,True
+dem_006,ent_006,氧化物/聚合物复合固态电解质,['electrolyte'],['ev_power'],4,['joint_rd'],500—1000 万元,18 个月,True
+dem_007,ent_007,高安全陶瓷涂覆隔膜,['separator'],['ev_power'],6,"['license', 'joint_rd']",300—800 万元,12 个月,True
+dem_008,ent_007,高电压电解液浸润隔膜,['separator'],['consumer_electronics'],5,['joint_rd'],300—600 万元,12 个月,True
+dem_009,ent_001,动力电池包热失控防护,['cell_system'],['ev_power'],7,['joint_rd'],800—1500 万元,18 个月,True
+dem_010,ent_003,4C 快充储能电池热管理,['cell_system'],['grid_storage'],6,['joint_rd'],500—1000 万元,12 个月,True
+dem_011,ent_008,退役三元正极直接再生,['recycling'],['recycling_industry'],5,['joint_rd'],500—1000 万元,18 个月,True
+dem_012,ent_008,黑粉湿法回收锂镍钴,['recycling'],['recycling_industry'],6,['joint_rd'],800—1500 万元,18 个月,True
+dem_013,ent_008,退役磷酸铁锂梯次利用,['recycling'],['recycling_industry'],5,"['tech_service', 'joint_rd']",300—600 万元,12 个月,True
+dem_014,ent_009,全钒液流电池低成本电解质与膜,['flow_battery'],['grid_storage'],5,['joint_rd'],1000—2000 万元,24 个月,True
+dem_015,ent_009,百千瓦级液流电池电堆,['flow_battery'],['grid_storage'],6,"['joint_rd', 'joint_lab']",1500—3000 万元,24 个月,True
+dem_016,ent_010,高功率超级电容电极材料,['supercapacitor'],['e_tool_two_wheeler'],5,['joint_rd'],300—600 万元,12 个月,True
+dem_017,ent_010,电网调频用超级电容模组,['supercapacitor'],['grid_storage'],6,['joint_rd'],500—1000 万元,18 个月,True
+dem_018,ent_001,固态电池低压力界面工程,['electrolyte'],['ev_power'],5,['joint_rd'],1000—2000 万元,24 个月,True
+dem_019,ent_003,电网储能钠离子电池材料体系,"['anode_material', 'cathode_material']",['grid_storage'],4,['joint_rd'],500—1000 万元,18 个月,True
+dem_020,ent_002,消费电子高电压钴酸锂正极,['cathode_material'],['consumer_electronics'],7,"['license', 'joint_rd']",300—600 万元,12 个月,True

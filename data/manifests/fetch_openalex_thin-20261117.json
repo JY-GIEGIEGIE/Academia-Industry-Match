@@ -1,0 +1,423 @@
+{
+  "run_id": "thin-20261117",
+  "stage": "fetch",
+  "started_at": "2026-11-17T14:57:22Z",
+  "finished_at": "2026-11-17T14:57:22Z",
+  "status": "success",
+  "config": {
+    "per_page": 100,
+    "lenses": [
+      "relevance",
+      "recent"
+    ],
+    "tags": [
+      "cathode",
+      "anode",
+      "electrolyte",
+      "separator",
+      "cell_system",
+      "recycling",
+      "flow",
+      "supercap"
+    ],
+    "year_from": 2020,
+    "year_to": 2026,
+    "mailto_present": false,
+    "api_key_present": false
+  },
+  "files": [
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "cathode material",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__relevance__cathode_material.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "cathode material",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__recent__cathode_material.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "lithium iron phosphate cathode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__relevance__lithium_iron_phosphate_cathode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "lithium iron phosphate cathode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__recent__lithium_iron_phosphate_cathode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "high-voltage cathode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__relevance__high_voltage_cathode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "high-voltage cathode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__recent__high_voltage_cathode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "lithium cobalt oxide cathode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__relevance__lithium_cobalt_oxide_cathode.json",
+      "status": "ok",
+      "http_status": 200,
+      "count": 37,
+      "returned": 37,
+      "cost_usd": 0.001
+    },
+    {
+      "tag": "cathode",
+      "tech_field": "cathode_material",
+      "query": "lithium cobalt oxide cathode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\cathode__recent__lithium_cobalt_oxide_cathode.json",
+      "status": "ok",
+      "http_status": 200,
+      "count": 37,
+      "returned": 37,
+      "cost_usd": 0.001
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "anode material",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__relevance__anode_material.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "anode material",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__recent__anode_material.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "silicon anode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__relevance__silicon_anode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "silicon anode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__recent__silicon_anode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "hard carbon anode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__relevance__hard_carbon_anode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "hard carbon anode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__recent__hard_carbon_anode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "graphite anode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__relevance__graphite_anode.json",
+      "status": "ok",
+      "http_status": 200,
+      "count": 2111,
+      "returned": 100,
+      "cost_usd": 0.001
+    },
+    {
+      "tag": "anode",
+      "tech_field": "anode_material",
+      "query": "graphite anode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\anode__recent__graphite_anode.json",
+      "status": "ok",
+      "http_status": 200,
+      "count": 2111,
+      "returned": 100,
+      "cost_usd": 0.001
+    },
+    {
+      "tag": "electrolyte",
+      "tech_field": "electrolyte",
+      "query": "solid electrolyte",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\electrolyte__relevance__solid_electrolyte.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "electrolyte",
+      "tech_field": "electrolyte",
+      "query": "solid electrolyte",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\electrolyte__recent__solid_electrolyte.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "electrolyte",
+      "tech_field": "electrolyte",
+      "query": "sulfide solid electrolyte",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\electrolyte__relevance__sulfide_solid_electrolyte.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "electrolyte",
+      "tech_field": "electrolyte",
+      "query": "sulfide solid electrolyte",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\electrolyte__recent__sulfide_solid_electrolyte.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "electrolyte",
+      "tech_field": "electrolyte",
+      "query": "oxide solid electrolyte",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\electrolyte__relevance__oxide_solid_electrolyte.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "electrolyte",
+      "tech_field": "electrolyte",
+      "query": "oxide solid electrolyte",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\electrolyte__recent__oxide_solid_electrolyte.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "separator",
+      "tech_field": "separator",
+      "query": "battery separator",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\separator__relevance__battery_separator.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "separator",
+      "tech_field": "separator",
+      "query": "battery separator",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\separator__recent__battery_separator.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "separator",
+      "tech_field": "separator",
+      "query": "ceramic-coated separator",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\separator__relevance__ceramic_coated_separator.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "separator",
+      "tech_field": "separator",
+      "query": "ceramic-coated separator",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\separator__recent__ceramic_coated_separator.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cell_system",
+      "tech_field": "cell_system",
+      "query": "battery thermal management",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\cell_system__relevance__battery_thermal_management.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cell_system",
+      "tech_field": "cell_system",
+      "query": "battery thermal management",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\cell_system__recent__battery_thermal_management.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cell_system",
+      "tech_field": "cell_system",
+      "query": "battery thermal runaway",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\cell_system__relevance__battery_thermal_runaway.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "cell_system",
+      "tech_field": "cell_system",
+      "query": "battery thermal runaway",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\cell_system__recent__battery_thermal_runaway.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "recycling",
+      "tech_field": "recycling",
+      "query": "battery recycling",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\recycling__relevance__battery_recycling.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "recycling",
+      "tech_field": "recycling",
+      "query": "battery recycling",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\recycling__recent__battery_recycling.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "recycling",
+      "tech_field": "recycling",
+      "query": "direct regeneration cathode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\recycling__relevance__direct_regeneration_cathode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "recycling",
+      "tech_field": "recycling",
+      "query": "direct regeneration cathode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\recycling__recent__direct_regeneration_cathode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "flow",
+      "tech_field": "flow_battery",
+      "query": "flow battery",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\flow__relevance__flow_battery.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "flow",
+      "tech_field": "flow_battery",
+      "query": "flow battery",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\flow__recent__flow_battery.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "flow",
+      "tech_field": "flow_battery",
+      "query": "vanadium redox flow battery",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\flow__relevance__vanadium_redox_flow_battery.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "flow",
+      "tech_field": "flow_battery",
+      "query": "vanadium redox flow battery",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\flow__recent__vanadium_redox_flow_battery.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "supercap",
+      "tech_field": "supercapacitor",
+      "query": "supercapacitor",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\supercap__relevance__supercapacitor.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "supercap",
+      "tech_field": "supercapacitor",
+      "query": "supercapacitor",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\supercap__recent__supercapacitor.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "supercap",
+      "tech_field": "supercapacitor",
+      "query": "supercapacitor electrode",
+      "lens": "relevance",
+      "path": "data\\raw\\openalex\\thin-20261117\\supercap__relevance__supercapacitor_electrode.json",
+      "status": "skipped",
+      "returned": 0
+    },
+    {
+      "tag": "supercap",
+      "tech_field": "supercapacitor",
+      "query": "supercapacitor electrode",
+      "lens": "recent",
+      "path": "data\\raw\\openalex\\thin-20261117\\supercap__recent__supercapacitor_electrode.json",
+      "status": "skipped",
+      "returned": 0
+    }
+  ],
+  "errors": [],
+  "total_returned": 274,
+  "total_cost_usd": 0.004
+}

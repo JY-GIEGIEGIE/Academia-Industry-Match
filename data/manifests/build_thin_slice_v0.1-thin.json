@@ -1,0 +1,60 @@
+{
+  "version": "v0.1-thin",
+  "run_id": "thin-20261117",
+  "stage": "build_thin_slice",
+  "finished_at": "2026-11-17T15:01:05Z",
+  "raw_files": 42,
+  "raw_results_total": 3736,
+  "normalized_records": 3646,
+  "normalization_dropped": 90,
+  "raw_records": 3646,
+  "raw_by_tag": {
+    "anode": 783,
+    "cathode": 657,
+    "cell_system": 393,
+    "electrolyte": 585,
+    "flow": 389,
+    "recycling": 196,
+    "separator": 256,
+    "supercap": 387
+  },
+  "unique_records": 3149,
+  "duplicates_removed": 497,
+  "excluded_by_filter": 218,
+  "selected": 100,
+  "selected_by_tag": {
+    "anode": 15,
+    "cathode": 15,
+    "cell_system": 15,
+    "electrolyte": 15,
+    "flow": 5,
+    "recycling": 15,
+    "separator": 15,
+    "supercap": 5
+  },
+  "shortfalls": {},
+  "year_distribution": {
+    "2020": 5,
+    "2021": 10,
+    "2022": 14,
+    "2023": 17,
+    "2024": 21,
+    "2025": 16,
+    "2026": 17
+  },
+  "language_distribution": {
+    "en": 100
+  },
+  "abstract_chars": {
+    "min": 208,
+    "max": 3639,
+    "avg": 1392.7
+  },
+  "parse_errors": 0,
+  "outputs": {
+    "processed_jsonl": "data\\processed\\achievements_clean_v0.1-thin.jsonl",
+    "processed_csv": "data\\processed\\achievements_clean_v0.1-thin.csv",
+    "sample_jsonl": "data\\samples\\achievements_sample_v0.1-thin.jsonl",
+    "sample_csv": "data\\samples\\achievements_sample_v0.1-thin.csv"
+  }
+}

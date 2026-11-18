@@ -1,0 +1,11 @@
+﻿enterprise_id,display_name,industry,size,region,main_business,is_simulated
+ent_001,某长三角动力电池企业,battery_manufacturing,large,yangtze_delta,动力电芯、模组与 PACK,True
+ent_002,某珠三角消费电池企业,battery_manufacturing,large,pearl_river_delta,消费类锂电芯与电池模组,True
+ent_003,某京津冀储能系统集成商,ess_integrator,medium,beijing_tianjin_hebei,电网侧与工商业储能系统集成,True
+ent_004,某成渝正极材料企业,material_manufacturing,medium,chengdu_chongqing,三元正极材料研发与生产,True
+ent_005,某长三角负极材料企业,material_manufacturing,medium,yangtze_delta,石墨负极与硅碳负极,True
+ent_006,某珠三角固态电解质初创,material_manufacturing,small,pearl_river_delta,硫化物固态电解质材料,True
+ent_007,某长三角隔膜企业,material_manufacturing,medium,yangtze_delta,锂电隔膜与陶瓷涂覆,True
+ent_008,某华中回收企业,recycling,medium,other,退役动力电池回收与材料再生,True
+ent_009,某京津冀液流电池企业,battery_manufacturing,small,beijing_tianjin_hebei,全钒液流电池电堆与系统,True
+ent_010,某珠三角超级电容企业,battery_manufacturing,small,pearl_river_delta,超级电容器与模组,True
