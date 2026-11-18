@@ -1,7 +1,7 @@
-# AGENTS.md — 数据侧第一次冲刺（截止 2026-11-22）
+# AGENTS.md — 数据侧第一次冲刺（截止 2026-11-22 中午）
 
 > 冲刺：第一次冲刺（First Sprint）
-> 截止：2026-11-22
+> 截止：2026-11-22 中午
 > 数据版本：v0.1-thin（当前 100 条薄切片）；本次冲刺扩量后的全量产物用 v0.1
 > 适用：接手数据侧工作的同学及其 AI Agent
 > 执行依据：`docs/09-项目管理/数据侧分工安排.md`
@@ -14,9 +14,11 @@
 4. 确认自己接的是哪几项（第 2 节）。
 5. 检查环境（第 4 节）；缺任何一项，停下来问贾越，不要自己 mock。
 
+> 交接包版本与核验结果见 `docs/09-项目管理/数据侧交接说明_v0.1-thin.md`；v3 为唯一有效交接包，v2 及更早版本作废。
+
 ## 1. 当前数据状态
 
-- 100 条成果薄切片已清洗；完整集在交接包 `数据侧交接_v0.1-thin_2026-11-18_v3.zip` 的 `data/processed/achievements_clean_v0.1-thin.jsonl`（仓库不入库），另见同包 `README_交接.md`。
+- 100 条成果薄切片已清洗；完整集在交接包 `数据侧交接_v0.1-thin_2026-11-18_v3.zip` 的 `data/processed/achievements_clean_v0.1-thin.jsonl`（仓库不入库）；包内说明已整理为 `docs/09-项目管理/数据侧交接说明_v0.1-thin.md`。
 - 仓库 `data/samples/` 只有 20 条截断样例；**不要以为仓库里有完整数据**。
 - 20 条需求、10 家企业、20 条 query、50 对 pair 模板已有；query/pair 标注为空。
 - 没有 `extract_labels.py`、`embed.py`、`load_db.py`、`evaluate.py`；没有数据库。
@@ -44,6 +46,7 @@
 
 - `migrations/`：PostgreSQL 16 + pgvector 0.8.x 表结构、迁移、索引。
 - `scripts/data/load_db.py`：全量导入、幂等、一致性检查。
+- 与陈镇灏一起做向量入库和查询 sanity check。
 - 输出：`migrations/`；import manifest；一致性报告。
 - 验收：空库一键迁移；`vector(1024)`；连续两次导入不重复；外键违规 0。
 

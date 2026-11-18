@@ -28,6 +28,7 @@ data/
 - 需求种子：`samples/demands_seed_v0.1.jsonl`，20 条模拟需求
 - 企业画像：`samples/enterprises_seed_v0.1.jsonl`，10 家化名企业
 - 评测模板：`eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）
+- 当前交接包：`数据侧交接_v0.1-thin_2026-11-18_v3.zip`（**v3 唯一有效，v2 及更早版本作废**）；完整 100 条在包内 `data/processed/`，仓库只保留 20 条截断样例。交接状态与待确认项见 `docs/09-项目管理/数据侧交接说明_v0.1-thin.md`。
 
 ## 3. 快速开始
 
@@ -81,4 +82,5 @@ export OPENALEX_API_KEY="..."   # 免费申请：https://openalex.org/settings/a
 ## 7. 相关文档
 
 - `docs/03-项目计划/数据口径更正记录_v0.1.md`：BGE-M3 维度、数据源与模拟数据口径
+- `docs/09-项目管理/数据侧交接说明_v0.1-thin.md`：v3 交接包状态、核验结果与待确认项
 - `docs/README.md`：项目文档总索引

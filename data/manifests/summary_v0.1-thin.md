@@ -5,7 +5,7 @@
 - run_id：`thin-20261117`
 - 数据版本：`v0.1-thin`
 - 标签版本：`v0.1`
-- 全量文件：`data/processed/achievements_clean_v0.1-thin.jsonl`（本地，不入 git）
+- 全量文件：`data/processed/achievements_clean_v0.1-thin.jsonl`（本地，不入 git；随交接包 v3 分发，v2 及更早版本作废）
 - 可入库样例：`data/samples/achievements_sample_v0.1-thin.jsonl`（20 条，摘要正文截断至 600 字符，末尾加省略号，总长 ≤601）
 
 > 注：`data/manifests/fetch_openalex_thin-20261117.json` 是最近一次重跑的清单。重跑会跳过已有 raw 文件，因此其中的 `total_returned` 只反映当次新抓请求；完整抓取统计以 `build_thin_slice_v0.1-thin.json` 和本摘要为准。
