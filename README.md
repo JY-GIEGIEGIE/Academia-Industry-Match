@@ -14,5 +14,6 @@ Data policy: OpenAlex is the primary source; CNKI/Wanfang are not scraped; all e
 
 ## Team
 
-- [Data-side work assignment](docs/09-项目管理/数据侧分工安排.md) — who does what; data-side deadline 2026-11-22.
+- [Data-side work assignment](docs/09-项目管理/数据侧分工安排.md) — first sprint, due 2026-11-22; who does what.
+- [Agent handoff instructions](AGENTS.md) — first sprint, due 2026-11-22; read order, task dependencies, do-not-touch list.
 - [Repository submission and management rules](docs/09-项目管理/仓库提交与管理规范.md) — branch, commit, PR, data and secret rules.
