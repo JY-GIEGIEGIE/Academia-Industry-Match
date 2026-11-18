@@ -23,6 +23,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -170,6 +171,7 @@ def sha256_file(path: Path) -> str:
 
 
 def redact_dsn(dsn: str) -> str:
+    dsn = re.sub(r"(password=)[^\s]+", r"\1***", dsn)
     if "://" not in dsn or "@" not in dsn:
         return dsn
     scheme, rest = dsn.split("://", 1)
