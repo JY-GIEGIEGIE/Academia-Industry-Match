@@ -26,7 +26,6 @@ import os
 import shutil
 import subprocess
 import sys
-from collections import Counter
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -384,7 +383,7 @@ def validate_embeddings(
         vector = row.get("vector")
         if not isinstance(vector, list) or len(vector) != 1024:
             v.error(f"{where}: vector must be a list of 1024 numbers")
-        elif not all(isinstance(value, (int, float)) for value in vector[:5]):
+        elif not all(isinstance(value, (int, float)) for value in vector):
             v.error(f"{where}: vector contains non-numeric values")
         key = (
             str(row.get("object_type")), str(row.get("object_id")),
@@ -509,6 +508,13 @@ def load_all(args: argparse.Namespace, v: Validation) -> dict[str, list[dict[str
 
 
 def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: argparse.Namespace) -> None:
+    for key in ("achievements", "demands", "enterprises"):
+        if not data[key]:
+            v.error(f"{key}: no rows loaded")
+    if data["queries"] and len(data["queries"]) != 20:
+        v.warn(f"queries: {len(data['queries'])} rows, expected 20")
+    if data["pairs"] and len(data["pairs"]) != 50:
+        v.warn(f"pairs: {len(data['pairs'])} rows, expected 50")
     enterprise_ids = validate_enterprises(data["enterprises"], v)
     achievement_ids = validate_achievements(data["achievements"], v)
     demand_ids = validate_demands(data["demands"], enterprise_ids, v)
@@ -599,7 +605,7 @@ def psql_run(psql: str, dsn: str, sql: str | None = None, file: Path | None = No
         env=env,
     )
     if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip()
+        detail = (result.stderr or result.stdout or "").strip().replace(dsn, redact_dsn(dsn))
         raise RuntimeError(f"psql failed ({result.returncode}): {detail[:2000]}")
     return result.stdout
 
@@ -610,7 +616,7 @@ def psql_query(psql: str, dsn: str, sql: str) -> str:
     env["PGCLIENTENCODING"] = "UTF8"
     result = subprocess.run(command, text=True, encoding="utf-8", errors="replace", capture_output=True, env=env)
     if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip()
+        detail = (result.stderr or result.stdout or "").strip().replace(dsn, redact_dsn(dsn))
         raise RuntimeError(f"psql query failed ({result.returncode}): {detail[:2000]}")
     return result.stdout
 
@@ -1059,6 +1065,10 @@ def main() -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         try:
             write_report(args.report, run_id, args.dsn, started, finished, "failed", {}, {}, v.warnings, [str(exc)], args)
+            write_import_manifest(
+                args.import_manifest, run_id, "failed", started, finished,
+                data, {}, {}, v.warnings, [str(exc)], args,
+            )
         except OSError:
             pass
         return 1
