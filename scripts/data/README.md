@@ -57,7 +57,7 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 
 - `extract_labels.py`：Qwen 标签/TRL/指标抽取，JSON schema + 证据 + confidence；
 - `embed.py`：Qwen `qwen3.7-text-embedding-flash` 1024 维向量化，`text_hash` 缓存；
-- `load_db.py`：已提供（见第 8 节），已在 PostgreSQL 16.16 + pgvector 0.8.7 上验证；
+- `load_db.py`：已提供（见第 8 节），已在 PostgreSQL 16.16 + pgvector 0.8.7 上验证 100 条导入与重复导入；
 - `evaluate.py`：Recall@10、Precision@5、nDCG@10；本冲刺先做 B0—B2 三组基线（BM25 / 纯向量 / 标签+向量），B3（LLM 精排）待匹配引擎就绪后补。
 
 ## 7. 共享 API 客户端
@@ -98,5 +98,7 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --limit 20 --skip-hash
 ```
 
 输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
+
+验证记录（2026-11-18）：Docker PostgreSQL 16.16 + pgvector 0.8.7；空库一键迁移后导入 100 条，连续 5 次导入后 achievement/demand/enterprise/eval 数量保持 100/20/10/20/50，重复 DOI 0、外键 0、`vector(1024)` 正常。
 
 标签/画像/TRL（`achievement_tag`、`achievement_text`、`achievement_extraction`）和 `match_score` 表已建好；等陈镇灏/匹配引擎产出 JSONL 后再补导入。本次骨架只覆盖成果、需求、企业、向量和评测。
