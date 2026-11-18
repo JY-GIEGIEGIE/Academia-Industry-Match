@@ -57,7 +57,7 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 
 - `extract_labels.py`：Qwen 标签/TRL/指标抽取，JSON schema + 证据 + confidence；
 - `embed.py`：Qwen `qwen3.7-text-embedding-flash` 1024 维向量化，`text_hash` 缓存；
-- `load_db.py`：PostgreSQL + pgvector 幂等导入；
+- `load_db.py`：已提供（见第 8 节），已在 PostgreSQL 16.16 + pgvector 0.8.7 上验证；
 - `evaluate.py`：Recall@10、Precision@5、nDCG@10；本冲刺先做 B0—B2 三组基线（BM25 / 纯向量 / 标签+向量），B3（LLM 精排）待匹配引擎就绪后补。
 
 ## 7. 共享 API 客户端
@@ -76,3 +76,27 @@ hits = rerank(query, documents, top_n=10)
 - embedding 按 `(model, dim, text_type, text_hash)` 缓存到 `data/interim/`，不重复计费；
 - 调用开销写 `data/interim/api_usage.jsonl`；
 - 自检：`python scripts/common/llm_client.py --check`；小样本：`--demo`。
+
+## 8. 数据库迁移与导入（BE2）
+
+前置：PostgreSQL 16 + pgvector 0.8.x；`pip install -r requirements.txt`（psycopg 3）。完整数据从群文件交接包解压到 `data/processed/`。
+
+```bash
+# 只校验文件，不连库
+python scripts/data/load_db.py --check
+
+# 空库一键迁移 + 导入（先校验 zip / processed 的 SHA-256）
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
+  --manifest data/manifests/private_data_v0.1-thin.json \
+  --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
+
+# 只迁移，不导入
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
+
+# 小样本冒烟（跳过 eval，避免外键不完整）
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --limit 20 --skip-hash
+```
+
+输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
+
+标签/画像/TRL（`achievement_tag`、`achievement_text`、`achievement_extraction`）和 `match_score` 表已建好；等陈镇灏/匹配引擎产出 JSONL 后再补导入。本次骨架只覆盖成果、需求、企业、向量和评测。
