@@ -595,15 +595,18 @@ def psql_run(psql: str, dsn: str, sql: str | None = None, file: Path | None = No
         command += ["-c", sql]
     env = os.environ.copy()
     env["PGCLIENTENCODING"] = "UTF8"
-    result = subprocess.run(
-        command,
-        input=stdin,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        capture_output=True,
-        env=env,
-    )
+    run_kwargs: dict[str, Any] = {
+        "text": True,
+        "encoding": "utf-8",
+        "errors": "replace",
+        "capture_output": True,
+        "env": env,
+    }
+    if stdin is None:
+        run_kwargs["stdin"] = subprocess.DEVNULL
+    else:
+        run_kwargs["input"] = stdin
+    result = subprocess.run(command, **run_kwargs)
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip().replace(dsn, redact_dsn(dsn))
         raise RuntimeError(f"psql failed ({result.returncode}): {detail[:2000]}")
@@ -614,7 +617,15 @@ def psql_query(psql: str, dsn: str, sql: str) -> str:
     command = [psql, dsn, "-v", "ON_ERROR_STOP=1", "--no-psqlrc", "-q", "-t", "-A", "-F", "|", "-c", sql]
     env = os.environ.copy()
     env["PGCLIENTENCODING"] = "UTF8"
-    result = subprocess.run(command, text=True, encoding="utf-8", errors="replace", capture_output=True, env=env)
+    result = subprocess.run(
+        command,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        env=env,
+        stdin=subprocess.DEVNULL,
+    )
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip().replace(dsn, redact_dsn(dsn))
         raise RuntimeError(f"psql query failed ({result.returncode}): {detail[:2000]}")
