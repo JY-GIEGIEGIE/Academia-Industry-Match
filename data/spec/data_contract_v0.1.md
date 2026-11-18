@@ -3,7 +3,7 @@
 > 项目：技术转化智能匹配与产学研对接系统（课题 7，G04）
 > 版本：v0.1
 > 日期：2026-11-17
-> 状态：评审通过后冻结，作为 D1/D2/D7 的共同基线
+> 状态：v0.1，第一次冲刺使用；字段/枚举变更走第 9 节变更控制
 > 负责人：黄欣悦（DE）、陈镇灏（AI）、张小桐（BE2）
 > 批准：贾越（PM）
 > 关联文档：`taxonomy_v0.1.md`、`eval_spec_v0.1.md`、`data/README.md`
@@ -12,7 +12,7 @@
 
 1. **数据源以 OpenAlex 为主**：论文元数据、摘要、作者/机构、主题、关键词；arXiv 只做补源；CNKI/万方不抓取；CNIPA 专利作为可选项，不进入 M2 关键路径。
 2. **成果语料以英文为主**：OpenAlex 的中文论文覆盖不足，因此中文展示通过 LLM 生成的 `capability_profile_zh` 解决，原始摘要保留可追溯，机器生成文本必须标记。
-3. **需求侧以模拟数据为主**：20—30 条来自公开榜单/招标/年报的改写，70—80 条团队构造；全部 `is_simulated=true`，企业使用化名。
+3. **需求侧以模拟数据为主**：100 条需求中，20—30 条来自公开榜单/招标/年报的改写，70—80 条团队构造；全部 `is_simulated=true`，企业使用化名。
 4. **先冻结字段、枚举与版本规则**，再抓取；任何新增字段或枚举变更走变更控制。
 5. **BGE-M3 dense 向量为 1024 维**，计划书中的“768 维”是笔误；Embedding 维度不得写死在表结构之外，必须记录在 `embedding` 记录中。
 
@@ -33,7 +33,7 @@
 
 | 源 | 提供内容 | 访问方式 | 许可/限制 | 本项目用法 |
 | --- | --- | --- | --- | --- |
-| OpenAlex | 论文元数据、摘要（部分）、作者/机构、主题、关键词、引用、OA 状态 | REST API；免费 key $1/天，无 key 共享 $0.10/天 | 元数据 CC0；摘要版权可能属于出版商 | **主源**：成果 400 条 |
+| OpenAlex | 论文元数据、摘要（部分）、作者/机构、主题、关键词、引用、OA 状态 | REST API；免费 key $1/天，无 key 共享 $0.10/天 | 元数据 CC0；摘要版权可能属于出版商 | **主源**：成果 300—400 条 |
 | arXiv | 预印本元数据、完整摘要、作者、许可 | Atom API；请求间隔 ≥3 秒 | 按单篇许可；预印本未经同行评审 | **补源/兜底**：低覆盖子方向 |
 | CNIPA 官方批量 | 中文专利著录项、摘要、法律状态 | `ipdps.cnipa.gov.cn` 实名注册 + FTP；PSS 批量每次约 40 条 | 官方数据开放目录/使用条款 | **可选**：50—100 条专利，2 天时间盒 |
 | CNKI / 万方 | 中文论文 | 无公开 API，订阅/反爬 | 抓取存在合规风险 | **不抓取** |
@@ -270,7 +270,7 @@ pipeline_run 1 ── * dataset_manifest
 | `query_text` | text | 是 | 中文业务/英文/跨语言 |
 | `query_language` | enum(`zh`/`en`/`mixed`) | 是 | |
 | `query_type` | enum(`zh_business`/`en_academic`/`cross_lingual`/`hard_negative`) | 是 | |
-| `target_tech_fields` | json array | 是 | 目标枚举 code |
+| `target_tech_field` | string | 是 | 目标枚举 code；多个用 `;` 分隔（与 `data/eval/retrieval_queries_v0.1-thin.*` 一致） |
 | `candidate_achievement_ids` | json array | 是 | 候选集，标注时只看这些 |
 | `relevant_achievement_ids` | json array | 否 | 人工标注 |
 | `relevance_grades` | json object | 否 | `{achievement_id: 0/1/2}` |
@@ -333,11 +333,11 @@ pipeline_run 1 ── * dataset_manifest
 | --- | --- |
 | 身份唯一 | `source + source_id` 唯一；DOI 归一化后唯一 |
 | 必填完整 | `title_original`、`abstract_original`、`language`、`publication_year`、`source_url`、`retrieved_at`、`content_hash` 100% 非空 |
-| 摘要长度 | 100—8000 字符；<100 标记 `abstract_short` 并进入人工复核 |
+| 摘要长度 | 薄切片 ≥200 字符（`scripts/data/config.py` 的 `MIN_ABSTRACT_CHARS`），低于 200 不进入薄切片；全量阶段可放宽到 100，低于 100 标记 `abstract_short` 并进入人工复核 |
 | 年份 | 2000—2026；目标 2020—2026 |
 | 语言 | `en`/`zh`/`mixed`/`unknown`；未知不得强行标 `en` |
-| 去重 | DOI/源 ID 精确去重 + 归一化标题 + 摘要 SimHash；重复率 <2% |
-| 领域相关 | 必须命中至少一个“上下文词”（battery/lithium/cell 等）和一个“主题词”（cathode/anode/electrolyte 等） |
+| 去重 | DOI/源 ID 精确去重 + 归一化标题；全量阶段可再加摘要 SimHash。重复率 <2% |
+| 领域相关 | 必须命中至少一个“上下文词”（battery/lithium/cell 等），且主题词（cathode/anode/electrolyte 等）命中标题或源关键词，避免仅摘要提及 |
 | 标题排除 | `correction`、`erratum`、`retraction`、`editorial`、`comment on`、`reply to`、`retracted` 等不进入成果集 |
 | 来源追溯 | 每条有 `source_url`、`retrieved_at`、`license`（未知为 null）、`raw_path` |
 
@@ -386,11 +386,11 @@ pipeline_run 1 ── * dataset_manifest
 
 | 指标 | 目标 |
 | --- | ---: |
-| 成果数量 | 400 条（300—500 可接受） |
+| 成果数量 | 300—400 条 |
 | 需求数量 | 100 条 |
 | 企业画像 | 25 家 |
-| 检索 query | 20—30 条 |
-| pair 标注 | 50—100 对 |
+| 检索 query | 20 条（v0.1 固定） |
+| pair 标注 | 50 对（v0.1 固定） |
 | 来源可追溯 | 100% |
 | 必填字段完整率 | ≥95% |
 | 重复率 | <2% |
@@ -406,7 +406,7 @@ pipeline_run 1 ── * dataset_manifest
 1. **模拟数据**：所有模拟需求/企业必须 `is_simulated=true`，`source_note` 写明“团队构造，不对应真实企业”；UI 必须有“模拟数据”标识。
 2. **企业名称**：对外展示只用 `display_name` 化名；`legal_name` 不进入前端接口。
 3. **联系人**：不采集、不存储手机号、邮箱、微信等个人联系方式。
-4. **版权**：OpenAlex 元数据 CC0；摘要可能受出版商版权保护。公开仓库只放截断样例（≤600 字符）和 `source_url`，完整摘要放本地/私有存储。
+4. **版权**：OpenAlex 元数据 CC0；摘要可能受出版商版权保护。公开仓库只放截断样例（正文 ≤600 字符，截断时加省略号）和 `source_url`，完整摘要放本地/私有存储。
 5. **许可记录**：每条成果记录 `license`；未知写 null，不臆造。
 6. **公开仓库**：如仓库继续公开，禁止提交 `data/raw/`、`data/processed/` 全量数据；建议将仓库转为私有，或使用私有数据仓库/对象存储。
 
@@ -425,7 +425,7 @@ pipeline_run 1 ── * dataset_manifest
 | BGE-M3 维度 | 计划书“BGE-M3 768 维” | **BGE-M3 dense 为 1024 维** | 以本契约和 `数据口径更正记录_v0.1.md` 为准；计划书下次修订改正 |
 | 主数据源 | PRD 写“知网/万方/国家知识产权局/arxiv” | **OpenAlex 为主，arXiv 补，CNIPA 可选；CNKI/万方不抓** | 需求规格书/设计报告引用本契约 |
 | 成果语言 | PRD 写“中英文混合” | **成果以英文为主；中文展示用机器生成能力画像** | 答辩时说明；不承诺中文论文覆盖 |
-| 需求数据 | PRD 写“用户填报” | **演示期 20—30 条公开种子改写 + 70—80 条模拟** | 全部 `is_simulated=true` |
+| 需求数据 | PRD 写“用户填报” | **演示期 100 条需求：20—30 条公开种子改写 + 70—80 条模拟** | 全部 `is_simulated=true` |
 | Python/PostgreSQL | 计划书 Python 3.11 / PostgreSQL 16；过程稿 3.12 / 17 | **以计划书为准：Python 3.11、PostgreSQL 16、pgvector 0.8.x** | 数据脚本兼容 3.11+；BE 迁移按 16 验证 |
 
 ## 11. 附：薄切片字段映射示例

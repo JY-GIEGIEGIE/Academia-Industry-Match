@@ -2,7 +2,7 @@
 
 > 冲刺：第一次冲刺（First Sprint）
 > 截止：2026-11-22
-> 数据版本：v0.1-thin
+> 数据版本：v0.1-thin（当前 100 条薄切片）；本次冲刺扩量后的全量产物用 v0.1
 > 适用：接手数据侧工作的同学及其 AI Agent
 > 执行依据：`docs/09-项目管理/数据侧分工安排.md`
 
@@ -16,7 +16,7 @@
 
 ## 1. 当前数据状态
 
-- 100 条成果薄切片已清洗；完整集在交接包 `data/processed/achievements_clean_v0.1-thin.jsonl`。
+- 100 条成果薄切片已清洗；完整集在交接包 `数据侧交接_v0.1-thin_2026-11-18_v3.zip` 的 `data/processed/achievements_clean_v0.1-thin.jsonl`（仓库不入库），另见同包 `README_交接.md`。
 - 仓库 `data/samples/` 只有 20 条截断样例；**不要以为仓库里有完整数据**。
 - 20 条需求、10 家企业、20 条 query、50 对 pair 模板已有；query/pair 标注为空。
 - 没有 `extract_labels.py`、`embed.py`、`load_db.py`、`evaluate.py`；没有数据库。
@@ -27,18 +27,18 @@
 ### 黄欣悦（DE，主接）
 
 - 扩到 300—400 条成果；100 条需求 / 25 家企业；质量报告与交接。
-- 用 `scripts/data/fetch_openalex.py`、`build_thin_slice.py` 扩量；不要改 taxonomy。
-- 输出：`data/processed/achievements_clean_v0.1.jsonl`；`data/samples/demands_v0.1.jsonl`；`enterprises_v0.1.jsonl`；质量报告。
+- 用 `scripts/data/fetch_openalex.py`、`build_thin_slice.py` 扩量；先扩 `config.py` 的 `SUBFIELD_SPECS[*]["queries"]` 和每子方向 `target`（当前是薄切片 15/5），再传 `--target-total 300`，否则只会在 100 条基础上补分，子方向分布会偏；不要改 taxonomy。
+- 输出：`data/processed/achievements_clean_v0.1.jsonl`；`data/processed/demands_v0.1.jsonl`；`data/processed/enterprises_v0.1.jsonl`；质量报告。仓库 `data/samples/` 只保留 20 条成果 + 20 条需求 + 10 家企业的可入库样例。
 - 验收：300—400 条；6+2 子方向；必填 ≥95%；重复 <2%；来源 100%；100 需求/25 企业；全部 `is_simulated=true`。
 
 ### 陈镇灏（AI）
 
 - 写 `scripts/data/extract_labels.py`：先 30 条校准，再全量抽取 + 10% 抽检。
 - 写 `scripts/data/embed.py`：成果 + 需求向量化；1024 维；记录 model/version/text_hash。
-- 写 `scripts/data/evaluate.py`：BM25 / 纯向量 / 标签+向量；Recall@10、Precision@5、nDCG@10。
+- 写 `scripts/data/evaluate.py`：BM25 / 纯向量 / 标签+向量 三组基线（B0—B2）；B3（标签+向量+LLM 精排）待匹配引擎就绪后补；Recall@10、Precision@5、nDCG@10。
 - 20 条 query + 50 对 pair 人工标注（与黄欣悦、贾越）。
-- 输出：`data/processed/achievements_labeled_v0.1-thin.jsonl`；`capability_profiles_v0.1.jsonl`；`embeddings_v0.1.jsonl`；`data/manifests/baseline_v0.1.md`。
-- 验收：标签覆盖 ≥95%；抽检 ≥90%；TRL 证据 100%；向量覆盖 100%；基线指标可复现。
+- 输出：`data/processed/achievements_labeled_v0.1.jsonl`（薄切片试跑用 `_v0.1-thin`）；`data/processed/capability_profiles_v0.1.jsonl`；`data/processed/embeddings_v0.1.jsonl`；`data/manifests/baseline_v0.1.md`。
+- 验收：标签覆盖 ≥95%；抽检 ≥90%；TRL 证据 100%；向量覆盖 100%；B0—B2 基线指标可复现。
 
 ### 张小桐（BE2）
 
@@ -89,7 +89,7 @@
 - 不改 taxonomy 枚举/数据契约字段；确需改，先问 DE/AI/BE2。
 - 不把 `data/raw/`、`data/processed/`、完整摘要、模型权重提交到公开仓库。
 - 不提交 `.env`、API key、密码。
-- 不重写已有 `fetch/clean/seed/eval` 脚本；需要时扩展。
+- 不重写已有 `fetch_openalex.py`、`build_thin_slice.py`、`make_seed_data.py`、`make_eval_templates.py`；需要时扩展。
 - 不编造标签/TRL/IP/性能指标；无证据写 `unknown`。
 - 不跳过校验；不把“本地跑过”当证据。
 
@@ -100,7 +100,7 @@ python -m compileall -q scripts
 python scripts/data/validate_thin_slice.py --version v0.1-thin
 ```
 
-新增脚本后自行补 pytest/校验，并在 PR/交接里写命令和结果。
+新增脚本后自行补 pytest/校验，并在 PR/交接里写命令和结果。`validate_thin_slice.py` 只覆盖 100 条薄切片；扩到 300—400 条后必须扩展校验（数量、6+2 子方向、100 需求、25 企业、模拟标记）。
 
 ## 7. 交付格式
 

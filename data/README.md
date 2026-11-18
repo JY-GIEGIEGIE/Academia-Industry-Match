@@ -1,6 +1,6 @@
 # 数据目录
 
-本目录是「技术转化智能匹配与产学研对接系统」的数据工作区。目标是以 **OpenAlex 为主源**，先跑通 100 条端到端纵切，再扩展到 300—500 条成果、100 条需求。
+本目录是「技术转化智能匹配与产学研对接系统」的数据工作区。目标是以 **OpenAlex 为主源**，先完成 100 条清洗薄切片（含评测模板），再扩展到 300—400 条成果、100 条需求、25 家企业画像。
 
 ## 1. 目录结构
 
@@ -8,7 +8,7 @@
 data/
 ├── README.md                 # 本文件
 ├── spec/                     # 数据契约、标签体系、评测规范（入库，长期维护）
-├── samples/                  # 可入库的小样例（20 条成果、20 条需求、企业画像）
+├── samples/                  # 可入库的小样例（20 条成果、20 条需求、10 家企业画像）
 ├── eval/                     # 检索 query 与 pair 标注模板（入库）
 ├── manifests/                # 每次抓取/构建的清单与统计（入库）
 ├── raw/                      # 原始 JSON 快照（不入库，本地保留）
@@ -27,6 +27,7 @@ data/
 - 薄切片摘要：`manifests/summary_v0.1-thin.md`（数量、质量、已知限制）
 - 需求种子：`samples/demands_seed_v0.1.jsonl`，20 条模拟需求
 - 企业画像：`samples/enterprises_seed_v0.1.jsonl`，10 家化名企业
+- 评测模板：`eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）
 
 ## 3. 快速开始
 
@@ -35,12 +36,15 @@ data/
 python scripts/data/fetch_openalex.py --run-id thin-20261117 --per-page 100
 
 # 2) 清洗、去重、按子方向分层抽样，生成 100 条薄切片
-python scripts/data/build_thin_slice.py --run-id thin-20261117
+python scripts/data/build_thin_slice.py --run-id thin-20261117 --version v0.1-thin
 
-# 3) 生成 20 条检索 query 和 50 个 pair 标注模板
+# 3) 生成 10 家化名企业 + 20 条模拟需求
+python scripts/data/make_seed_data.py
+
+# 4) 生成 20 条检索 query 和 50 个 pair 标注模板
 python scripts/data/make_eval_templates.py --version v0.1-thin
 
-# 4) 校验输出
+# 5) 校验输出
 python scripts/data/validate_thin_slice.py --version v0.1-thin
 ```
 
@@ -68,7 +72,7 @@ export OPENALEX_API_KEY="..."   # 免费申请：https://openalex.org/settings/a
 - OpenAlex 元数据为 CC0，但摘要版权可能属于出版商；**公开仓库不提交完整摘要**。`samples/` 中的摘要为截断预览。
 - 需求与企业画像为团队构造的模拟数据，`is_simulated=true`，不对应任何真实企业。
 - 真实企业敏感信息、联系人、未公开需求一律不入库。
-- 如仓库仍为公开状态，建议转为私有，或把完整数据放到私有存储。
+- 当前仓库为公开状态；完整数据只放本地或私有存储，公开仓库只保留截断样例。
 
 ## 6. 版本与可复现
 
