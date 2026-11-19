@@ -92,7 +92,7 @@ embedding[1] emb_xxx: text_type='document' invalid
 
 ### 7.3 `capability_profile` 的语言
 
-> **建议回复**：本冲刺只做中文单条 `capability_profile`。英文成果的画像由 LLM 从英文原文生成中文，因为需求侧 `need_profile` 必然是中文，跨语言匹配靠 Qwen 的多语言能力，不需要双语各一条、翻倍向量数和调用成本。若后续要做中英双语，两条的 `text_type` 都是 `capability_profile`、`text_hash` 不同，唯一键天然允许，`embedding_model_version` 不用变。
+> **建议回复**：本冲刺只做中文单条 `capability_profile`。英文成果的画像由 LLM 从英文原文生成中文，因为需求侧 `need_profile` 必然是中文，跨语言匹配靠 Qwen 的多语言能力，不需要双语各一条、翻倍向量数和调用成本。若后续要做中英双语，注意当前导入按 `(object_type, object_id, text_type, model)` 替换：同一成果的 zh 和 en 画像向量会互相覆盖，最终只保留最后导入的一条。要做双语必须先改存储口径（例如给 `text_type` 增加语言维度，允许同对象多版本），由 BE2 与 AI 一起定，不要在数据里自行假设。
 
 ### 7.4 提议的最终口径（确认这四条即可开工）
 
