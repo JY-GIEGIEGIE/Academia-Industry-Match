@@ -559,6 +559,7 @@ def validate_embeddings(
     v: Validation,
 ) -> None:
     seen: set[tuple[str, str, str, str, str]] = set()
+    replace_keys: set[tuple[str, str, str, str]] = set()
     seen_ids: set[str] = set()
     for index, row in enumerate(rows, 1):
         where = f"embedding[{index}] {row.get('embedding_id', '?')}"
@@ -606,6 +607,13 @@ def validate_embeddings(
         if key in seen:
             v.error(f"{where}: duplicate embedding key {key}")
         seen.add(key)
+        replace_key = key[:4]
+        if replace_key in replace_keys:
+            v.error(
+                f"{where}: more than one vector for (object_type, object_id, text_type, model) "
+                f"{replace_key}; the import keeps only one, so fix the source file"
+            )
+        replace_keys.add(replace_key)
 
 
 def parse_grades(value: Any, where: str, v: Validation) -> dict[str, int] | None:
@@ -1127,7 +1135,15 @@ class Database:
             ) from exc
         self._psycopg = psycopg
         self.dsn = dsn
-        self.conn = psycopg.connect(dsn, connect_timeout=connect_timeout, autocommit=False)
+        # Pin the session time zone at connect time: timestamps without an
+        # offset are otherwise read in the server zone (Asia/Shanghai in the
+        # team compose), so the same file would land 8 hours apart.
+        self.conn = psycopg.connect(
+            dsn,
+            connect_timeout=connect_timeout,
+            autocommit=False,
+            options="-c timezone=UTC",
+        )
 
     def execute(self, sql: str) -> None:
         with self.conn.cursor() as cur:
