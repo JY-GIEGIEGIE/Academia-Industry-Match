@@ -311,6 +311,9 @@ def validate_achievements(rows: list[dict[str, Any]], v: Validation) -> set[str]
             value = row.get(field)
             if value is not None and not isinstance(value, list):
                 v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
+        source_url = row.get("source_url")
+        if source_url is not None and not isinstance(source_url, str):
+            v.error(f"{where}: source_url must be a string, got {type(source_url).__name__}")
         check_date(row.get("publication_date"), "publication_date", where, v)
         check_datetime(row.get("retrieved_at"), "retrieved_at", where, v)
         check_int(row.get("cited_by_count"), "cited_by_count", where, v)
@@ -361,7 +364,7 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
         if enterprise_id and enterprise_id not in enterprise_ids:
             v.error(f"{where}: unknown enterprise_id {enterprise_id}")
         trl = row.get("required_trl")
-        if not isinstance(trl, int) or not 1 <= trl <= 9:
+        if isinstance(trl, bool) or not isinstance(trl, int) or not 1 <= trl <= 9:
             v.error(f"{where}: required_trl={trl!r} outside 1-9")
         check_enum(row.get("region"), REGIONS, "region", where, v)
         check_enum(row.get("status"), DEMAND_STATUSES, "status", where, v)
@@ -586,7 +589,7 @@ def validate_eval(
             v.error(f"{where}: unknown demand_id {row.get('demand_id')}")
         grade = row.get("relevance_grade")
         if grade not in ("", None):
-            if not isinstance(grade, int) or grade not in (0, 1, 2):
+            if isinstance(grade, bool) or not isinstance(grade, int) or grade not in (0, 1, 2):
                 v.error(f"{where}: relevance_grade={grade!r} not 0/1/2/null")
         else:
             empty_grades += 1
@@ -604,6 +607,17 @@ def validate_eval(
     if empty_grades:
         v.warn(f"pairs: {empty_grades} rows have no relevance_grade (annotation pending)")
     return query_ids
+
+
+def valid_json_array(record: dict[str, Any], field: str, where: str, v: Validation) -> list[Any]:
+    """JSONB array columns in achievement_extraction must be arrays, not strings."""
+    value = record.get(field)
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        v.error(f"{where}: {field} must be an array, got {type(value).__name__}")
+        return []
+    return value
 
 
 def validate_labeled(
@@ -720,7 +734,9 @@ def validate_labeled(
                     v.error(f"{where}: trl={trl} requires trl_evidence")
                 trl_confidence = extraction.get("trl_confidence")
                 if trl_confidence is not None and (
-                    not isinstance(trl_confidence, (int, float)) or not 0 <= float(trl_confidence) <= 1
+                    isinstance(trl_confidence, bool)
+                    or not isinstance(trl_confidence, (int, float))
+                    or not 0 <= float(trl_confidence) <= 1
                 ):
                     v.error(f"{where}: trl_confidence must be in 0..1")
                 ip_status = extraction.get("ip_status") or "unknown"
@@ -742,8 +758,8 @@ def validate_labeled(
                     "extraction_id": f"ext_{achievement_id}",
                     "achievement_id": achievement_id,
                     "material_system": text_value(extraction.get("material_system")),
-                    "key_metrics": extraction.get("key_metrics") or [],
-                    "process": extraction.get("process") or [],
+                    "key_metrics": valid_json_array(extraction, "key_metrics", where, v),
+                    "process": valid_json_array(extraction, "process", where, v),
                     "trl": trl,
                     "trl_confidence": float(trl_confidence) if trl_confidence is not None else None,
                     "trl_evidence": trl_evidence,
@@ -1492,7 +1508,7 @@ def write_report(
         f"- started_at: `{iso(started)}`",
         f"- finished_at: `{iso(finished)}`",
         "",
-        "## Counts",
+        "## Counts (rows imported in this run; see Checks for table totals)",
         "",
         "| table | rows |",
         "| --- | ---: |",
@@ -1726,8 +1742,13 @@ def main() -> int:
         status = "success" if all(checks.get(name, 0) == 0 for name in hard_zero) else "partial"
         update_pipeline_run_status(db, run_id, status, finished)
         db.commit()
-        write_report(args.report, run_id, args.dsn, started, finished, status, counts, checks, v.warnings, v.errors, args)
-        write_import_manifest(args.import_manifest, run_id, status, started, finished, data, counts, checks, v.warnings, v.errors, args)
+        try:
+            write_report(args.report, run_id, args.dsn, started, finished, status, counts, checks, v.warnings, v.errors, args)
+            write_import_manifest(args.import_manifest, run_id, status, started, finished, data, counts, checks, v.warnings, v.errors, args)
+        except OSError as report_exc:
+            # The data is already committed; a report write failure must not
+            # turn a successful import into a failed run.
+            print(f"WARN: report not written: {report_exc}", file=sys.stderr)
         print(f"  imported: {counts}")
         print(f"  status: {status}")
         print(f"  report: {args.report}")
