@@ -18,9 +18,7 @@ The script does not download data. Put the handoff package's
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
-import io
 import json
 import math
 import os
@@ -287,6 +285,16 @@ INT32_MIN = -2147483648
 INT32_MAX = 2147483647
 
 
+def check_json_value(value: Any, field: str, where: str, v: Validation) -> None:
+    """Reject NaN/Infinity and other values PostgreSQL JSONB cannot store."""
+    if value is None:
+        return
+    try:
+        json.dumps(value, allow_nan=False)
+    except (TypeError, ValueError):
+        v.error(f"{where}: {field} contains values that cannot be stored as JSON")
+
+
 def check_text_fields(
     row: dict[str, Any], fields: tuple[str, ...], where: str, v: Validation
 ) -> None:
@@ -353,6 +361,8 @@ def validate_achievements(rows: list[dict[str, Any]], v: Validation) -> set[str]
             value = row.get(field)
             if value is not None and not isinstance(value, list):
                 v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
+            else:
+                check_json_value(value, field, where, v)
         check_text_fields(row, ACHIEVEMENT_TEXT_FIELDS, where, v)
         check_date(row.get("publication_date"), "publication_date", where, v)
         check_datetime(row.get("retrieved_at"), "retrieved_at", where, v)
@@ -416,6 +426,8 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
             value = row.get(field)
             if value is not None and not isinstance(value, list):
                 v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
+            else:
+                check_json_value(value, field, where, v)
         check_text_fields(row, DEMAND_TEXT_FIELDS, where, v)
         check_date(row.get("valid_until"), "valid_until", where, v)
         check_datetime(row.get("created_at"), "created_at", where, v)
@@ -532,6 +544,7 @@ def validate_embeddings(
             not isinstance(value, bool)
             and isinstance(value, (int, float))
             and math.isfinite(float(value))
+            and abs(float(value)) <= 3.4028235e38
             for value in vector
         ):
             v.error(f"{where}: vector contains non-numeric or non-finite values")
@@ -567,6 +580,9 @@ def parse_grades(value: Any, where: str, v: Validation) -> dict[str, int] | None
     for key, grade_text in items:
         if isinstance(grade_text, bool):
             v.error(f"{where}: relevance_grade for {key} must be an integer")
+            continue
+        if isinstance(grade_text, float) and not grade_text.is_integer():
+            v.error(f"{where}: relevance_grade {grade_text!r} for {key} is not an integer")
             continue
         try:
             grades[key] = int(grade_text)
@@ -631,6 +647,9 @@ def validate_eval(
                 if code and code not in TECH_FIELDS:
                     v.error(f"{where}: unknown target_tech_field {code!r}")
         candidate_set = set(candidates) if isinstance(candidates, list) else set()
+        check_json_value(candidates, "candidate_achievement_ids", where, v)
+        check_json_value(row.get("relevant_achievement_ids"), "relevant_achievement_ids", where, v)
+        check_json_value(row.get("relevance_grades"), "relevance_grades", where, v)
         for relevant_id in parse_id_list(row.get("relevant_achievement_ids")):
             if relevant_id not in candidate_set:
                 v.error(f"{where}: relevant id {relevant_id} not in candidate_achievement_ids")
@@ -699,6 +718,7 @@ def valid_json_array(record: dict[str, Any], field: str, where: str, v: Validati
     if not isinstance(value, list):
         v.error(f"{where}: {field} must be an array, got {type(value).__name__}")
         return []
+    check_json_value(value, field, where, v)
     return value
 
 
@@ -1159,11 +1179,23 @@ def build_rows(rows: list[dict[str, Any]], columns: list[str], transforms: dict[
 
 
 def build_csv(rows: list[dict[str, Any]], columns: list[str]) -> str:
-    buffer = io.StringIO(newline="")
-    writer = csv.writer(buffer, lineterminator="\n")
+    """Render COPY CSV. A literal field equal to \\N must be quoted, otherwise
+    PostgreSQL would read it as NULL."""
+    lines: list[str] = []
     for row in rows:
-        writer.writerow(["\\N" if row.get(column) is None else row[column] for column in columns])
-    return buffer.getvalue()
+        fields: list[str] = []
+        for column in columns:
+            value = row.get(column)
+            if value is None:
+                fields.append("\\N")
+                continue
+            text = str(value)
+            if text == "\\N" or any(char in text for char in ('"', ",", "\n", "\r")):
+                fields.append('"' + text.replace('"', '""') + '"')
+            else:
+                fields.append(text)
+        lines.append(",".join(fields))
+    return "\n".join(lines) + "\n"
 
 
 def import_table(
