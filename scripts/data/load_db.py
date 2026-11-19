@@ -26,9 +26,10 @@ import os
 import re
 import subprocess
 import sys
-from datetime import date, datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
@@ -154,11 +155,11 @@ class Validation:
 
 
 def now_utc() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def iso(value: datetime) -> str:
-    return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def sha256_file(path: Path) -> str:
@@ -593,7 +594,7 @@ class Database:
 
     def __init__(self, dsn: str, connect_timeout: int = 15) -> None:
         try:
-            import psycopg  # noqa: PLC0415 - optional until a DB run is requested
+            import psycopg
         except ImportError as exc:  # pragma: no cover - depends on environment
             raise RuntimeError(
                 "psycopg is not installed; run: pip install -r requirements.txt"
@@ -622,9 +623,8 @@ class Database:
         quoted = ", ".join(columns)
         sql = f"COPY {table} ({quoted}) FROM STDIN WITH (FORMAT csv, NULL '\\N')"
         payload = build_csv(rows, columns)
-        with self.conn.cursor() as cur:
-            with cur.copy(sql) as copy:
-                copy.write(payload)
+        with self.conn.cursor() as cur, cur.copy(sql) as copy:
+            copy.write(payload)
 
     def server_version(self) -> str:
         with self.conn.cursor() as cur:
@@ -744,8 +744,8 @@ def import_table(
     finally:
         try:
             db.execute(f"DROP TABLE IF EXISTS {staging};")
-        except Exception:  # noqa: BLE001 - cleanup must not mask the original error
-            pass
+        except Exception as cleanup_exc:  # noqa: BLE001 - cleanup must not mask the original error
+            print(f"WARN: staging cleanup failed: {cleanup_exc}", file=sys.stderr)
     return len(rows)
 
 
@@ -1143,8 +1143,8 @@ def main() -> int:
         finished = now_utc()
         try:
             db.rollback()
-        except Exception:  # noqa: BLE001 - keep the original error
-            pass
+        except Exception as rollback_exc:  # noqa: BLE001 - keep the original error
+            print(f"WARN: rollback failed: {rollback_exc}", file=sys.stderr)
         print(f"ERROR: {exc}", file=sys.stderr)
         try:
             write_report(args.report, run_id, args.dsn, started, finished, "failed", {}, {}, v.warnings, [str(exc)], args)
