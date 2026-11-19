@@ -763,6 +763,10 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
     for key in ("achievements", "demands", "enterprises"):
         if not data[key]:
             v.error(f"{key}: no rows loaded")
+    if not data["achievements"]:
+        # Every other check resolves achievement ids; stop here instead of
+        # emitting hundreds of cascade errors from one missing file.
+        return
     if data["queries"] and len(data["queries"]) != 20:
         v.warn(f"queries: {len(data['queries'])} rows, expected 20")
     if data["pairs"] and len(data["pairs"]) != 50:
@@ -1411,20 +1415,35 @@ def write_import_manifest(
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def resolve_data_paths(args: argparse.Namespace) -> None:
+    """Pick -thin or full filenames from --dataset-version when a path is not given."""
+    thin = args.dataset_version == "v0.1-thin"
+    base = PROJECT_ROOT / "data/processed"
+    mapping = {
+        "achievements": ("achievements_clean_v0.1-thin.jsonl", "achievements_clean_v0.1.jsonl"),
+        "labeled": ("achievements_labeled_v0.1-thin.jsonl", "achievements_labeled_v0.1.jsonl"),
+        "profiles": ("capability_profiles_v0.1-thin.jsonl", "capability_profiles_v0.1.jsonl"),
+        "embeddings": ("embeddings_v0.1-thin.jsonl", "embeddings_v0.1.jsonl"),
+    }
+    for attribute, (thin_name, full_name) in mapping.items():
+        if getattr(args, attribute) is None:
+            setattr(args, attribute, base / (thin_name if thin else full_name))
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate and load v0.1 data into PostgreSQL 16 + pgvector.")
     parser.add_argument("--check", action="store_true", help="validate files only; no database required")
     parser.add_argument("--dsn", default=os.environ.get("DATABASE_URL"), help="PostgreSQL DSN (default: DATABASE_URL)")
     parser.add_argument("--migrate-only", action="store_true", help="apply migrations and exit")
     parser.add_argument("--connect-timeout", type=int, default=15, help="database connect timeout in seconds")
-    parser.add_argument("--achievements", type=Path, default=DEFAULT_ACHIEVEMENTS)
+    parser.add_argument("--achievements", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--demands", type=Path, default=DEFAULT_DEMANDS)
     parser.add_argument("--enterprises", type=Path, default=DEFAULT_ENTERPRISES)
-    parser.add_argument("--embeddings", type=Path, default=DEFAULT_EMBEDDINGS)
+    parser.add_argument("--embeddings", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--queries", type=Path, default=DEFAULT_QUERIES)
     parser.add_argument("--pairs", type=Path, default=DEFAULT_PAIRS)
-    parser.add_argument("--labeled", type=Path, default=DEFAULT_LABELED)
-    parser.add_argument("--profiles", type=Path, default=DEFAULT_PROFILES)
+    parser.add_argument("--labeled", type=Path, default=None, help="default: depends on --dataset-version")
+    parser.add_argument("--profiles", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--zip", type=Path, default=None, help="optional handoff zip to verify")
     parser.add_argument("--skip-hash", action="store_true")
@@ -1441,6 +1460,7 @@ def parse_args() -> argparse.Namespace:
         parser.error("--check cannot be combined with --migrate")
     if args.migrate_only and not args.migrate:
         parser.error("--migrate-only requires --migrate")
+    resolve_data_paths(args)
     return args
 
 
