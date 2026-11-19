@@ -40,6 +40,9 @@ DEFAULT_ENTERPRISES = PROJECT_ROOT / "data/samples/enterprises_seed_v0.1.jsonl"
 DEFAULT_EMBEDDINGS = PROJECT_ROOT / "data/processed/embeddings_v0.1-thin.jsonl"
 DEFAULT_QUERIES = PROJECT_ROOT / "data/eval/retrieval_queries_v0.1-thin.jsonl"
 DEFAULT_PAIRS = PROJECT_ROOT / "data/eval/pair_labels_v0.1-thin.jsonl"
+DEFAULT_LABELED = PROJECT_ROOT / "data/processed/achievements_labeled_v0.1-thin.jsonl"
+DEFAULT_PROFILES = PROJECT_ROOT / "data/processed/capability_profiles_v0.1-thin.jsonl"
+TAXONOMY_PATH = PROJECT_ROOT / "data/spec/taxonomy_v0.1.md"
 DEFAULT_MANIFEST = PROJECT_ROOT / "data/manifests/private_data_v0.1-thin.json"
 DEFAULT_IMPORT_MANIFEST = PROJECT_ROOT / "data/manifests/import_v0.1.json"
 DEFAULT_REPORT = PROJECT_ROOT / "data/manifests/load_report_v0.1.md"
@@ -53,6 +56,8 @@ CLEAN_STATUSES = {"raw", "cleaned", "labeled", "embedded", "published"}
 REVIEW_STATUSES = {"pending", "approved", "rejected", "needs_review"}
 TAG_REVIEW_STATUSES = {"pending", "approved", "rejected"}
 DIMENSIONS = {"tech_field", "application_scenario", "cooperation_mode"}
+LABEL_DIMENSIONS = DIMENSIONS
+PROFILE_LANGUAGES = {"zh", "en"}
 TAG_METHODS = {"llm", "rule", "human"}
 TEXT_TYPES = {"title_zh", "abstract_zh", "capability_profile_zh", "capability_profile_en"}
 TEXT_METHODS = {"original", "machine", "human", "llm"}
@@ -139,6 +144,19 @@ QUERY_COLUMNS = [
 PAIR_COLUMNS = [
     "pair_id", "achievement_id", "demand_id", "relevance_grade", "rationale",
     "hard_negative_type", "annotator", "adjudication", "dataset_version",
+]
+TAG_COLUMNS = [
+    "tag_id", "achievement_id", "dimension", "code", "is_primary", "confidence",
+    "evidence", "method", "model", "prompt_version", "review_status",
+]
+EXTRACTION_COLUMNS = [
+    "extraction_id", "achievement_id", "material_system", "key_metrics", "process",
+    "trl", "trl_confidence", "trl_evidence", "ip_status", "extraction_run_id",
+    "model", "prompt_version", "raw_output", "review_status",
+]
+TEXT_COLUMNS = [
+    "text_id", "achievement_id", "text_type", "language", "text", "method",
+    "model", "prompt_version", "text_hash",
 ]
 
 
@@ -356,6 +374,38 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
     return ids
 
 
+def load_taxonomy_codes() -> dict[str, set[str]]:
+    """Parse the code column of each dimension table in taxonomy_v0.1.md."""
+    if not TAXONOMY_PATH.exists():
+        return {}
+    codes: dict[str, set[str]] = {}
+    current: str | None = None
+    for line in TAXONOMY_PATH.read_text(encoding="utf-8").splitlines():
+        heading = re.match(r"^## \d+\.\s+`([a-z_]+)`", line)
+        if heading:
+            current = heading.group(1)
+            codes.setdefault(current, set())
+            continue
+        if line.startswith("## "):
+            current = None
+            continue
+        if current and line.startswith("|"):
+            cell = line.strip().strip("|").split("|")[0].strip()
+            match = re.match(r"^`([a-z0-9_]+)`$", cell)
+            if match:
+                codes[current].add(match.group(1))
+    return codes
+
+
+def compute_text_hash(text: str) -> str:
+    """Use the shared client's normalization so profile and vector hashes match."""
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+    from scripts.common.llm_client import text_hash
+
+    return text_hash(text)
+
+
 def validate_embeddings(
     rows: list[dict[str, Any]],
     achievement_ids: set[str],
@@ -497,6 +547,204 @@ def validate_eval(
     return query_ids
 
 
+def validate_labeled(
+    rows: list[dict[str, Any]],
+    achievement_ids: set[str],
+    taxonomy: dict[str, set[str]],
+    v: Validation,
+) -> list[dict[str, Any]]:
+    """Validate achievements_labeled JSONL; return normalized tag/extraction records."""
+    normalized: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for index, row in enumerate(rows, 1):
+        achievement_id = row.get("achievement_id")
+        where = f"labeled[{index}] {achievement_id or '?'}"
+        if not achievement_id:
+            v.error(f"{where}: missing achievement_id")
+            continue
+        if achievement_id in seen_ids:
+            v.error(f"{where}: duplicate achievement_id")
+            continue
+        seen_ids.add(achievement_id)
+        if achievement_id not in achievement_ids:
+            v.error(f"{where}: unknown achievement_id")
+
+        raw_tags = row.get("tags") or []
+        if not isinstance(raw_tags, list):
+            v.error(f"{where}: tags must be a list")
+            raw_tags = []
+        tags: list[dict[str, Any]] = []
+        tech_field_count = 0
+        primary_count = 0
+        for tag_index, tag in enumerate(raw_tags, 1):
+            tag_where = f"{where} tag[{tag_index}]"
+            if not isinstance(tag, dict):
+                v.error(f"{tag_where}: must be an object")
+                continue
+            dimension = tag.get("dimension")
+            code = tag.get("code")
+            if dimension not in LABEL_DIMENSIONS:
+                v.error(f"{tag_where}: dimension={dimension!r} invalid")
+                continue
+            allowed = taxonomy.get(str(dimension))
+            if allowed and code not in allowed:
+                v.error(f"{tag_where}: code={code!r} not in taxonomy {dimension}")
+                continue
+            confidence = tag.get("confidence")
+            if not isinstance(confidence, (int, float)) or not 0 <= float(confidence) <= 1:
+                v.error(f"{tag_where}: confidence must be a number in 0..1")
+                continue
+            method = tag.get("method")
+            if method not in TAG_METHODS:
+                v.error(f"{tag_where}: method={method!r} invalid")
+                continue
+            review = tag.get("review_status") or "pending"
+            if review not in TAG_REVIEW_STATUSES:
+                v.error(f"{tag_where}: review_status={review!r} invalid (pending/approved/rejected)")
+                continue
+            is_primary = bool(tag.get("is_primary"))
+            if dimension == "tech_field":
+                tech_field_count += 1
+                if is_primary:
+                    primary_count += 1
+            elif is_primary:
+                v.error(f"{tag_where}: is_primary only allowed on tech_field")
+            evidence = tag.get("evidence")
+            if not evidence and float(confidence) > 0.4:
+                v.warn(f"{tag_where}: no evidence but confidence {confidence}; contract expects <=0.4")
+            tags.append({
+                "tag_id": f"tag_{achievement_id}_{dimension}_{code}",
+                "achievement_id": achievement_id,
+                "dimension": dimension,
+                "code": code,
+                "is_primary": bool(is_primary),
+                "confidence": float(confidence),
+                "evidence": text_value(evidence),
+                "method": method,
+                "model": text_value(tag.get("model")),
+                "prompt_version": text_value(tag.get("prompt_version")),
+                "review_status": review,
+            })
+        if tech_field_count > 2:
+            v.error(f"{where}: {tech_field_count} tech_field tags, max 2")
+        if tech_field_count and primary_count != 1:
+            v.error(f"{where}: {primary_count} primary tech_field tags, expected exactly 1")
+        if not tech_field_count:
+            v.warn(f"{where}: no tech_field tag")
+
+        extraction = row.get("extraction")
+        normalized_extraction = None
+        if extraction is not None:
+            if not isinstance(extraction, dict):
+                v.error(f"{where}: extraction must be an object or null")
+            else:
+                trl = extraction.get("trl")
+                if trl is not None and (not isinstance(trl, int) or not 1 <= trl <= 9):
+                    v.error(f"{where}: trl={trl!r} must be an integer 1..9 or null")
+                    trl = None
+                trl_evidence = text_value(extraction.get("trl_evidence"))
+                if trl is not None and not trl_evidence:
+                    v.error(f"{where}: trl={trl} requires trl_evidence")
+                trl_confidence = extraction.get("trl_confidence")
+                if trl_confidence is not None and (
+                    not isinstance(trl_confidence, (int, float)) or not 0 <= float(trl_confidence) <= 1
+                ):
+                    v.error(f"{where}: trl_confidence must be in 0..1")
+                ip_status = extraction.get("ip_status") or "unknown"
+                if ip_status not in IP_STATUSES:
+                    v.error(f"{where}: ip_status={ip_status!r} invalid")
+                model = text_value(extraction.get("model") or row.get("model"))
+                prompt_version = text_value(extraction.get("prompt_version") or row.get("prompt_version"))
+                if not model:
+                    v.error(f"{where}: extraction model is required")
+                if not prompt_version:
+                    v.error(f"{where}: extraction prompt_version is required")
+                run_id = text_value(
+                    extraction.get("extraction_run_id") or row.get("extraction_run_id")
+                ) or f"extract-{achievement_id}"
+                review = extraction.get("review_status") or row.get("review_status") or "pending"
+                if review not in TAG_REVIEW_STATUSES:
+                    v.error(f"{where}: extraction review_status={review!r} invalid")
+                normalized_extraction = {
+                    "extraction_id": f"ext_{achievement_id}",
+                    "achievement_id": achievement_id,
+                    "material_system": text_value(extraction.get("material_system")),
+                    "key_metrics": extraction.get("key_metrics") or [],
+                    "process": extraction.get("process") or [],
+                    "trl": trl,
+                    "trl_confidence": float(trl_confidence) if trl_confidence is not None else None,
+                    "trl_evidence": trl_evidence,
+                    "ip_status": ip_status,
+                    "extraction_run_id": run_id,
+                    "model": model,
+                    "prompt_version": prompt_version,
+                    "raw_output": extraction.get("raw_output"),
+                    "review_status": review,
+                }
+        normalized.append({
+            "achievement_id": achievement_id,
+            "tags": tags,
+            "extraction": normalized_extraction,
+        })
+    return normalized
+
+
+def validate_profiles(
+    rows: list[dict[str, Any]],
+    achievement_ids: set[str],
+    v: Validation,
+) -> list[dict[str, Any]]:
+    """Validate capability_profiles JSONL; fill text_id, text_type and text_hash."""
+    normalized: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for index, row in enumerate(rows, 1):
+        achievement_id = row.get("achievement_id")
+        where = f"profile[{index}] {achievement_id or '?'}"
+        if not achievement_id:
+            v.error(f"{where}: missing achievement_id")
+            continue
+        if achievement_id not in achievement_ids:
+            v.error(f"{where}: unknown achievement_id")
+            continue
+        language = row.get("language") or "zh"
+        if language not in PROFILE_LANGUAGES:
+            v.error(f"{where}: language={language!r} invalid (zh/en)")
+            continue
+        key = (achievement_id, language)
+        if key in seen:
+            v.error(f"{where}: duplicate profile for language {language}")
+            continue
+        seen.add(key)
+        text = (row.get("text") or "").strip()
+        if not text:
+            v.error(f"{where}: empty text")
+            continue
+        length = len(text)
+        if not 150 <= length <= 250:
+            v.warn(f"{where}: length {length} outside the 150-250 guidance")
+        computed = compute_text_hash(text)
+        given = row.get("text_hash")
+        if given and given != computed:
+            v.warn(f"{where}: text_hash mismatch, recomputed from text")
+        method = row.get("method") or "llm"
+        if method not in TEXT_METHODS:
+            v.error(f"{where}: method={method!r} invalid")
+            continue
+        text_type = "capability_profile_zh" if language == "zh" else "capability_profile_en"
+        normalized.append({
+            "text_id": f"txt_{achievement_id}_{text_type}_{language}",
+            "achievement_id": achievement_id,
+            "text_type": text_type,
+            "language": language,
+            "text": text,
+            "method": method,
+            "model": text_value(row.get("model")),
+            "prompt_version": text_value(row.get("prompt_version")),
+            "text_hash": computed,
+        })
+    return normalized
+
+
 def load_all(args: argparse.Namespace, v: Validation) -> dict[str, list[dict[str, Any]]]:
     data = {
         "achievements": load_jsonl(args.achievements, "achievements", True, v),
@@ -505,6 +753,8 @@ def load_all(args: argparse.Namespace, v: Validation) -> dict[str, list[dict[str
         "embeddings": load_jsonl(args.embeddings, "embeddings", False, v),
         "queries": load_jsonl(args.queries, "queries", False, v),
         "pairs": load_jsonl(args.pairs, "pairs", False, v),
+        "labeled": load_jsonl(args.labeled, "labeled", False, v),
+        "profiles": load_jsonl(args.profiles, "profiles", False, v),
     }
     return data
 
@@ -522,6 +772,11 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
     demand_ids = validate_demands(data["demands"], enterprise_ids, v)
     query_ids = validate_eval(data["queries"], data["pairs"], achievement_ids, demand_ids, v)
     validate_embeddings(data["embeddings"], achievement_ids, demand_ids, query_ids, v)
+    taxonomy = load_taxonomy_codes()
+    if data["labeled"]:
+        data["labeled"] = validate_labeled(data["labeled"], achievement_ids, taxonomy, v)
+    if data["profiles"]:
+        data["profiles"] = validate_profiles(data["profiles"], achievement_ids, v)
     for key in ("achievements", "demands", "enterprises"):
         missing = sum(1 for row in data[key] if not row.get("dataset_version"))
         if missing:
@@ -535,7 +790,9 @@ def apply_limit(data: dict[str, list[dict[str, Any]]], args: argparse.Namespace,
         data[key] = data[key][: args.limit]
     data["queries"] = []
     data["pairs"] = []
-    v.warn(f"--limit {args.limit}: core tables limited; eval queries/pairs skipped")
+    data["labeled"] = []
+    data["profiles"] = []
+    v.warn(f"--limit {args.limit}: core tables limited; eval, labels and profiles skipped")
 
 
 def verify_hashes(args: argparse.Namespace, v: Validation) -> None:
@@ -775,6 +1032,20 @@ def consistency_checks(db: Database) -> dict[str, int]:
     )
     checks["simulated_demand_false"] = db.scalar("SELECT count(*) FROM demand WHERE is_simulated IS NOT TRUE;")
     checks["simulated_enterprise_false"] = db.scalar("SELECT count(*) FROM enterprise WHERE is_simulated IS NOT TRUE;")
+    checks["achievements_without_primary_tech_field"] = db.scalar(
+        """SELECT count(*) FROM achievement a
+           WHERE NOT EXISTS (
+               SELECT 1 FROM achievement_tag t
+               WHERE t.achievement_id = a.achievement_id AND t.dimension = 'tech_field' AND t.is_primary
+           );"""
+    )
+    checks["achievements_without_profile"] = db.scalar(
+        """SELECT count(*) FROM achievement a
+           WHERE NOT EXISTS (
+               SELECT 1 FROM achievement_text t
+               WHERE t.achievement_id = a.achievement_id AND t.text_type LIKE 'capability_profile%'
+           );"""
+    )
     return checks
 
 
@@ -810,6 +1081,8 @@ def source_files(data: dict[str, list[dict[str, Any]]], args: argparse.Namespace
         "embeddings": args.embeddings,
         "queries": args.queries,
         "pairs": args.pairs,
+        "labeled": args.labeled,
+        "profiles": args.profiles,
     }
     files: list[dict[str, Any]] = []
     for key, path in paths.items():
@@ -894,7 +1167,103 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
     pairs = build_rows(data["pairs"], PAIR_COLUMNS, pair_transforms, args.dataset_version)
     counts["eval_label"] = import_table(db, "eval_label", PAIR_COLUMNS, pairs, "(pair_id)", ["pair_id"])
 
+    if data.get("labeled"):
+        counts.update(import_labeled(db, data["labeled"], args))
+    if data.get("profiles"):
+        counts.update(import_profiles(db, data["profiles"], args))
+
     return counts
+
+
+def ensure_pipeline_run(db: Database, run_id: str, stage: str, args: argparse.Namespace, note: str) -> None:
+    """Create a placeholder pipeline_run so extraction FK constraints hold."""
+    config = json.dumps({"source": "load_db.py", "note": note}, ensure_ascii=False)
+    sql = (
+        "INSERT INTO pipeline_run (run_id, stage, started_at, finished_at, status, input_count, output_count, config, git_commit, dataset_version) "
+        f"VALUES ({sql_literal(run_id)}, {sql_literal(stage)}, now(), now(), 'success', 0, 0, "
+        f"{sql_literal(config)}::jsonb, {sql_literal(git_commit())}, {sql_literal(args.dataset_version)}) "
+        "ON CONFLICT (run_id) DO NOTHING;"
+    )
+    db.execute(sql)
+
+
+def delete_for_achievements(
+    db: Database,
+    table: str,
+    achievement_ids: set[str],
+    extra_where: str = "",
+) -> int:
+    """Delete child rows for these achievements so a re-run replaces them cleanly."""
+    ids = sorted(achievement_ids)
+    if not ids:
+        return 0
+    deleted = 0
+    for start in range(0, len(ids), 500):
+        chunk = ids[start : start + 500]
+        literals = ", ".join(sql_literal(value) for value in chunk)
+        where = f"achievement_id IN ({literals})"
+        if extra_where:
+            where += f" AND {extra_where}"
+        deleted += db.scalar(
+            f"WITH removed AS (DELETE FROM {table} WHERE {where} RETURNING 1) SELECT count(*) FROM removed;"
+        )
+    return deleted
+
+
+def import_labeled(db: Database, labeled: list[dict[str, Any]], args: argparse.Namespace) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    tag_rows = [tag for record in labeled for tag in record["tags"]]
+    extraction_rows = [record["extraction"] for record in labeled if record["extraction"]]
+    achievement_ids = {record["achievement_id"] for record in labeled}
+    replaced_tags = delete_for_achievements(db, "achievement_tag", achievement_ids)
+    replaced_extractions = delete_for_achievements(db, "achievement_extraction", achievement_ids)
+    if replaced_tags or replaced_extractions:
+        print(f"  replaced {replaced_tags} tag rows and {replaced_extractions} extraction rows")
+    for run_id in sorted({row["extraction_run_id"] for row in extraction_rows}):
+        ensure_pipeline_run(db, run_id, "extract", args, "synthesized by load_db.py for extraction FK")
+    if tag_rows:
+        prepared = build_rows(
+            tag_rows, TAG_COLUMNS,
+            {"is_primary": bool_value, "evidence": text_value, "model": text_value, "prompt_version": text_value},
+            args.dataset_version,
+        )
+        counts["achievement_tag"] = import_table(
+            db, "achievement_tag", TAG_COLUMNS, prepared,
+            "(achievement_id, dimension, code)", ["achievement_id", "dimension", "code"],
+        )
+    if extraction_rows:
+        prepared = build_rows(
+            extraction_rows, EXTRACTION_COLUMNS,
+            {"key_metrics": json_value, "process": json_value, "raw_output": json_value, "material_system": text_value},
+            args.dataset_version,
+        )
+        counts["achievement_extraction"] = import_table(
+            db, "achievement_extraction", EXTRACTION_COLUMNS, prepared,
+            "(achievement_id)", ["achievement_id"],
+        )
+    return counts
+
+
+def import_profiles(db: Database, profiles: list[dict[str, Any]], args: argparse.Namespace) -> dict[str, int]:
+    if not profiles:
+        return {}
+    replaced = delete_for_achievements(
+        db, "achievement_text", {row["achievement_id"] for row in profiles},
+        "text_type LIKE 'capability_profile%'",
+    )
+    if replaced:
+        print(f"  replaced {replaced} profile rows")
+    prepared = build_rows(
+        profiles, TEXT_COLUMNS,
+        {"model": text_value, "prompt_version": text_value},
+        args.dataset_version,
+    )
+    return {
+        "achievement_text": import_table(
+            db, "achievement_text", TEXT_COLUMNS, prepared,
+            "(achievement_id, text_type, language)", ["achievement_id", "text_type", "language"],
+        )
+    }
 
 
 def insert_pipeline_run(
@@ -993,8 +1362,12 @@ def write_report(
         "fk_demand_enterprise", "fk_eval_label_achievement", "fk_eval_label_demand",
         "simulated_demand_false", "simulated_enterprise_false",
     }
+    info_checks = {"achievements_without_primary_tech_field", "achievements_without_profile"}
     for check, value in checks.items():
-        result = "OK" if (value == 0 or check not in hard_zero) else "CHECK"
+        if check in info_checks:
+            result = "INFO"
+        else:
+            result = "OK" if (value == 0 or check not in hard_zero) else "CHECK"
         lines.append(f"| `{check}` | {value} | {result} |")
     if warnings:
         lines += ["", "## Warnings", ""] + [f"- {warning}" for warning in warnings]
@@ -1050,6 +1423,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embeddings", type=Path, default=DEFAULT_EMBEDDINGS)
     parser.add_argument("--queries", type=Path, default=DEFAULT_QUERIES)
     parser.add_argument("--pairs", type=Path, default=DEFAULT_PAIRS)
+    parser.add_argument("--labeled", type=Path, default=DEFAULT_LABELED)
+    parser.add_argument("--profiles", type=Path, default=DEFAULT_PROFILES)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--zip", type=Path, default=None, help="optional handoff zip to verify")
     parser.add_argument("--skip-hash", action="store_true")
