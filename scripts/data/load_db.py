@@ -73,6 +73,14 @@ SCENARIOS = {
     "consumer_electronics", "e_tool_two_wheeler", "special", "recycling_industry",
 }
 COOPERATION_MODES = {"transfer", "license", "joint_rd", "joint_lab", "tech_service"}
+ACHIEVEMENT_LIST_FIELDS = (
+    "authors", "institutions", "countries", "keywords", "topics", "quality_flags",
+)
+DEMAND_LIST_FIELDS = (
+    "technical_metrics", "cooperation_modes", "tech_fields",
+    "application_scenarios", "source_urls",
+)
+
 QUALITY_FLAGS = {
     "abstract_reconstructed", "abstract_missing", "abstract_short", "license_missing",
     "no_institutions", "no_keywords", "language_unknown", "language_metadata_corrected",
@@ -233,6 +241,31 @@ def check_bool(value: Any, field: str, where: str, v: Validation) -> None:
         v.error(f"{where}: {field} must be boolean")
 
 
+def check_date(value: Any, field: str, where: str, v: Validation) -> None:
+    if value in (None, ""):
+        return
+    try:
+        date.fromisoformat(str(value))
+    except ValueError:
+        v.error(f"{where}: {field}={value!r} is not an ISO date (YYYY-MM-DD)")
+
+
+def check_datetime(value: Any, field: str, where: str, v: Validation) -> None:
+    if value in (None, ""):
+        return
+    try:
+        datetime.fromisoformat(str(value))
+    except ValueError:
+        v.error(f"{where}: {field}={value!r} is not an ISO datetime")
+
+
+def check_int(value: Any, field: str, where: str, v: Validation) -> None:
+    if value in (None, ""):
+        return
+    if isinstance(value, bool) or not isinstance(value, int):
+        v.error(f"{where}: {field}={value!r} is not an integer")
+
+
 def check_list(value: Any, field: str, where: str, v: Validation) -> None:
     if not isinstance(value, list):
         v.error(f"{where}: {field} must be a list")
@@ -274,10 +307,17 @@ def validate_achievements(rows: list[dict[str, Any]], v: Validation) -> set[str]
         abstract = row.get("abstract_original")
         if isinstance(abstract, str) and len(abstract) < 200:
             v.warn(f"{where}: abstract shorter than 200 chars")
+        for field in ACHIEVEMENT_LIST_FIELDS:
+            value = row.get(field)
+            if value is not None and not isinstance(value, list):
+                v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
+        check_date(row.get("publication_date"), "publication_date", where, v)
+        check_datetime(row.get("retrieved_at"), "retrieved_at", where, v)
+        check_int(row.get("cited_by_count"), "cited_by_count", where, v)
         flags = row.get("quality_flags")
-        if not isinstance(flags, list):
+        if flags is not None and not isinstance(flags, list):
             v.error(f"{where}: quality_flags must be a list")
-        else:
+        elif isinstance(flags, list):
             for flag in flags:
                 if flag not in QUALITY_FLAGS:
                     v.warn(f"{where}: unknown quality flag {flag!r}")
@@ -325,6 +365,11 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
             v.error(f"{where}: required_trl={trl!r} outside 1-9")
         check_enum(row.get("region"), REGIONS, "region", where, v)
         check_enum(row.get("status"), DEMAND_STATUSES, "status", where, v)
+        for field in DEMAND_LIST_FIELDS:
+            value = row.get(field)
+            if value is not None and not isinstance(value, list):
+                v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
+        check_date(row.get("valid_until"), "valid_until", where, v)
         check_bool(row.get("is_simulated"), "is_simulated", where, v)
         if row.get("is_simulated") is not True:
             v.error(f"{where}: is_simulated must be true")
@@ -455,6 +500,15 @@ def parse_grades(value: Any) -> dict[str, int] | None:
     return None
 
 
+def parse_id_list(value: Any) -> list[str]:
+    """Accept either a JSON array or the eval spec's semicolon-separated string."""
+    if value in (None, ""):
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if item]
+    return [part.strip() for part in str(value).split(";") if part.strip()]
+
+
 def validate_eval(
     queries: list[dict[str, Any]],
     pairs: list[dict[str, Any]],
@@ -482,11 +536,17 @@ def validate_eval(
             for code in str(target).split(";"):
                 if code and code not in TECH_FIELDS:
                     v.error(f"{where}: unknown target_tech_field {code!r}")
+        candidate_set = set(candidates) if isinstance(candidates, list) else set()
+        for relevant_id in parse_id_list(row.get("relevant_achievement_ids")):
+            if relevant_id not in candidate_set:
+                v.error(f"{where}: relevant id {relevant_id} not in candidate_achievement_ids")
         grades = parse_grades(row.get("relevance_grades"))
         if grades:
             for key, grade in grades.items():
                 if grade not in (0, 1, 2):
                     v.error(f"{where}: relevance_grade {grade} for {key} not 0/1/2")
+                if key not in candidate_set:
+                    v.error(f"{where}: graded id {key} not in candidate_achievement_ids")
         if not row.get("dataset_version"):
             missing_version += 1
         query_id = row.get("query_id")
@@ -559,6 +619,7 @@ def validate_labeled(
         tags: list[dict[str, Any]] = []
         tech_field_count = 0
         primary_count = 0
+        seen_tag_codes: set[tuple[str, str]] = set()
         for tag_index, tag in enumerate(raw_tags, 1):
             tag_where = f"{where} tag[{tag_index}]"
             if not isinstance(tag, dict):
@@ -574,7 +635,7 @@ def validate_labeled(
                 v.error(f"{tag_where}: code={code!r} not in taxonomy {dimension}")
                 continue
             confidence = tag.get("confidence")
-            if not isinstance(confidence, (int, float)) or not 0 <= float(confidence) <= 1:
+            if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not 0 <= float(confidence) <= 1:
                 v.error(f"{tag_where}: confidence must be a number in 0..1")
                 continue
             method = tag.get("method")
@@ -585,7 +646,15 @@ def validate_labeled(
             if review not in TAG_REVIEW_STATUSES:
                 v.error(f"{tag_where}: review_status={review!r} invalid (pending/approved/rejected)")
                 continue
-            is_primary = bool(tag.get("is_primary"))
+            tag_key = (str(dimension), str(code))
+            if tag_key in seen_tag_codes:
+                v.error(f"{tag_where}: duplicate (dimension, code) {tag_key}")
+                continue
+            seen_tag_codes.add(tag_key)
+            is_primary = tag.get("is_primary", False)
+            if not isinstance(is_primary, bool):
+                v.error(f"{tag_where}: is_primary must be true/false, got {is_primary!r}")
+                is_primary = False
             if dimension == "tech_field":
                 tech_field_count += 1
                 if is_primary:
@@ -627,7 +696,7 @@ def validate_labeled(
                 v.error(f"{where}: extraction must be an object or null")
             else:
                 trl = extraction.get("trl")
-                if trl is not None and (not isinstance(trl, int) or not 1 <= trl <= 9):
+                if trl is not None and (isinstance(trl, bool) or not isinstance(trl, int) or not 1 <= trl <= 9):
                     v.error(f"{where}: trl={trl!r} must be an integer 1..9 or null")
                     trl = None
                 trl_evidence = text_value(extraction.get("trl_evidence"))
@@ -778,8 +847,14 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
 def apply_limit(data: dict[str, list[dict[str, Any]]], args: argparse.Namespace, v: Validation) -> None:
     if not args.limit:
         return
-    for key in ("achievements", "demands", "enterprises"):
-        data[key] = data[key][: args.limit]
+    enterprises = data["enterprises"][: args.limit]
+    enterprise_ids = {row.get("enterprise_id") for row in enterprises}
+    demands = [
+        row for row in data["demands"] if row.get("enterprise_id") in enterprise_ids
+    ][: args.limit]
+    data["enterprises"] = enterprises
+    data["demands"] = demands
+    data["achievements"] = data["achievements"][: args.limit]
     # Vectors, eval rows, labels and profiles reference ids that may fall
     # outside the truncated slice, so they are skipped entirely.
     data["embeddings"] = []
@@ -904,6 +979,13 @@ def apply_migrations(db: Database) -> None:
     for path in files:
         print(f"  migration: {path.name}")
         db.execute(path.read_text(encoding="utf-8"))
+
+
+def json_array_value(value: Any) -> str:
+    """JSONB NOT NULL array columns: a missing value becomes an empty array."""
+    if value is None:
+        return "[]"
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
 
 
 def json_value(value: Any) -> str | None:
@@ -1131,8 +1213,9 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
     counts["enterprise"] = import_table(db, "enterprise", ENTERPRISE_COLUMNS, enterprises, "(enterprise_id)", ["enterprise_id"])
 
     achievement_transforms = {
-        "authors": json_value, "institutions": json_value, "countries": json_value,
-        "keywords": json_value, "topics": json_value, "quality_flags": json_value,
+        "authors": json_array_value, "institutions": json_array_value,
+        "countries": json_array_value, "keywords": json_array_value,
+        "topics": json_array_value, "quality_flags": json_array_value,
         "is_simulated": bool_value,
     }
     achievement_transforms.update({
@@ -1148,9 +1231,9 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
     counts["achievement"] = import_table(db, "achievement", ACHIEVEMENT_COLUMNS, achievements, "(achievement_id)", ["achievement_id"])
 
     demand_transforms = {
-        "technical_metrics": json_value, "cooperation_modes": json_value,
-        "tech_fields": json_value, "application_scenarios": json_value,
-        "source_urls": json_value, "is_simulated": bool_value,
+        "technical_metrics": json_array_value, "cooperation_modes": json_array_value,
+        "tech_fields": json_array_value, "application_scenarios": json_array_value,
+        "source_urls": json_array_value, "is_simulated": bool_value,
         "budget_range": text_value, "timeline": text_value, "ip_requirement": text_value,
         "created_at": lambda value: value or iso(now_utc()),
         "updated_at": lambda value: value or iso(now_utc()),
@@ -1160,6 +1243,9 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
 
     embedding_transforms = {"vector": vector_value}
     embeddings = build_rows(data["embeddings"], EMBEDDING_COLUMNS, embedding_transforms, args.dataset_version)
+    replaced_vectors = delete_embeddings_for(db, data["embeddings"])
+    if replaced_vectors:
+        print(f"  replaced {replaced_vectors} existing vectors")
     counts["embedding"] = import_table(
         db, "embedding", EMBEDDING_COLUMNS, embeddings,
         "(object_type, object_id, text_type, model, text_hash)",
@@ -1229,6 +1315,27 @@ def delete_for_achievements(
     return deleted
 
 
+
+def delete_embeddings_for(db: Database, embeddings: list[dict[str, Any]]) -> int:
+    """Replace vectors for the same object and text type instead of appending."""
+    keys = sorted({
+        (row["object_type"], row["object_id"], row["text_type"], row["model"])
+        for row in embeddings
+    })
+    deleted = 0
+    for start in range(0, len(keys), 200):
+        chunk = keys[start : start + 200]
+        literals = ", ".join(
+            "(" + ", ".join(sql_literal(value) for value in key) + ")" for key in chunk
+        )
+        deleted += db.scalar(
+            "WITH removed AS (DELETE FROM embedding "
+            f"WHERE (object_type, object_id, text_type, model) IN ({literals}) RETURNING 1) "
+            "SELECT count(*) FROM removed;"
+        )
+    return deleted
+
+
 def import_labeled(db: Database, labeled: list[dict[str, Any]], args: argparse.Namespace) -> dict[str, int]:
     counts: dict[str, int] = {}
     tag_rows = [tag for record in labeled for tag in record["tags"]]
@@ -1253,7 +1360,7 @@ def import_labeled(db: Database, labeled: list[dict[str, Any]], args: argparse.N
     if extraction_rows:
         prepared = build_rows(
             extraction_rows, EXTRACTION_COLUMNS,
-            {"key_metrics": json_value, "process": json_value, "raw_output": json_value, "material_system": text_value},
+            {"key_metrics": json_array_value, "process": json_array_value, "raw_output": json_value, "material_system": text_value},
             args.dataset_version,
         )
         counts["achievement_extraction"] = import_table(
