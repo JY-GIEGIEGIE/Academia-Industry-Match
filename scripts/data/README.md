@@ -100,9 +100,13 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --limit 20 --skip-hash
 python scripts/data/load_db.py --dsn "$DATABASE_URL" \
   --labeled data/processed/achievements_labeled_v0.1-thin.jsonl \
   --profiles data/processed/capability_profiles_v0.1-thin.jsonl
+
+# 全量：成果/标签/画像/向量/需求/企业六个默认路径一起切换
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
+  --dataset-version v0.1 --skip-hash
 ```
 
-输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
+输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`（运行时生成，每次覆盖，不入库）。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
 
 验证记录（2026-11-19，psycopg 3.3.4 + Docker PostgreSQL 16.16 + pgvector 0.8.7）：空库（public 0 表）一键迁移成功；导入 100 成果 / 20 需求 / 10 企业 / 20 query / 50 pair；连续导入后数量不变，重复 DOI 0、孤儿向量 0、外键 0、`vector(1024)` 正常；测试向量导入与距离查询通过后已清理；`--limit 20` 冒烟通过；zip 与 processed 文件的 SHA-256 与 manifest 一致。
 

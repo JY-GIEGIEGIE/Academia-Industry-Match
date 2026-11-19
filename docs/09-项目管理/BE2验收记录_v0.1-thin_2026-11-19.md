@@ -26,7 +26,7 @@
 | PostgreSQL | 16.16（Debian） | `docker compose` 的 `db` 服务，容器 `aim-pgvector` |
 | pgvector | 0.8.7 | 满足 0.8.x 要求 |
 | 宿主端口 | 5433 | 本机 5432 被 PostgreSQL 17 占用；`环境与密钥共享方案.md` §4.1 允许改 5433 |
-| Python | 3.12.6 | `.venv` 由 `D:\Python\python.exe -m venv` 创建；环境方案要求 3.11，见 §10 |
+| Python | 3.12.6 | `.venv` 由 `D:\Python\python.exe -m venv` 创建 |
 | 驱动 | psycopg 3.3.9 | 与 `requirements.txt` 一致 |
 | Docker | WSL2 daemon 29.1.3 | Windows Docker Desktop 当时未启动，改用 WSL 内的 daemon；镜像与 compose 文件相同 |
 
@@ -165,7 +165,6 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 
 | 偏差 | 原因 | 影响 |
 | --- | --- | --- |
-| Python 3.12.6 而非 3.11 | 本机无 3.11，`env_check` 只要求 ≥3.11 | 脚本与 CI（3.11）兼容；如需严格对齐可另建 3.11 venv |
 | 端口 5433 而非 5432 | 本机 5432 被 PostgreSQL 17 占用 | 文档 §4.1 允许；`.env` 已同步 `DATABASE_URL` |
 | Docker 用 WSL2 daemon | Windows Docker Desktop 未启动 | 镜像、compose 文件、容器名一致，结果等价 |
 | 镜像用本地 `0.8.7-pg16` 打 `pg16` 标签 | 拉取 `pg16` 时 registry TLS 超时 | 版本完全相同，未重新下载 |
