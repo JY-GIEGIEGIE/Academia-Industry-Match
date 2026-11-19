@@ -22,6 +22,7 @@ import csv
 import hashlib
 import io
 import json
+import math
 import os
 import re
 import subprocess
@@ -79,13 +80,17 @@ ACHIEVEMENT_TEXT_FIELDS = (
 )
 DEMAND_TEXT_FIELDS = (
     "title", "pain_point", "expected_solution", "budget_range", "timeline",
-    "region", "source_note", "content_hash",
+    "region", "source_note", "content_hash", "ip_requirement",
 )
 ENTERPRISE_TEXT_FIELDS = (
     "display_name", "legal_name", "main_business", "tech_base",
     "resources", "prior_collaboration", "source_note",
 )
 QUERY_TEXT_FIELDS = ("query_text", "target_tech_field", "annotator", "notes")
+PAIR_TEXT_FIELDS = ("rationale", "annotator", "adjudication", "hard_negative_type")
+TAG_TEXT_FIELDS = ("evidence", "model", "prompt_version")
+EXTRACTION_TEXT_FIELDS = ("material_system", "trl_evidence", "model", "prompt_version")
+EMBEDDING_TEXT_FIELDS = ("model", "text_hash")
 
 ACHIEVEMENT_LIST_FIELDS = (
     "authors", "institutions", "countries", "keywords", "topics", "quality_flags",
@@ -246,6 +251,11 @@ def require(record: dict[str, Any], field: str, where: str, v: Validation) -> No
 
 
 def check_enum(value: Any, allowed: set[str], field: str, where: str, v: Validation) -> None:
+    if value is None:
+        return
+    if not isinstance(value, str):
+        v.error(f"{where}: {field} must be a string, got {type(value).__name__}")
+        return
     if value not in allowed:
         v.error(f"{where}: {field}={value!r} not in {sorted(allowed)}")
 
@@ -320,6 +330,9 @@ def validate_achievements(rows: list[dict[str, Any]], v: Validation) -> set[str]
                 v.error(f"{where}: duplicate (source, source_id) {key}")
             source_ids.add(key)
         achievement_id = row.get("achievement_id")
+        if achievement_id is not None and not isinstance(achievement_id, str):
+            v.error(f"{where}: achievement_id must be a string")
+            continue
         if achievement_id in ids:
             v.error(f"{where}: duplicate achievement_id")
         if achievement_id:
@@ -390,7 +403,9 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
         for field in DEMAND_REQUIRED:
             require(row, field, where, v)
         enterprise_id = row.get("enterprise_id")
-        if enterprise_id and enterprise_id not in enterprise_ids:
+        if enterprise_id is not None and not isinstance(enterprise_id, str):
+            v.error(f"{where}: enterprise_id must be a string")
+        elif enterprise_id and enterprise_id not in enterprise_ids:
             v.error(f"{where}: unknown enterprise_id {enterprise_id}")
         trl = row.get("required_trl")
         if isinstance(trl, bool) or not isinstance(trl, int) or not 1 <= trl <= 9:
@@ -495,6 +510,10 @@ def validate_embeddings(
         if object_type not in OBJECT_TYPES:
             v.error(f"{where}: object_type={object_type!r} invalid")
         object_id = row.get("object_id")
+        if not isinstance(object_id, str):
+            v.error(f"{where}: object_id must be a string")
+            continue
+        check_text_fields(row, EMBEDDING_TEXT_FIELDS, where, v)
         if object_type == "achievement" and object_id not in achievement_ids:
             v.error(f"{where}: unknown achievement object_id {object_id}")
         if object_type == "demand" and object_id not in demand_ids:
@@ -510,10 +529,12 @@ def validate_embeddings(
         if not isinstance(vector, list) or len(vector) != 1024:
             v.error(f"{where}: vector must be a list of 1024 numbers")
         elif not all(
-            not isinstance(value, bool) and isinstance(value, (int, float))
+            not isinstance(value, bool)
+            and isinstance(value, (int, float))
+            and math.isfinite(float(value))
             for value in vector
         ):
-            v.error(f"{where}: vector contains non-numeric values")
+            v.error(f"{where}: vector contains non-numeric or non-finite values")
         key = (
             str(row.get("object_type")), str(row.get("object_id")),
             str(row.get("text_type")), str(row.get("model")), str(row.get("text_hash")),
@@ -641,6 +662,13 @@ def validate_eval(
             v.error(f"{where}: unknown achievement_id {row.get('achievement_id')}")
         if row.get("demand_id") not in demand_ids:
             v.error(f"{where}: unknown demand_id {row.get('demand_id')}")
+        check_text_fields(row, PAIR_TEXT_FIELDS, where, v)
+        pair_ach = row.get("achievement_id")
+        pair_dem = row.get("demand_id")
+        if pair_ach is not None and not isinstance(pair_ach, str):
+            v.error(f"{where}: achievement_id must be a string")
+        if pair_dem is not None and not isinstance(pair_dem, str):
+            v.error(f"{where}: demand_id must be a string")
         grade = row.get("relevance_grade")
         if grade not in ("", None):
             if isinstance(grade, bool) or not isinstance(grade, int) or grade not in (0, 1, 2):
@@ -750,6 +778,7 @@ def validate_labeled(
                     f"{tag_where}: cooperation_mode confidence {confidence} > 0.5; "
                     "taxonomy section 5 treats it as a potential mode only"
                 )
+            check_text_fields(tag, TAG_TEXT_FIELDS, tag_where, v)
             evidence = tag.get("evidence")
             if not evidence and float(confidence) > 0.4:
                 v.warn(f"{tag_where}: no evidence but confidence {confidence}; contract expects <=0.4")
@@ -796,6 +825,7 @@ def validate_labeled(
                 ip_status = extraction.get("ip_status") or "unknown"
                 if ip_status not in IP_STATUSES:
                     v.error(f"{where}: ip_status={ip_status!r} invalid")
+                check_text_fields(extraction, EXTRACTION_TEXT_FIELDS, where, v)
                 model = text_value(extraction.get("model") or row.get("model"))
                 prompt_version = text_value(extraction.get("prompt_version") or row.get("prompt_version"))
                 if not model:
@@ -925,6 +955,12 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
     if data["profiles"]:
         data["profiles"] = validate_profiles(data["profiles"], achievement_ids, v)
     for key in ("achievements", "demands", "enterprises"):
+        bad_version = [
+            row for row in data[key]
+            if row.get("dataset_version") is not None and not isinstance(row["dataset_version"], str)
+        ]
+        for row in bad_version:
+            v.error(f"{key}: dataset_version must be a string, got {type(row['dataset_version']).__name__}")
         missing = sum(1 for row in data[key] if not row.get("dataset_version"))
         if missing:
             v.warn(f"{key}: {missing} rows missing dataset_version; defaulting to {args.dataset_version}")
@@ -1071,13 +1107,13 @@ def json_array_value(value: Any) -> str:
     """JSONB NOT NULL array columns: a missing value becomes an empty array."""
     if value is None:
         return "[]"
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
 
 
 def json_value(value: Any) -> str | None:
     if value is None:
         return None
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
 
 
 def bool_value(value: Any) -> str | None:
