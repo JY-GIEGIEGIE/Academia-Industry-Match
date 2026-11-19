@@ -76,7 +76,8 @@ embedding[1] emb_xxx: text_type='document' invalid
 | `object_type` 不在枚举内 | `embedding[1] emb_x: object_type='paper' invalid` |
 | `object_id` 找不到对应成果/需求 | `unknown achievement object_id ach_xxx` |
 | `dim` 不是 1024 | `dim=768, expected 1024` |
-| 向量长度不是 1024 或含非数字 | `vector must be a list of 1024 numbers` |
+| 向量长度不是 1024 | `vector must be a list of 1024 numbers` |
+| 向量含非数字元素 | `vector contains non-numeric values` |
 | 唯一键重复 | `duplicate embedding key (...)` |
 
 ## 7. 需要回复的
