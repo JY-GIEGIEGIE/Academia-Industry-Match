@@ -146,7 +146,7 @@ hnsw index: ix_embedding_vector_hnsw
 | 向量覆盖率 100% | `embeddings_v0.1.jsonl`（陈镇灏） | `--embeddings` 导入，检查 `achievements_without_profile` 与 `rows_embedding` |
 | 标签覆盖 ≥95% / TRL 证据 100% | `achievements_labeled_v0.1.jsonl`（陈镇灏） | `--labeled` 导入，检查 `achievements_without_primary_tech_field` |
 | 画像覆盖 | `capability_profiles_v0.1.jsonl`（陈镇灏） | `--profiles` 导入 |
-| 300—400 条全量 | `achievements_clean_v0.1.jsonl`（黄欣悦） | `--dataset-version v0.1` 重跑 |
+| 300—400 条成果 / 100 需求 / 25 企业 | `achievements_clean_v0.1.jsonl`、`demands_v0.1.jsonl`、`enterprises_v0.1.jsonl`（黄欣悦） | `--dataset-version v0.1` 重跑 |
 
 全量到位后用一条命令切换：
 
@@ -154,6 +154,8 @@ hnsw index: ix_embedding_vector_hnsw
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
   --dataset-version v0.1 --skip-hash
 ```
+
+`--dataset-version v0.1` 会同时把六个默认路径切到全量：成果、标签、画像、向量在 `data/processed/`，需求和企业也从 `data/samples/*_seed.jsonl` 换成 `data/processed/demands_v0.1.jsonl`、`enterprises_v0.1.jsonl`（thin 是 20 需求 / 10 企业，全量是 100 / 25）。
 
 （`--skip-hash` 因为 `private_data_v0.1-thin.json` 记录的是 thin 包的哈希；全量包发布后应更新该 manifest。）
 
@@ -168,7 +170,7 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 
 ## 11. 附录
 
-- 导入报告：`data/manifests/load_report_v0.1.md`（每次运行覆盖）
+- 导入报告：`data/manifests/load_report_v0.1.md`（thin 验收快照，每次运行覆盖）
 - 导入清单：`data/manifests/import_v0.1.json`（run_id、数量、hash、版本、错误）
 - 私有数据哈希：`data/manifests/private_data_v0.1-thin.json`
 - 表结构：`migrations/0001_init.sql`

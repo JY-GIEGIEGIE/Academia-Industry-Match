@@ -1,0 +1,91 @@
+{
+  "run_id": "load-20261119T133727106495Z",
+  "stage": "load",
+  "status": "success",
+  "started_at": "2026-11-19T13:37:27Z",
+  "finished_at": "2026-11-19T13:37:27Z",
+  "input_count": 200,
+  "output_count": 200,
+  "counts": {
+    "enterprise": 10,
+    "achievement": 100,
+    "demand": 20,
+    "embedding": 0,
+    "eval_query": 20,
+    "eval_label": 50
+  },
+  "checks": {
+    "rows_achievement": 100,
+    "rows_achievement_text": 0,
+    "rows_achievement_tag": 0,
+    "rows_achievement_extraction": 0,
+    "rows_embedding": 0,
+    "rows_enterprise": 10,
+    "rows_demand": 20,
+    "rows_demand_tag": 0,
+    "rows_match_score": 0,
+    "rows_eval_query": 20,
+    "rows_eval_label": 50,
+    "rows_raw_source_record": 0,
+    "rows_pipeline_run": 8,
+    "rows_dataset_manifest": 8,
+    "duplicate_doi": 0,
+    "orphan_embeddings": 0,
+    "vector_dim_mismatch": 0,
+    "fk_demand_enterprise": 0,
+    "fk_eval_label_achievement": 0,
+    "fk_eval_label_demand": 0,
+    "simulated_demand_false": 0,
+    "simulated_enterprise_false": 0,
+    "achievements_without_primary_tech_field": 100,
+    "achievements_without_profile": 100
+  },
+  "dataset_version": "v0.1-thin",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": null,
+  "git_commit": "a3f8f3f08f561427a04a9a844d774483b2e3cd50",
+  "source_files": [
+    {
+      "path": "data/processed/achievements_clean_v0.1-thin.jsonl",
+      "bytes": 317277,
+      "sha256": "67ad938c44087c18fbb39772ac1fd016a39fcade52b4dee6a1197a6f5b99ab3d",
+      "rows": 100
+    },
+    {
+      "path": "data/samples/demands_seed_v0.1.jsonl",
+      "bytes": 26056,
+      "sha256": "68715599043d2071907688e267794effef139db11653430d4d4b5f558559ae06",
+      "rows": 20
+    },
+    {
+      "path": "data/samples/enterprises_seed_v0.1.jsonl",
+      "bytes": 6319,
+      "sha256": "610a0a258f459ec20412603577237fb47fee544f0ab49e5e579aee3b08fdf1d1",
+      "rows": 10
+    },
+    {
+      "path": "data/eval/retrieval_queries_v0.1-thin.jsonl",
+      "bytes": 18913,
+      "sha256": "da0ac9fde11924ff709a3a3999b068c1dd18a085dded3ccf78ed1b6e30ca4395",
+      "rows": 20
+    },
+    {
+      "path": "data/eval/pair_labels_v0.1-thin.jsonl",
+      "bytes": 20362,
+      "sha256": "4e8c729914c6d2c4dceccd8e1cacb17011afab53e2ad6b53f42a88f0c08cb544",
+      "rows": 50
+    }
+  ],
+  "warnings": [
+    "embeddings: file not found, skipped (C:\\Users\\29834\\Desktop\\Course\\CS\\软工管\\repos\\Academia-Industry-Match\\data\\processed\\embeddings_v0.1-thin.jsonl)",
+    "labeled: file not found, skipped (C:\\Users\\29834\\Desktop\\Course\\CS\\软工管\\repos\\Academia-Industry-Match\\data\\processed\\achievements_labeled_v0.1-thin.jsonl)",
+    "profiles: file not found, skipped (C:\\Users\\29834\\Desktop\\Course\\CS\\软工管\\repos\\Academia-Industry-Match\\data\\processed\\capability_profiles_v0.1-thin.jsonl)",
+    "achievements: extra build fields ignored: query_lens, query_tag, query_tags, raw_payload_path, selection_hits, selection_score",
+    "queries: 20 rows missing dataset_version; defaulting to v0.1-thin",
+    "pairs: 50 rows missing dataset_version; defaulting to v0.1-thin",
+    "pairs: 50 rows have no relevance_grade (annotation pending)",
+    "enterprises: 10 rows missing dataset_version; defaulting to v0.1-thin",
+    "hash verification skipped by --skip-hash"
+  ],
+  "errors": []
+}
