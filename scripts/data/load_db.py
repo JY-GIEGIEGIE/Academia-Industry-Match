@@ -1416,18 +1416,39 @@ def write_import_manifest(
 
 
 def resolve_data_paths(args: argparse.Namespace) -> None:
-    """Pick -thin or full filenames from --dataset-version when a path is not given."""
+    """Pick -thin or full paths from --dataset-version when a path is not given."""
     thin = args.dataset_version == "v0.1-thin"
-    base = PROJECT_ROOT / "data/processed"
+    processed = PROJECT_ROOT / "data/processed"
+    samples = PROJECT_ROOT / "data/samples"
     mapping = {
-        "achievements": ("achievements_clean_v0.1-thin.jsonl", "achievements_clean_v0.1.jsonl"),
-        "labeled": ("achievements_labeled_v0.1-thin.jsonl", "achievements_labeled_v0.1.jsonl"),
-        "profiles": ("capability_profiles_v0.1-thin.jsonl", "capability_profiles_v0.1.jsonl"),
-        "embeddings": ("embeddings_v0.1-thin.jsonl", "embeddings_v0.1.jsonl"),
+        "achievements": (
+            processed / "achievements_clean_v0.1-thin.jsonl",
+            processed / "achievements_clean_v0.1.jsonl",
+        ),
+        "labeled": (
+            processed / "achievements_labeled_v0.1-thin.jsonl",
+            processed / "achievements_labeled_v0.1.jsonl",
+        ),
+        "profiles": (
+            processed / "capability_profiles_v0.1-thin.jsonl",
+            processed / "capability_profiles_v0.1.jsonl",
+        ),
+        "embeddings": (
+            processed / "embeddings_v0.1-thin.jsonl",
+            processed / "embeddings_v0.1.jsonl",
+        ),
+        "demands": (
+            samples / "demands_seed_v0.1.jsonl",
+            processed / "demands_v0.1.jsonl",
+        ),
+        "enterprises": (
+            samples / "enterprises_seed_v0.1.jsonl",
+            processed / "enterprises_v0.1.jsonl",
+        ),
     }
-    for attribute, (thin_name, full_name) in mapping.items():
+    for attribute, (thin_path, full_path) in mapping.items():
         if getattr(args, attribute) is None:
-            setattr(args, attribute, base / (thin_name if thin else full_name))
+            setattr(args, attribute, thin_path if thin else full_path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -1437,8 +1458,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--migrate-only", action="store_true", help="apply migrations and exit")
     parser.add_argument("--connect-timeout", type=int, default=15, help="database connect timeout in seconds")
     parser.add_argument("--achievements", type=Path, default=None, help="default: depends on --dataset-version")
-    parser.add_argument("--demands", type=Path, default=DEFAULT_DEMANDS)
-    parser.add_argument("--enterprises", type=Path, default=DEFAULT_ENTERPRISES)
+    parser.add_argument("--demands", type=Path, default=None, help="default: depends on --dataset-version")
+    parser.add_argument("--enterprises", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--embeddings", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--queries", type=Path, default=DEFAULT_QUERIES)
     parser.add_argument("--pairs", type=Path, default=DEFAULT_PAIRS)
