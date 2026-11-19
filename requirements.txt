@@ -1,0 +1,8 @@
+# 数据侧运行依赖（Python 3.11）
+# 现有 fetch/clean/seed/eval 模板脚本仍只用标准库；
+# 以下依赖用于后续的抽取、向量、入库与评测。
+psycopg[binary]>=3.2,<4
+numpy>=1.26,<3
+rank-bm25>=0.2.2,<1
+pytest>=8,<9
+ruff>=0.6,<1

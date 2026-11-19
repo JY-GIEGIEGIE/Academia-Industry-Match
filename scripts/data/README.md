@@ -56,6 +56,23 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 ## 6. 下一步（尚未实现）
 
 - `extract_labels.py`：Qwen 标签/TRL/指标抽取，JSON schema + 证据 + confidence；
-- `embed.py`：BGE-M3 1024 / Qwen 1024 向量化，`text_hash` 缓存；
+- `embed.py`：Qwen `qwen3.7-text-embedding-flash` 1024 维向量化，`text_hash` 缓存；
 - `load_db.py`：PostgreSQL + pgvector 幂等导入；
 - `evaluate.py`：Recall@10、Precision@5、nDCG@10；本冲刺先做 B0—B2 三组基线（BM25 / 纯向量 / 标签+向量），B3（LLM 精排）待匹配引擎就绪后补。
+
+## 7. 共享 API 客户端
+
+`extract_labels.py` / `embed.py` / `evaluate.py` 统一使用 `scripts/common/llm_client.py`，不要各自写 HTTP：
+
+```python
+from scripts.common.llm_client import chat_json, embed_texts, rerank
+
+labels = chat_json(messages)
+vectors = embed_texts(texts, text_type="document")   # 检索 query 用 "query"
+hits = rerank(query, documents, top_n=10)
+```
+
+- 自动读 `.env` 中自己的百炼 key；
+- embedding 按 `(model, dim, text_type, text_hash)` 缓存到 `data/interim/`，不重复计费；
+- 调用开销写 `data/interim/api_usage.jsonl`；
+- 自检：`python scripts/common/llm_client.py --check`；小样本：`--demo`。
