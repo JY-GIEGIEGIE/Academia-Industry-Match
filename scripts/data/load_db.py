@@ -285,6 +285,21 @@ INT32_MIN = -2147483648
 INT32_MAX = 2147483647
 
 
+def has_unencodable(value: Any) -> bool:
+    """True if the value holds an unpaired surrogate that UTF-8 cannot encode."""
+    if isinstance(value, str):
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError:
+            return True
+        return False
+    if isinstance(value, dict):
+        return any(has_unencodable(key) or has_unencodable(item) for key, item in value.items())
+    if isinstance(value, list):
+        return any(has_unencodable(item) for item in value)
+    return False
+
+
 def check_json_value(value: Any, field: str, where: str, v: Validation) -> None:
     """Reject NaN/Infinity and other values PostgreSQL JSONB cannot store."""
     if value is None:
@@ -296,6 +311,8 @@ def check_json_value(value: Any, field: str, where: str, v: Validation) -> None:
         return
     if "\\u0000" in serialised:
         v.error(f"{where}: {field} contains a NUL character, which PostgreSQL rejects")
+    if has_unencodable(value):
+        v.error(f"{where}: {field} contains an unpaired surrogate")
 
 
 def check_text_fields(
@@ -857,7 +874,10 @@ def validate_labeled(
                 ip_status = extraction.get("ip_status") or "unknown"
                 if ip_status not in IP_STATUSES:
                     v.error(f"{where}: ip_status={ip_status!r} invalid")
-                check_text_fields(extraction, EXTRACTION_TEXT_FIELDS, where, v)
+                check_text_fields(
+                    extraction, EXTRACTION_TEXT_FIELDS + ("extraction_run_id",), where, v
+                )
+                check_text_fields(row, ("model", "prompt_version"), where, v)
                 check_json_value(extraction.get("raw_output"), "raw_output", where, v)
                 model = text_value(extraction.get("model") or row.get("model"))
                 prompt_version = text_value(extraction.get("prompt_version") or row.get("prompt_version"))
