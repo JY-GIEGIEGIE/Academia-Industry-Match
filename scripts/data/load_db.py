@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Validate and load v0.1 data into PostgreSQL 16 + pgvector.
 
-The loader is stdlib-only: it invokes the PostgreSQL client ``psql`` via
-subprocess instead of importing a Python driver. It validates the JSONL
-files first, verifies the private-package hashes when a manifest is present,
-then imports into the schema from ``migrations/0001_init.sql``.
+Uses psycopg 3 (see ``requirements.txt``) for the connection, COPY and
+transactions. It validates the JSONL files first, verifies the
+private-package hashes when a manifest is present, then imports into the
+schema from ``migrations/0001_init.sql``.
 
 Examples:
     python scripts/data/load_db.py --check
@@ -24,7 +24,6 @@ import io
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 from datetime import date, datetime, timezone
@@ -589,65 +588,74 @@ def print_check(data: dict[str, list[dict[str, Any]]], v: Validation) -> None:
             print(f"  ... {len(v.errors) - 30} more")
 
 
-def psql_run(psql: str, dsn: str, sql: str | None = None, file: Path | None = None, stdin: str | None = None) -> str:
-    command = [psql, dsn, "-v", "ON_ERROR_STOP=1", "--no-psqlrc", "-q"]
-    if file is not None:
-        command += ["-f", str(file)]
-    if sql is not None:
-        command += ["-c", sql]
-    env = os.environ.copy()
-    env["PGCLIENTENCODING"] = "UTF8"
-    run_kwargs: dict[str, Any] = {
-        "text": True,
-        "encoding": "utf-8",
-        "errors": "replace",
-        "capture_output": True,
-        "env": env,
-    }
-    if stdin is None:
-        run_kwargs["stdin"] = subprocess.DEVNULL
-    else:
-        run_kwargs["input"] = stdin
-    result = subprocess.run(command, **run_kwargs)
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip().replace(dsn, redact_dsn(dsn))
-        raise RuntimeError(f"psql failed ({result.returncode}): {detail[:2000]}")
-    return result.stdout
+class Database:
+    """Thin psycopg 3 wrapper: one connection, explicit transactions."""
+
+    def __init__(self, dsn: str, connect_timeout: int = 15) -> None:
+        try:
+            import psycopg  # noqa: PLC0415 - optional until a DB run is requested
+        except ImportError as exc:  # pragma: no cover - depends on environment
+            raise RuntimeError(
+                "psycopg is not installed; run: pip install -r requirements.txt"
+            ) from exc
+        self._psycopg = psycopg
+        self.dsn = dsn
+        self.conn = psycopg.connect(dsn, connect_timeout=connect_timeout, autocommit=False)
+
+    @property
+    def version(self) -> str:
+        return f"psycopg {self._psycopg.__version__}"
+
+    def execute(self, sql: str) -> None:
+        with self.conn.cursor() as cur:
+            cur.execute(sql)
+
+    def scalar(self, sql: str) -> int:
+        with self.conn.cursor() as cur:
+            cur.execute(sql)
+            row = cur.fetchone()
+        if not row or row[0] is None:
+            return 0
+        return int(row[0])
+
+    def copy_rows(self, table: str, columns: list[str], rows: list[dict[str, Any]]) -> None:
+        quoted = ", ".join(columns)
+        sql = f"COPY {table} ({quoted}) FROM STDIN WITH (FORMAT csv, NULL '\\N')"
+        payload = build_csv(rows, columns)
+        with self.conn.cursor() as cur:
+            with cur.copy(sql) as copy:
+                copy.write(payload)
+
+    def server_version(self) -> str:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT current_setting('server_version')")
+            row = cur.fetchone()
+        return row[0] if row else "unknown"
+
+    def vector_version(self) -> str:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT extversion FROM pg_extension WHERE extname = 'vector'")
+            row = cur.fetchone()
+        return row[0] if row else "missing"
+
+    def commit(self) -> None:
+        self.conn.commit()
+
+    def rollback(self) -> None:
+        self.conn.rollback()
+
+    def close(self) -> None:
+        self.conn.close()
 
 
-def psql_query(psql: str, dsn: str, sql: str) -> str:
-    command = [psql, dsn, "-v", "ON_ERROR_STOP=1", "--no-psqlrc", "-q", "-t", "-A", "-F", "|", "-c", sql]
-    env = os.environ.copy()
-    env["PGCLIENTENCODING"] = "UTF8"
-    result = subprocess.run(
-        command,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        capture_output=True,
-        env=env,
-        stdin=subprocess.DEVNULL,
-    )
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip().replace(dsn, redact_dsn(dsn))
-        raise RuntimeError(f"psql query failed ({result.returncode}): {detail[:2000]}")
-    return result.stdout
-
-
-def query_int(psql: str, dsn: str, sql: str) -> int:
-    output = psql_query(psql, dsn, sql).strip()
-    if not output:
-        return 0
-    return int(output.splitlines()[-1].strip())
-
-
-def apply_migrations(psql: str, dsn: str) -> None:
+def apply_migrations(db: Database) -> None:
     files = sorted(MIGRATIONS_DIR.glob("*.sql"))
     if not files:
         raise RuntimeError(f"no migrations found in {MIGRATIONS_DIR}")
+    db.execute("CREATE EXTENSION IF NOT EXISTS vector;")
     for path in files:
         print(f"  migration: {path.name}")
-        psql_run(psql, dsn, file=path)
+        db.execute(path.read_text(encoding="utf-8"))
 
 
 def json_value(value: Any) -> str | None:
@@ -707,8 +715,7 @@ def build_csv(rows: list[dict[str, Any]], columns: list[str]) -> str:
 
 
 def import_table(
-    psql: str,
-    dsn: str,
+    db: Database,
     table: str,
     columns: list[str],
     rows: list[dict[str, Any]],
@@ -720,9 +727,8 @@ def import_table(
     staging = f"_stg_{table}"
     quoted_columns = ", ".join(columns)
     try:
-        psql_run(psql, dsn, sql=f"DROP TABLE IF EXISTS {staging}; CREATE UNLOGGED TABLE {staging} (LIKE {table} INCLUDING DEFAULTS);")
-        copy_sql = "\\copy " + staging + " (" + quoted_columns + ") FROM STDIN WITH (FORMAT csv, NULL '\\N')"
-        psql_run(psql, dsn, sql=copy_sql, stdin=build_csv(rows, columns))
+        db.execute(f"DROP TABLE IF EXISTS {staging}; CREATE UNLOGGED TABLE {staging} (LIKE {table} INCLUDING DEFAULTS);")
+        db.copy_rows(staging, columns, rows)
         assignments = [
             f"{column} = EXCLUDED.{column}"
             for column in columns
@@ -734,16 +740,16 @@ def import_table(
             f"INSERT INTO {table} ({quoted_columns}) SELECT {quoted_columns} FROM {staging} "
             f"ON CONFLICT {conflict} DO UPDATE SET {', '.join(assignments)};"
         )
-        psql_run(psql, dsn, sql=insert_sql)
+        db.execute(insert_sql)
     finally:
         try:
-            psql_run(psql, dsn, sql=f"DROP TABLE IF EXISTS {staging};")
-        except RuntimeError:
+            db.execute(f"DROP TABLE IF EXISTS {staging};")
+        except Exception:  # noqa: BLE001 - cleanup must not mask the original error
             pass
     return len(rows)
 
 
-def consistency_checks(psql: str, dsn: str) -> dict[str, int]:
+def consistency_checks(db: Database) -> dict[str, int]:
     tables = [
         "achievement", "achievement_text", "achievement_tag", "achievement_extraction",
         "embedding", "enterprise", "demand", "demand_tag", "match_score",
@@ -751,36 +757,24 @@ def consistency_checks(psql: str, dsn: str) -> dict[str, int]:
     ]
     checks: dict[str, int] = {}
     for table in tables:
-        checks[f"rows_{table}"] = query_int(psql, dsn, f"SELECT count(*) FROM {table};")
-    checks["duplicate_doi"] = query_int(
-        psql, dsn,
-        "SELECT count(*) FROM (SELECT lower(doi) FROM achievement WHERE doi IS NOT NULL GROUP BY 1 HAVING count(*) > 1) AS duplicates;",
+        checks[f"rows_{table}"] = db.scalar(f"SELECT count(*) FROM {table};")
+    checks["duplicate_doi"] = db.scalar("SELECT count(*) FROM (SELECT lower(doi) FROM achievement WHERE doi IS NOT NULL GROUP BY 1 HAVING count(*) > 1) AS duplicates;",
     )
-    checks["orphan_embeddings"] = query_int(
-        psql, dsn,
-        """SELECT count(*) FROM embedding e
+    checks["orphan_embeddings"] = db.scalar("""SELECT count(*) FROM embedding e
            WHERE (e.object_type = 'achievement' AND NOT EXISTS (SELECT 1 FROM achievement a WHERE a.achievement_id = e.object_id))
               OR (e.object_type = 'demand' AND NOT EXISTS (SELECT 1 FROM demand d WHERE d.demand_id = e.object_id))
               OR (e.object_type = 'eval_query' AND NOT EXISTS (SELECT 1 FROM eval_query q WHERE q.query_id = e.object_id));""",
     )
-    checks["vector_dim_mismatch"] = query_int(
-        psql, dsn,
-        'SELECT count(*) FROM embedding WHERE vector_dims("vector") <> 1024;',
+    checks["vector_dim_mismatch"] = db.scalar('SELECT count(*) FROM embedding WHERE vector_dims("vector") <> 1024;',
     )
-    checks["fk_demand_enterprise"] = query_int(
-        psql, dsn,
-        "SELECT count(*) FROM demand d LEFT JOIN enterprise e ON e.enterprise_id = d.enterprise_id WHERE e.enterprise_id IS NULL;",
+    checks["fk_demand_enterprise"] = db.scalar("SELECT count(*) FROM demand d LEFT JOIN enterprise e ON e.enterprise_id = d.enterprise_id WHERE e.enterprise_id IS NULL;",
     )
-    checks["fk_eval_label_achievement"] = query_int(
-        psql, dsn,
-        "SELECT count(*) FROM eval_label l LEFT JOIN achievement a ON a.achievement_id = l.achievement_id WHERE a.achievement_id IS NULL;",
+    checks["fk_eval_label_achievement"] = db.scalar("SELECT count(*) FROM eval_label l LEFT JOIN achievement a ON a.achievement_id = l.achievement_id WHERE a.achievement_id IS NULL;",
     )
-    checks["fk_eval_label_demand"] = query_int(
-        psql, dsn,
-        "SELECT count(*) FROM eval_label l LEFT JOIN demand d ON d.demand_id = l.demand_id WHERE d.demand_id IS NULL;",
+    checks["fk_eval_label_demand"] = db.scalar("SELECT count(*) FROM eval_label l LEFT JOIN demand d ON d.demand_id = l.demand_id WHERE d.demand_id IS NULL;",
     )
-    checks["simulated_demand_false"] = query_int(psql, dsn, "SELECT count(*) FROM demand WHERE is_simulated IS NOT TRUE;")
-    checks["simulated_enterprise_false"] = query_int(psql, dsn, "SELECT count(*) FROM enterprise WHERE is_simulated IS NOT TRUE;")
+    checks["simulated_demand_false"] = db.scalar("SELECT count(*) FROM demand WHERE is_simulated IS NOT TRUE;")
+    checks["simulated_enterprise_false"] = db.scalar("SELECT count(*) FROM enterprise WHERE is_simulated IS NOT TRUE;")
     return checks
 
 
@@ -834,7 +828,7 @@ def source_files(data: dict[str, list[dict[str, Any]]], args: argparse.Namespace
     return files
 
 
-def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args: argparse.Namespace) -> dict[str, int]:
+def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argparse.Namespace) -> dict[str, int]:
     counts: dict[str, int] = {}
 
     enterprise_transforms = {
@@ -844,7 +838,7 @@ def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args:
         "prior_collaboration": text_value,
     }
     enterprises = build_rows(data["enterprises"], ENTERPRISE_COLUMNS, enterprise_transforms, args.dataset_version)
-    counts["enterprise"] = import_table(psql, dsn, "enterprise", ENTERPRISE_COLUMNS, enterprises, "(enterprise_id)", ["enterprise_id"])
+    counts["enterprise"] = import_table(db, "enterprise", ENTERPRISE_COLUMNS, enterprises, "(enterprise_id)", ["enterprise_id"])
 
     achievement_transforms = {
         "authors": json_value, "institutions": json_value, "countries": json_value,
@@ -861,7 +855,7 @@ def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args:
         "cited_by_count": int_value,
     })
     achievements = build_rows(data["achievements"], ACHIEVEMENT_COLUMNS, achievement_transforms, args.dataset_version)
-    counts["achievement"] = import_table(psql, dsn, "achievement", ACHIEVEMENT_COLUMNS, achievements, "(achievement_id)", ["achievement_id"])
+    counts["achievement"] = import_table(db, "achievement", ACHIEVEMENT_COLUMNS, achievements, "(achievement_id)", ["achievement_id"])
 
     demand_transforms = {
         "technical_metrics": json_value, "cooperation_modes": json_value,
@@ -870,12 +864,12 @@ def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args:
         "budget_range": text_value, "timeline": text_value, "ip_requirement": text_value,
     }
     demands = build_rows(data["demands"], DEMAND_COLUMNS, demand_transforms, args.dataset_version)
-    counts["demand"] = import_table(psql, dsn, "demand", DEMAND_COLUMNS, demands, "(demand_id)", ["demand_id"])
+    counts["demand"] = import_table(db, "demand", DEMAND_COLUMNS, demands, "(demand_id)", ["demand_id"])
 
     embedding_transforms = {"vector": vector_value}
     embeddings = build_rows(data["embeddings"], EMBEDDING_COLUMNS, embedding_transforms, args.dataset_version)
     counts["embedding"] = import_table(
-        psql, dsn, "embedding", EMBEDDING_COLUMNS, embeddings,
+        db, "embedding", EMBEDDING_COLUMNS, embeddings,
         "(object_type, object_id, text_type, model, text_hash)",
         ["embedding_id", "object_type", "object_id", "text_type", "model", "text_hash"],
     )
@@ -888,7 +882,7 @@ def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args:
         "notes": text_value,
     }
     queries = build_rows(data["queries"], QUERY_COLUMNS, query_transforms, args.dataset_version)
-    counts["eval_query"] = import_table(psql, dsn, "eval_query", QUERY_COLUMNS, queries, "(query_id)", ["query_id"])
+    counts["eval_query"] = import_table(db, "eval_query", QUERY_COLUMNS, queries, "(query_id)", ["query_id"])
 
     pair_transforms = {
         "relevance_grade": int_value,
@@ -898,14 +892,13 @@ def import_all(psql: str, dsn: str, data: dict[str, list[dict[str, Any]]], args:
         "adjudication": text_value,
     }
     pairs = build_rows(data["pairs"], PAIR_COLUMNS, pair_transforms, args.dataset_version)
-    counts["eval_label"] = import_table(psql, dsn, "eval_label", PAIR_COLUMNS, pairs, "(pair_id)", ["pair_id"])
+    counts["eval_label"] = import_table(db, "eval_label", PAIR_COLUMNS, pairs, "(pair_id)", ["pair_id"])
 
     return counts
 
 
 def insert_pipeline_run(
-    psql: str,
-    dsn: str,
+    db: Database,
     run_id: str,
     started: datetime,
     finished: datetime,
@@ -923,20 +916,19 @@ def insert_pipeline_run(
         "ON CONFLICT (run_id) DO UPDATE SET finished_at = EXCLUDED.finished_at, status = EXCLUDED.status, "
         "output_count = EXCLUDED.output_count, config = EXCLUDED.config;"
     )
-    psql_run(psql, dsn, sql=sql)
+    db.execute(sql)
 
 
-def update_pipeline_run_status(psql: str, dsn: str, run_id: str, status: str, finished: datetime) -> None:
+def update_pipeline_run_status(db: Database, run_id: str, status: str, finished: datetime) -> None:
     sql = (
         f"UPDATE pipeline_run SET status = {sql_literal(status)}, finished_at = {sql_literal(iso(finished))}::timestamptz "
         f"WHERE run_id = {sql_literal(run_id)};"
     )
-    psql_run(psql, dsn, sql=sql)
+    db.execute(sql)
 
 
 def insert_dataset_manifest(
-    psql: str,
-    dsn: str,
+    db: Database,
     run_id: str,
     counts: dict[str, int],
     data: dict[str, list[dict[str, Any]]],
@@ -953,7 +945,7 @@ def insert_dataset_manifest(
         f"{sql_literal(json.dumps(hashes, ensure_ascii=False))}::jsonb, {sql_literal(notes)}) "
         "ON CONFLICT (manifest_id) DO UPDATE SET counts = EXCLUDED.counts, hashes = EXCLUDED.hashes, notes = EXCLUDED.notes;"
     )
-    psql_run(psql, dsn, sql=sql)
+    db.execute(sql)
 
 
 def write_report(
@@ -1050,7 +1042,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate and load v0.1 data into PostgreSQL 16 + pgvector.")
     parser.add_argument("--check", action="store_true", help="validate files only; no database required")
     parser.add_argument("--dsn", default=os.environ.get("DATABASE_URL"), help="PostgreSQL DSN (default: DATABASE_URL)")
-    parser.add_argument("--psql", default=None, help="path to psql (default: search PATH)")
+    parser.add_argument("--migrate-only", action="store_true", help="apply migrations and exit")
+    parser.add_argument("--connect-timeout", type=int, default=15, help="database connect timeout in seconds")
     parser.add_argument("--achievements", type=Path, default=DEFAULT_ACHIEVEMENTS)
     parser.add_argument("--demands", type=Path, default=DEFAULT_DEMANDS)
     parser.add_argument("--enterprises", type=Path, default=DEFAULT_ENTERPRISES)
@@ -1071,6 +1064,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--limit must be positive")
     if args.check and args.migrate:
         parser.error("--check cannot be combined with --migrate")
+    if args.migrate_only and not args.migrate:
+        parser.error("--migrate-only requires --migrate")
     return args
 
 
@@ -1098,9 +1093,13 @@ def main() -> int:
     if not args.dsn:
         print("ERROR: --dsn or DATABASE_URL is required for import", file=sys.stderr)
         return 2
-    psql = args.psql or shutil.which("psql")
-    if not psql:
-        print("ERROR: psql not found; install PostgreSQL 16 client or pass --psql", file=sys.stderr)
+    try:
+        db = Database(args.dsn, connect_timeout=args.connect_timeout)
+    except RuntimeError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:  # noqa: BLE001 - CLI boundary
+        print(f"ERROR: cannot connect: {redact_dsn(str(exc))}", file=sys.stderr)
         return 2
 
     started = now_utc()
@@ -1108,25 +1107,31 @@ def main() -> int:
     try:
         if args.migrate:
             print("Applying migrations")
-            apply_migrations(psql, args.dsn)
+            apply_migrations(db)
+            if args.migrate_only:
+                db.commit()
+                print("  migrations applied")
+                return 0
+        print(f"  server: PostgreSQL {db.server_version()} / pgvector {db.vector_version()}")
         print("Importing")
-        counts = import_all(psql, args.dsn, data, args)
+        counts = import_all(db, data, args)
         finished = now_utc()
         input_count = sum(len(rows) for rows in data.values())
         output_count = sum(counts.values())
-        insert_pipeline_run(psql, args.dsn, run_id, started, finished, "running", input_count, output_count, args)
+        insert_pipeline_run(db, run_id, started, finished, "running", input_count, output_count, args)
         insert_dataset_manifest(
-            psql, args.dsn, run_id, counts, data, args,
+            db, run_id, counts, data, args,
             notes=f"input={input_count}; output={output_count}; warnings={len(v.warnings)}",
         )
-        checks = consistency_checks(psql, args.dsn)
+        checks = consistency_checks(db)
         hard_zero = {
             "duplicate_doi", "orphan_embeddings", "vector_dim_mismatch",
             "fk_demand_enterprise", "fk_eval_label_achievement", "fk_eval_label_demand",
             "simulated_demand_false", "simulated_enterprise_false",
         }
         status = "success" if all(checks.get(name, 0) == 0 for name in hard_zero) else "partial"
-        update_pipeline_run_status(psql, args.dsn, run_id, status, finished)
+        update_pipeline_run_status(db, run_id, status, finished)
+        db.commit()
         write_report(args.report, run_id, args.dsn, started, finished, status, counts, checks, v.warnings, v.errors, args)
         write_import_manifest(args.import_manifest, run_id, status, started, finished, data, counts, checks, v.warnings, v.errors, args)
         print(f"  imported: {counts}")
@@ -1136,6 +1141,10 @@ def main() -> int:
         return 0 if status == "success" else 1
     except Exception as exc:  # noqa: BLE001 - CLI boundary
         finished = now_utc()
+        try:
+            db.rollback()
+        except Exception:  # noqa: BLE001 - keep the original error
+            pass
         print(f"ERROR: {exc}", file=sys.stderr)
         try:
             write_report(args.report, run_id, args.dsn, started, finished, "failed", {}, {}, v.warnings, [str(exc)], args)
@@ -1146,6 +1155,8 @@ def main() -> int:
         except OSError:
             pass
         return 1
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

@@ -99,6 +99,6 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --limit 20 --skip-hash
 
 输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
 
-验证记录（2026-11-18）：Docker PostgreSQL 16.16 + pgvector 0.8.7；空库一键迁移后导入 100 条，连续 5 次导入后 achievement/demand/enterprise/eval 数量保持 100/20/10/20/50，重复 DOI 0、外键 0、`vector(1024)` 正常。
+验证记录（2026-11-19，psycopg 3.3.4 + Docker PostgreSQL 16.16 + pgvector 0.8.7）：空库（public 0 表）一键迁移成功；导入 100 成果 / 20 需求 / 10 企业 / 20 query / 50 pair；连续导入后数量不变，重复 DOI 0、孤儿向量 0、外键 0、`vector(1024)` 正常；测试向量导入与距离查询通过后已清理；`--limit 20` 冒烟通过；zip 与 processed 文件的 SHA-256 与 manifest 一致。
 
 标签/画像/TRL（`achievement_tag`、`achievement_text`、`achievement_extraction`）和 `match_score` 表已建好；等陈镇灏/匹配引擎产出 JSONL 后再补导入。本次骨架只覆盖成果、需求、企业、向量和评测。
