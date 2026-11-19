@@ -468,7 +468,8 @@ def validate_embeddings(
             v.error(f"{where}: unknown eval_query object_id {object_id}")
         if row.get("text_type") not in EMBEDDING_TEXT_TYPES:
             v.error(f"{where}: text_type={row.get('text_type')!r} invalid")
-        if row.get("dim") != 1024:
+        dim = row.get("dim")
+        if isinstance(dim, bool) or not isinstance(dim, int) or dim != 1024:
             v.error(f"{where}: dim={row.get('dim')!r}, expected 1024")
         vector = row.get("vector")
         if not isinstance(vector, list) or len(vector) != 1024:
@@ -484,20 +485,35 @@ def validate_embeddings(
         seen.add(key)
 
 
-def parse_grades(value: Any) -> dict[str, int] | None:
+def parse_grades(value: Any, where: str, v: Validation) -> dict[str, int] | None:
+    """Parse 'id:grade;id:grade'; report malformed entries instead of raising."""
     if value is None or value == "":
         return None
+    grades: dict[str, int] = {}
     if isinstance(value, dict):
-        return {str(key): int(grade) for key, grade in value.items()}
-    if isinstance(value, str):
-        grades: dict[str, int] = {}
+        items = [(str(key), grade) for key, grade in value.items()]
+    elif isinstance(value, str):
+        items = []
         for part in value.split(";"):
-            if ":" not in part:
+            if not part.strip():
                 continue
-            key, grade = part.split(":", 1)
-            grades[key.strip()] = int(grade)
-        return grades or None
-    return None
+            if ":" not in part:
+                v.error(f"{where}: relevance_grades entry {part!r} is not 'id:grade'")
+                continue
+            key, grade_text = part.split(":", 1)
+            items.append((key.strip(), grade_text))
+    else:
+        v.error(f"{where}: relevance_grades must be a string or object")
+        return None
+    for key, grade_text in items:
+        if isinstance(grade_text, bool):
+            v.error(f"{where}: relevance_grade for {key} must be an integer")
+            continue
+        try:
+            grades[key] = int(grade_text)
+        except (TypeError, ValueError):
+            v.error(f"{where}: relevance_grade {grade_text!r} for {key} is not an integer")
+    return grades or None
 
 
 def parse_id_list(value: Any) -> list[str]:
@@ -540,7 +556,7 @@ def validate_eval(
         for relevant_id in parse_id_list(row.get("relevant_achievement_ids")):
             if relevant_id not in candidate_set:
                 v.error(f"{where}: relevant id {relevant_id} not in candidate_achievement_ids")
-        grades = parse_grades(row.get("relevance_grades"))
+        grades = parse_grades(row.get("relevance_grades"), where, v)
         if grades:
             for key, grade in grades.items():
                 if grade not in (0, 1, 2):
@@ -1137,12 +1153,19 @@ def consistency_checks(db: Database) -> dict[str, int]:
     )
     checks["embedding_text_hash_mismatch"] = db.scalar(
         """SELECT count(*) FROM embedding e
-           JOIN achievement_text t
-             ON t.achievement_id = e.object_id
-            AND t.text_type = 'capability_profile_zh'
            WHERE e.object_type = 'achievement'
              AND e.text_type = 'capability_profile'
-             AND e.text_hash <> t.text_hash;"""
+             AND EXISTS (
+                 SELECT 1 FROM achievement_text t
+                 WHERE t.achievement_id = e.object_id
+                   AND t.text_type LIKE 'capability_profile%'
+             )
+             AND NOT EXISTS (
+                 SELECT 1 FROM achievement_text t
+                 WHERE t.achievement_id = e.object_id
+                   AND t.text_type LIKE 'capability_profile%'
+                   AND t.text_hash = e.text_hash
+             );"""
     )
     return checks
 
@@ -1717,12 +1740,19 @@ def main() -> int:
         except Exception as rollback_exc:  # noqa: BLE001 - keep the original error
             print(f"WARN: rollback failed: {rollback_exc}", file=sys.stderr)
         print(f"ERROR: {exc}", file=sys.stderr)
+        failed_report = args.report.with_name(
+            f"{args.report.stem}_failed_{run_id}{args.report.suffix}"
+        )
+        failed_manifest = args.import_manifest.with_name(
+            f"{args.import_manifest.stem}_failed_{run_id}{args.import_manifest.suffix}"
+        )
         try:
-            write_report(args.report, run_id, args.dsn, started, finished, "failed", {}, {}, v.warnings, [str(exc)], args)
+            write_report(failed_report, run_id, args.dsn, started, finished, "failed", {}, {}, v.warnings, [str(exc)], args)
             write_import_manifest(
-                args.import_manifest, run_id, "failed", started, finished,
+                failed_manifest, run_id, "failed", started, finished,
                 data, {}, {}, v.warnings, [str(exc)], args,
             )
+            print(f"  failed run written to: {failed_report}", file=sys.stderr)
         except OSError:
             pass
         return 1
