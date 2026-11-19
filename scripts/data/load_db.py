@@ -559,7 +559,7 @@ def validate_embeddings(
     v: Validation,
 ) -> None:
     seen: set[tuple[str, str, str, str, str]] = set()
-    replace_keys: set[tuple[str, str, str, str]] = set()
+    replace_keys: set[tuple[str, str, str]] = set()
     seen_ids: set[str] = set()
     for index, row in enumerate(rows, 1):
         where = f"embedding[{index}] {row.get('embedding_id', '?')}"
@@ -607,10 +607,10 @@ def validate_embeddings(
         if key in seen:
             v.error(f"{where}: duplicate embedding key {key}")
         seen.add(key)
-        replace_key = key[:4]
+        replace_key = key[:3]
         if replace_key in replace_keys:
             v.error(
-                f"{where}: more than one vector for (object_type, object_id, text_type, model) "
+                f"{where}: more than one vector for (object_type, object_id, text_type) "
                 f"{replace_key}; the import keeps only one, so fix the source file"
             )
         replace_keys.add(replace_key)
@@ -1553,7 +1553,7 @@ def delete_for_achievements(
 def delete_embeddings_for(db: Database, embeddings: list[dict[str, Any]]) -> int:
     """Replace vectors for the same object and text type instead of appending."""
     keys = sorted({
-        (row["object_type"], row["object_id"], row["text_type"], row["model"])
+        (row["object_type"], row["object_id"], row["text_type"])
         for row in embeddings
     })
     deleted = 0
@@ -1564,7 +1564,7 @@ def delete_embeddings_for(db: Database, embeddings: list[dict[str, Any]]) -> int
         )
         deleted += db.scalar(
             "WITH removed AS (DELETE FROM embedding "
-            f"WHERE (object_type, object_id, text_type, model) IN ({literals}) RETURNING 1) "
+            f"WHERE (object_type, object_id, text_type) IN ({literals}) RETURNING 1) "
             "SELECT count(*) FROM removed;"
         )
     return deleted
