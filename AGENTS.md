@@ -35,6 +35,7 @@
 
 - 写 `scripts/data/extract_labels.py`：先 30 条校准，再全量抽取 + 10% 抽检。
 - 写 `scripts/data/embed.py`：成果 + 需求向量化；1024 维；记录 model/version/text_hash。
+- 抽取/向量/评测统一使用 `scripts/common/llm_client.py`（重试/批量/缓存/usage），不要各自写 HTTP。
 - 写 `scripts/data/evaluate.py`：BM25 / 纯向量 / 标签+向量 三组基线（B0—B2）；B3（标签+向量+LLM 精排）待匹配引擎就绪后补；Recall@10、Precision@5、nDCG@10。
 - 20 条 query + 50 对 pair 人工标注（与黄欣悦、贾越）。
 - 输出：`data/processed/achievements_labeled_v0.1.jsonl`（薄切片试跑用 `_v0.1-thin`）；`data/processed/capability_profiles_v0.1.jsonl`；`data/processed/embeddings_v0.1.jsonl`；`data/manifests/baseline_v0.1.md`。
@@ -79,9 +80,9 @@
 
 - Python 3.11。
 - OpenAlex 网络；可选 `OPENALEX_MAILTO` / `OPENALEX_API_KEY`。
-- 百炼 Qwen API key。
+- 百炼 Qwen API key（每人独立 key，只放本地 `.env`）。
 - PostgreSQL 16 + pgvector 0.8.x。
-- BGE-M3 1024 或 Qwen embedding 1024。
+- Qwen embedding 1024（本冲刺统一 `qwen3.7-text-embedding-flash`；BGE-M3 为备选，不得混用）。
 - 缺任何一项，停下来问贾越，不要自己 mock 数据或改口径。
 
 ## 5. 不能做什么

@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-11-19T01:51:40.462965+00:00",
+  "env_file": ".env",
+  "python": "3.11.8",
+  "results": [
+    {
+      "name": "Python 版本",
+      "status": "PASS",
+      "detail": "3.11.8（要求 >= 3.11）",
+      "required": true
+    },
+    {
+      "name": "配置文件",
+      "status": "PASS",
+      "detail": ".env 已找到：.env",
+      "required": true
+    },
+    {
+      "name": "必需变量",
+      "status": "PASS",
+      "detail": "6 项齐全；DASHSCOPE_API_KEY=sk-***",
+      "required": true
+    },
+    {
+      "name": "百炼对话",
+      "status": "PASS",
+      "detail": "qwen3.8-flash 返回 'OK'",
+      "required": true
+    },
+    {
+      "name": "百炼向量",
+      "status": "PASS",
+      "detail": "qwen3.7-text-embedding-flash batch=2 dim=1024 usage={'prompt_tokens': 46, 'total_tokens': 46}",
+      "required": true
+    },
+    {
+      "name": "query/document 区分",
+      "status": "PASS",
+      "detail": "cos=0.8552（text_type 生效）",
+      "required": true
+    },
+    {
+      "name": "数据库",
+      "status": "PASS",
+      "detail": "PostgreSQL 16 + pgvector 0.8.7（检查方式：docker compose exec）",
+      "required": true
+    }
+  ],
+  "summary": {
+    "counts": {
+      "PASS": 7,
+      "WARN": 0,
+      "FAIL": 0,
+      "SKIP": 0
+    },
+    "ok": true
+  }
+}
