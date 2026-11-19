@@ -73,6 +73,20 @@ SCENARIOS = {
     "consumer_electronics", "e_tool_two_wheeler", "special", "recycling_industry",
 }
 COOPERATION_MODES = {"transfer", "license", "joint_rd", "joint_lab", "tech_service"}
+ACHIEVEMENT_TEXT_FIELDS = (
+    "title_original", "abstract_original", "venue", "license", "oa_status",
+    "content_hash", "source_id", "doi", "patent_no", "source_url", "retrieved_at",
+)
+DEMAND_TEXT_FIELDS = (
+    "title", "pain_point", "expected_solution", "budget_range", "timeline",
+    "region", "source_note", "content_hash",
+)
+ENTERPRISE_TEXT_FIELDS = (
+    "display_name", "legal_name", "main_business", "tech_base",
+    "resources", "prior_collaboration", "source_note",
+)
+QUERY_TEXT_FIELDS = ("query_text", "target_tech_field", "annotator", "notes")
+
 ACHIEVEMENT_LIST_FIELDS = (
     "authors", "institutions", "countries", "keywords", "topics", "quality_flags",
 )
@@ -259,11 +273,26 @@ def check_datetime(value: Any, field: str, where: str, v: Validation) -> None:
         v.error(f"{where}: {field}={value!r} is not an ISO datetime")
 
 
+INT32_MIN = -2147483648
+INT32_MAX = 2147483647
+
+
+def check_text_fields(
+    row: dict[str, Any], fields: tuple[str, ...], where: str, v: Validation
+) -> None:
+    for field in fields:
+        value = row.get(field)
+        if value is not None and not isinstance(value, str):
+            v.error(f"{where}: {field} must be a string, got {type(value).__name__}")
+
+
 def check_int(value: Any, field: str, where: str, v: Validation) -> None:
     if value in (None, ""):
         return
     if isinstance(value, bool) or not isinstance(value, int):
         v.error(f"{where}: {field}={value!r} is not an integer")
+    elif not INT32_MIN <= value <= INT32_MAX:
+        v.error(f"{where}: {field}={value!r} out of integer range")
 
 
 def check_list(value: Any, field: str, where: str, v: Validation) -> None:
@@ -311,9 +340,7 @@ def validate_achievements(rows: list[dict[str, Any]], v: Validation) -> set[str]
             value = row.get(field)
             if value is not None and not isinstance(value, list):
                 v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
-        source_url = row.get("source_url")
-        if source_url is not None and not isinstance(source_url, str):
-            v.error(f"{where}: source_url must be a string, got {type(source_url).__name__}")
+        check_text_fields(row, ACHIEVEMENT_TEXT_FIELDS, where, v)
         check_date(row.get("publication_date"), "publication_date", where, v)
         check_datetime(row.get("retrieved_at"), "retrieved_at", where, v)
         check_int(row.get("cited_by_count"), "cited_by_count", where, v)
@@ -343,6 +370,8 @@ def validate_enterprises(rows: list[dict[str, Any]], v: Validation) -> set[str]:
         check_enum(row.get("industry"), INDUSTRIES, "industry", where, v)
         check_enum(row.get("size"), SIZES, "size", where, v)
         check_enum(row.get("region"), REGIONS, "region", where, v)
+        check_text_fields(row, ENTERPRISE_TEXT_FIELDS, where, v)
+        check_datetime(row.get("created_at"), "created_at", where, v)
         check_bool(row.get("is_simulated"), "is_simulated", where, v)
         if row.get("is_simulated") is not True:
             v.error(f"{where}: is_simulated must be true")
@@ -372,7 +401,10 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
             value = row.get(field)
             if value is not None and not isinstance(value, list):
                 v.error(f"{where}: {field} must be a list, got {type(value).__name__}")
+        check_text_fields(row, DEMAND_TEXT_FIELDS, where, v)
         check_date(row.get("valid_until"), "valid_until", where, v)
+        check_datetime(row.get("created_at"), "created_at", where, v)
+        check_datetime(row.get("updated_at"), "updated_at", where, v)
         check_bool(row.get("is_simulated"), "is_simulated", where, v)
         if row.get("is_simulated") is not True:
             v.error(f"{where}: is_simulated must be true")
@@ -477,7 +509,10 @@ def validate_embeddings(
         vector = row.get("vector")
         if not isinstance(vector, list) or len(vector) != 1024:
             v.error(f"{where}: vector must be a list of 1024 numbers")
-        elif not all(isinstance(value, (int, float)) for value in vector):
+        elif not all(
+            not isinstance(value, bool) and isinstance(value, (int, float))
+            for value in vector
+        ):
             v.error(f"{where}: vector contains non-numeric values")
         key = (
             str(row.get("object_type")), str(row.get("object_id")),
@@ -519,6 +554,24 @@ def parse_grades(value: Any, where: str, v: Validation) -> dict[str, int] | None
     return grades or None
 
 
+def grades_to_dict(value: Any) -> dict[str, int] | None:
+    """Normalise 'id:grade;id:grade' (or an object) for the JSONB column."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, dict):
+        return {str(key): int(grade) for key, grade in value.items() if not isinstance(grade, bool)}
+    result: dict[str, int] = {}
+    for part in str(value).split(";"):
+        if ":" not in part:
+            continue
+        key, _, grade_text = part.partition(":")
+        try:
+            result[key.strip()] = int(grade_text.strip())
+        except ValueError:
+            continue
+    return result or None
+
+
 def parse_id_list(value: Any) -> list[str]:
     """Accept either a JSON array or the eval spec's semicolon-separated string."""
     if value in (None, ""):
@@ -541,6 +594,7 @@ def validate_eval(
         where = f"query[{index}] {row.get('query_id', '?')}"
         for field in ("query_id", "query_text", "query_language", "query_type", "target_tech_field", "candidate_achievement_ids"):
             require(row, field, where, v)
+        check_text_fields(row, QUERY_TEXT_FIELDS, where, v)
         check_enum(row.get("query_language"), QUERY_LANGUAGES, "query_language", where, v)
         check_enum(row.get("query_type"), QUERY_TYPES, "query_type", where, v)
         candidates = row.get("candidate_achievement_ids")
@@ -1292,9 +1346,9 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
     )
 
     query_transforms = {
-        "candidate_achievement_ids": json_value,
-        "relevant_achievement_ids": json_value,
-        "relevance_grades": json_value,
+        "candidate_achievement_ids": json_array_value,
+        "relevant_achievement_ids": lambda value: json_value(parse_id_list(value) or None),
+        "relevance_grades": lambda value: json_value(grades_to_dict(value)),
         "annotator": text_value,
         "notes": text_value,
     }
