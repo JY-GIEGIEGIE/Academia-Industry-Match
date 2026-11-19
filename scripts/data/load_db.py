@@ -290,9 +290,12 @@ def check_json_value(value: Any, field: str, where: str, v: Validation) -> None:
     if value is None:
         return
     try:
-        json.dumps(value, allow_nan=False)
+        serialised = json.dumps(value, allow_nan=False)
     except (TypeError, ValueError):
         v.error(f"{where}: {field} contains values that cannot be stored as JSON")
+        return
+    if "\\u0000" in serialised:
+        v.error(f"{where}: {field} contains a NUL character, which PostgreSQL rejects")
 
 
 def check_text_fields(
@@ -302,6 +305,15 @@ def check_text_fields(
         value = row.get(field)
         if value is not None and not isinstance(value, str):
             v.error(f"{where}: {field} must be a string, got {type(value).__name__}")
+            continue
+        if not isinstance(value, str):
+            continue
+        if "\x00" in value:
+            v.error(f"{where}: {field} contains a NUL character, which PostgreSQL rejects")
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError:
+            v.error(f"{where}: {field} contains an unpaired surrogate")
 
 
 def check_int(value: Any, field: str, where: str, v: Validation) -> None:
@@ -846,6 +858,7 @@ def validate_labeled(
                 if ip_status not in IP_STATUSES:
                     v.error(f"{where}: ip_status={ip_status!r} invalid")
                 check_text_fields(extraction, EXTRACTION_TEXT_FIELDS, where, v)
+                check_json_value(extraction.get("raw_output"), "raw_output", where, v)
                 model = text_value(extraction.get("model") or row.get("model"))
                 prompt_version = text_value(extraction.get("prompt_version") or row.get("prompt_version"))
                 if not model:
