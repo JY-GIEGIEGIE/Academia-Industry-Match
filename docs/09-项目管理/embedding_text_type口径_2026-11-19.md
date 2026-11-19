@@ -2,7 +2,7 @@
 
 > 适用：`scripts/data/embed.py`、`embeddings_v0.1.jsonl`、`embedding` 表
 > 依据：`data/spec/data_contract_v0.1.md` 第 4.3、4.6、6.4 节；`scripts/common/llm_client.py`
-> 作者：张小桐（BE2）｜待陈镇灏（AI）确认第 4 节
+> 作者：张小桐（BE2）｜待陈镇灏（AI）确认第 7 节
 
 ## 1. 一句话
 
@@ -81,6 +81,24 @@ embedding[1] emb_xxx: text_type='document' invalid
 
 ## 7. 需要回复的
 
-1. 第 4 节：query 向量选 A、B 还是 C？
-2. `embedding_model_version` 用什么固定串？
-3. `capability_profile` 的文本语言：中文、英文还是双语各一条（若双语，`text_type` 仍是 `capability_profile`，靠 `text_hash` 区分）？
+### 7.1 query 向量选 A、B 还是 C（见第 4 节）
+
+> **建议回复**：选 A。query 向量不入 `embedding` 表，评测时用 `embed_texts(text_type="query")` 现算，缓存到 `data/interim/embedding_cache.jsonl`。理由是契约 6.4 的“覆盖率 100%”针对成果和需求，query 不是入库对象；选 B 语义不准，选 C 要改契约。`evaluate.py` 算完 query 向量后走 text_hash 缓存，重复评测不重复计费，20 条 query 首次成本可忽略。
+
+### 7.2 `embedding_model_version` 用什么固定串
+
+> **建议回复**：统一 `qwen3.7-text-embedding-flash-1024-v1`。规则是 `<模型>-<维度>-<预处理版本>`，契约 4.6 的示例 `bge-m3-1024-v1` 就是这个格式。这个值会写进 `dataset_manifest.embedding_model`，也是 `match_score` 唯一键的一部分，**一旦定下不要中途改**；如果截断规则、是否加标题前缀等预处理变了，升 `v2` 并重算，不要覆盖 v1。
+
+### 7.3 `capability_profile` 的语言
+
+> **建议回复**：本冲刺只做中文单条 `capability_profile`。英文成果的画像由 LLM 从英文原文生成中文，因为需求侧 `need_profile` 必然是中文，跨语言匹配靠 Qwen 的多语言能力，不需要双语各一条、翻倍向量数和调用成本。若后续要做中英双语，两条的 `text_type` 都是 `capability_profile`、`text_hash` 不同，唯一键天然允许，`embedding_model_version` 不用变。
+
+### 7.4 提议的最终口径（确认这四条即可开工）
+
+| 项 | 取值 |
+| --- | --- |
+| 向量化文本 | 成果 `capability_profile`、需求 `need_profile`；摘要不入向量 |
+| API `text_type` | 入库文本 `document`；检索 query `query` |
+| 落库 `embedding.text_type` | `capability_profile` / `need_profile` |
+| query 向量 | 不入库，评测时现算并缓存 |
+| 模型与版本 | `qwen3.7-text-embedding-flash`，1024 维，`qwen3.7-text-embedding-flash-1024-v1` |
