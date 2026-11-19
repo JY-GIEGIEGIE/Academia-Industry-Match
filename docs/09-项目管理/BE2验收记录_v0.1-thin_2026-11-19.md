@@ -32,6 +32,8 @@
 
 ## 3. 验收命令
 
+以下命令在激活 `.venv` 后执行（`.venv\Scripts\activate`，或直接调用 `.venv/Scripts/python.exe`）。
+
 ```bash
 # 1) 空库迁移（新库 be2_acceptance，public 0 表）
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
@@ -170,8 +172,8 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 
 ## 11. 附录
 
-- 导入报告：`data/manifests/load_report_v0.1.md`（thin 验收快照，每次运行覆盖）
-- 导入清单：`data/manifests/import_v0.1.json`（run_id、数量、hash、版本、错误）
+- 导入报告：`data/manifests/load_report_v0.1.md`（运行时生成，每次覆盖，不入库；本文 §5—§6 摘录了当次结果）
+- 导入清单：`data/manifests/import_v0.1.json`（运行时生成，含 run_id、数量、hash、版本、错误；不入库）
 - 私有数据哈希：`data/manifests/private_data_v0.1-thin.json`
 - 表结构：`migrations/0001_init.sql`
 - 导入脚本：`scripts/data/load_db.py`
