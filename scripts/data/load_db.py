@@ -559,8 +559,14 @@ def validate_embeddings(
     v: Validation,
 ) -> None:
     seen: set[tuple[str, str, str, str, str]] = set()
+    seen_ids: set[str] = set()
     for index, row in enumerate(rows, 1):
         where = f"embedding[{index}] {row.get('embedding_id', '?')}"
+        embedding_id = row.get("embedding_id")
+        if isinstance(embedding_id, str):
+            if embedding_id in seen_ids:
+                v.error(f"{where}: duplicate embedding_id")
+            seen_ids.add(embedding_id)
         for field in ("embedding_id", "object_type", "object_id", "text_type", "model", "dim", "text_hash", "vector", "dataset_version"):
             require(row, field, where, v)
         object_type = row.get("object_type")
