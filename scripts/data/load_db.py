@@ -34,14 +34,8 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 
-DEFAULT_ACHIEVEMENTS = PROJECT_ROOT / "data/processed/achievements_clean_v0.1-thin.jsonl"
-DEFAULT_DEMANDS = PROJECT_ROOT / "data/samples/demands_seed_v0.1.jsonl"
-DEFAULT_ENTERPRISES = PROJECT_ROOT / "data/samples/enterprises_seed_v0.1.jsonl"
-DEFAULT_EMBEDDINGS = PROJECT_ROOT / "data/processed/embeddings_v0.1-thin.jsonl"
 DEFAULT_QUERIES = PROJECT_ROOT / "data/eval/retrieval_queries_v0.1-thin.jsonl"
 DEFAULT_PAIRS = PROJECT_ROOT / "data/eval/pair_labels_v0.1-thin.jsonl"
-DEFAULT_LABELED = PROJECT_ROOT / "data/processed/achievements_labeled_v0.1-thin.jsonl"
-DEFAULT_PROFILES = PROJECT_ROOT / "data/processed/capability_profiles_v0.1-thin.jsonl"
 TAXONOMY_PATH = PROJECT_ROOT / "data/spec/taxonomy_v0.1.md"
 DEFAULT_MANIFEST = PROJECT_ROOT / "data/manifests/private_data_v0.1-thin.json"
 DEFAULT_IMPORT_MANIFEST = PROJECT_ROOT / "data/manifests/import_v0.1.json"
@@ -49,7 +43,6 @@ DEFAULT_REPORT = PROJECT_ROOT / "data/manifests/load_report_v0.1.md"
 
 # Keep these in sync with data/spec/data_contract_v0.1.md and taxonomy_v0.1.md.
 SOURCES = {"openalex", "arxiv", "cnipa"}
-LENSES = {"relevance", "recent", "cited"}
 LANGUAGES = {"en", "zh", "mixed", "unknown"}
 TYPES = {"article", "review", "preprint", "patent", "other"}
 CLEAN_STATUSES = {"raw", "cleaned", "labeled", "embedded", "published"}
@@ -446,16 +439,6 @@ def validate_embeddings(
         seen.add(key)
 
 
-def parse_semicolon_list(value: Any) -> list[str] | None:
-    if value is None or value == "":
-        return None
-    if isinstance(value, list):
-        return [str(item) for item in value]
-    if isinstance(value, str):
-        return [item.strip() for item in value.split(";") if item.strip()]
-    return None
-
-
 def parse_grades(value: Any) -> dict[str, int] | None:
     if value is None or value == "":
         return None
@@ -609,6 +592,11 @@ def validate_labeled(
                     primary_count += 1
             elif is_primary:
                 v.error(f"{tag_where}: is_primary only allowed on tech_field")
+            if dimension == "cooperation_mode" and float(confidence) > 0.5:
+                v.warn(
+                    f"{tag_where}: cooperation_mode confidence {confidence} > 0.5; "
+                    "taxonomy section 5 treats it as a potential mode only"
+                )
             evidence = tag.get("evidence")
             if not evidence and float(confidence) > 0.4:
                 v.warn(f"{tag_where}: no evidence but confidence {confidence}; contract expects <=0.4")
@@ -866,10 +854,6 @@ class Database:
         self._psycopg = psycopg
         self.dsn = dsn
         self.conn = psycopg.connect(dsn, connect_timeout=connect_timeout, autocommit=False)
-
-    @property
-    def version(self) -> str:
-        return f"psycopg {self._psycopg.__version__}"
 
     def execute(self, sql: str) -> None:
         with self.conn.cursor() as cur:
