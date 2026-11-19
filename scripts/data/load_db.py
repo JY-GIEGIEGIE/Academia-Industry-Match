@@ -263,22 +263,38 @@ def check_bool(value: Any, field: str, where: str, v: Validation) -> None:
         v.error(f"{where}: {field} must be boolean")
 
 
+DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+DATETIME_PATTERN = re.compile(
+    r"^\d{4}-\d{2}-\d{2}"
+    r"([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}(:?\d{2})?)?)?$"
+)
+
+
 def check_date(value: Any, field: str, where: str, v: Validation) -> None:
+    """Accept only the calendar form PostgreSQL parses (not ISO week dates)."""
     if value in (None, ""):
         return
+    text = str(value)
+    if not DATE_PATTERN.match(text):
+        v.error(f"{where}: {field}={value!r} must be YYYY-MM-DD")
+        return
     try:
-        date.fromisoformat(str(value))
+        date.fromisoformat(text)
     except ValueError:
-        v.error(f"{where}: {field}={value!r} is not an ISO date (YYYY-MM-DD)")
+        v.error(f"{where}: {field}={value!r} is not a valid calendar date")
 
 
 def check_datetime(value: Any, field: str, where: str, v: Validation) -> None:
     if value in (None, ""):
         return
+    text = str(value)
+    if not DATETIME_PATTERN.match(text):
+        v.error(f"{where}: {field}={value!r} must look like YYYY-MM-DDTHH:MM:SS(Z)")
+        return
     try:
-        datetime.fromisoformat(str(value))
+        datetime.fromisoformat(text)
     except ValueError:
-        v.error(f"{where}: {field}={value!r} is not an ISO datetime")
+        v.error(f"{where}: {field}={value!r} is not a valid timestamp")
 
 
 INT32_MIN = -2147483648
@@ -877,7 +893,9 @@ def validate_labeled(
                 check_text_fields(
                     extraction, EXTRACTION_TEXT_FIELDS + ("extraction_run_id",), where, v
                 )
-                check_text_fields(row, ("model", "prompt_version"), where, v)
+                check_text_fields(
+                    row, ("model", "prompt_version", "extraction_run_id"), where, v
+                )
                 check_json_value(extraction.get("raw_output"), "raw_output", where, v)
                 model = text_value(extraction.get("model") or row.get("model"))
                 prompt_version = text_value(extraction.get("prompt_version") or row.get("prompt_version"))
