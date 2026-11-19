@@ -790,13 +790,16 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
 def apply_limit(data: dict[str, list[dict[str, Any]]], args: argparse.Namespace, v: Validation) -> None:
     if not args.limit:
         return
-    for key in ("achievements", "demands", "enterprises", "embeddings"):
+    for key in ("achievements", "demands", "enterprises"):
         data[key] = data[key][: args.limit]
+    # Vectors, eval rows, labels and profiles reference ids that may fall
+    # outside the truncated slice, so they are skipped entirely.
+    data["embeddings"] = []
     data["queries"] = []
     data["pairs"] = []
     data["labeled"] = []
     data["profiles"] = []
-    v.warn(f"--limit {args.limit}: core tables limited; eval, labels and profiles skipped")
+    v.warn(f"--limit {args.limit}: core tables limited; vectors, eval, labels and profiles skipped")
 
 
 def verify_hashes(args: argparse.Namespace, v: Validation) -> None:
@@ -1050,6 +1053,31 @@ def consistency_checks(db: Database) -> dict[str, int]:
                WHERE t.achievement_id = a.achievement_id AND t.text_type LIKE 'capability_profile%'
            );"""
     )
+    checks["achievements_without_embedding"] = db.scalar(
+        """SELECT count(*) FROM achievement a
+           WHERE NOT EXISTS (
+               SELECT 1 FROM embedding e
+               WHERE e.object_type = 'achievement' AND e.object_id = a.achievement_id
+                 AND e.text_type = 'capability_profile'
+           );"""
+    )
+    checks["demands_without_embedding"] = db.scalar(
+        """SELECT count(*) FROM demand d
+           WHERE NOT EXISTS (
+               SELECT 1 FROM embedding e
+               WHERE e.object_type = 'demand' AND e.object_id = d.demand_id
+                 AND e.text_type = 'need_profile'
+           );"""
+    )
+    checks["embedding_text_hash_mismatch"] = db.scalar(
+        """SELECT count(*) FROM embedding e
+           JOIN achievement_text t
+             ON t.achievement_id = e.object_id
+            AND t.text_type = 'capability_profile_zh'
+           WHERE e.object_type = 'achievement'
+             AND e.text_type = 'capability_profile'
+             AND e.text_hash <> t.text_hash;"""
+    )
     return checks
 
 
@@ -1113,6 +1141,7 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
         "tech_base": text_value,
         "resources": text_value,
         "prior_collaboration": text_value,
+        "created_at": lambda value: value or iso(now_utc()),
     }
     enterprises = build_rows(data["enterprises"], ENTERPRISE_COLUMNS, enterprise_transforms, args.dataset_version)
     counts["enterprise"] = import_table(db, "enterprise", ENTERPRISE_COLUMNS, enterprises, "(enterprise_id)", ["enterprise_id"])
@@ -1139,6 +1168,8 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
         "tech_fields": json_value, "application_scenarios": json_value,
         "source_urls": json_value, "is_simulated": bool_value,
         "budget_range": text_value, "timeline": text_value, "ip_requirement": text_value,
+        "created_at": lambda value: value or iso(now_utc()),
+        "updated_at": lambda value: value or iso(now_utc()),
     }
     demands = build_rows(data["demands"], DEMAND_COLUMNS, demand_transforms, args.dataset_version)
     counts["demand"] = import_table(db, "demand", DEMAND_COLUMNS, demands, "(demand_id)", ["demand_id"])
@@ -1184,7 +1215,7 @@ def ensure_pipeline_run(db: Database, run_id: str, stage: str, args: argparse.Na
     config = json.dumps({"source": "load_db.py", "note": note}, ensure_ascii=False)
     sql = (
         "INSERT INTO pipeline_run (run_id, stage, started_at, finished_at, status, input_count, output_count, config, git_commit, dataset_version) "
-        f"VALUES ({sql_literal(run_id)}, {sql_literal(stage)}, now(), now(), 'success', 0, 0, "
+        f"VALUES ({sql_literal(run_id)}, {sql_literal(stage)}, now(), now(), 'partial', 0, 0, "
         f"{sql_literal(config)}::jsonb, {sql_literal(git_commit())}, {sql_literal(args.dataset_version)}) "
         "ON CONFLICT (run_id) DO NOTHING;"
     )
@@ -1366,7 +1397,13 @@ def write_report(
         "fk_demand_enterprise", "fk_eval_label_achievement", "fk_eval_label_demand",
         "simulated_demand_false", "simulated_enterprise_false",
     }
-    info_checks = {"achievements_without_primary_tech_field", "achievements_without_profile"}
+    info_checks = {
+        "achievements_without_primary_tech_field",
+        "achievements_without_profile",
+        "embedding_text_hash_mismatch",
+        "achievements_without_embedding",
+        "demands_without_embedding",
+    }
     for check, value in checks.items():
         if check in info_checks:
             result = "INFO"
@@ -1489,6 +1526,37 @@ def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     args = parse_args()
+
+    if args.migrate_only:
+        # Migration must work on a fresh clone with no data files present,
+        # so run it before any JSONL is read.
+        if not args.dsn:
+            print("ERROR: --dsn or DATABASE_URL is required for import", file=sys.stderr)
+            return 2
+        try:
+            db = Database(args.dsn, connect_timeout=args.connect_timeout)
+        except RuntimeError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+        except Exception as exc:  # noqa: BLE001 - CLI boundary
+            print(f"ERROR: cannot connect: {redact_dsn(str(exc))}", file=sys.stderr)
+            return 2
+        try:
+            print("Applying migrations")
+            apply_migrations(db)
+            db.commit()
+            print("  migrations applied")
+            return 0
+        except Exception as exc:  # noqa: BLE001 - CLI boundary
+            try:
+                db.rollback()
+            except Exception as rollback_exc:  # noqa: BLE001 - keep the original error
+                print(f"WARN: rollback failed: {rollback_exc}", file=sys.stderr)
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        finally:
+            db.close()
+
     v = Validation()
     data = load_all(args, v)
     validate_all(data, v, args)
@@ -1524,10 +1592,6 @@ def main() -> int:
         if args.migrate:
             print("Applying migrations")
             apply_migrations(db)
-            if args.migrate_only:
-                db.commit()
-                print("  migrations applied")
-                return 0
         print(f"  server: PostgreSQL {db.server_version()} / pgvector {db.vector_version()}")
         print("Importing")
         counts = import_all(db, data, args)

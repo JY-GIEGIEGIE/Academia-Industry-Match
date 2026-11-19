@@ -193,5 +193,40 @@ class HelperTests(unittest.TestCase):
         self.assertEqual(rows[0]["dataset_version"], "v0.1-thin")
 
 
+
+class ResolvePathTests(unittest.TestCase):
+    """Guard the switch between thin slice and full dataset files."""
+
+    def make_args(self, version: str):
+        import argparse
+
+        return argparse.Namespace(
+            dataset_version=version,
+            achievements=None, labeled=None, profiles=None,
+            embeddings=None, demands=None, enterprises=None,
+        )
+
+    def test_thin_uses_thin_achievements_and_seed_seeds(self) -> None:
+        args = self.make_args("v0.1-thin")
+        load_db.resolve_data_paths(args)
+        self.assertTrue(str(args.achievements).endswith("achievements_clean_v0.1-thin.jsonl"))
+        self.assertTrue(str(args.demands).endswith("demands_seed_v0.1.jsonl"))
+        self.assertTrue(str(args.enterprises).endswith("enterprises_seed_v0.1.jsonl"))
+
+    def test_full_uses_processed_demands_and_enterprises(self) -> None:
+        args = self.make_args("v0.1")
+        load_db.resolve_data_paths(args)
+        self.assertTrue(str(args.achievements).endswith("achievements_clean_v0.1.jsonl"))
+        self.assertIn("processed", str(args.demands))
+        self.assertTrue(str(args.demands).endswith("demands_v0.1.jsonl"))
+        self.assertTrue(str(args.enterprises).endswith("enterprises_v0.1.jsonl"))
+
+    def test_explicit_path_is_not_overridden(self) -> None:
+        args = self.make_args("v0.1")
+        args.achievements = PROJECT_ROOT / "custom.jsonl"
+        load_db.resolve_data_paths(args)
+        self.assertEqual(args.achievements, PROJECT_ROOT / "custom.jsonl")
+
+
 if __name__ == "__main__":
     unittest.main()
