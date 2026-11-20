@@ -97,8 +97,8 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
 # 小样本冒烟（必须指向空库/临时库；导入器会拒绝往已含其他 dataset_version 的库写入）
 python scripts/data/load_db.py --dsn "$SMOKE_DSN" --migrate --limit 20 --skip-hash
 
-# 薄切片（100 成果 / 20 需求 / 10 企业；在全量库上会被拒绝，需用空库）
-python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
+# 薄切片（100 成果 / 20 需求 / 10 企业；用独立的空库，不能写到全量库）
+python scripts/data/load_db.py --dsn "$THIN_DSN" --migrate \
   --dataset-version v0.1-thin \
   --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
 

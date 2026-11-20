@@ -159,12 +159,13 @@ hnsw index: ix_embedding_vector_hnsw
 
 ```bash
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
-  --dataset-version v0.1 --skip-hash
+  --dataset-version v0.1 --allow-mixed-versions \
+  --zip "D:/path/to/S-02_v0.1_组内交接.zip"
 ```
 
-`--dataset-version v0.1` 会同时把六个默认路径切到全量：成果、标签、画像、向量在 `data/processed/`，需求和企业也从 `data/samples/*_seed.jsonl` 换成 `data/processed/demands_v0.1.jsonl`、`enterprises_v0.1.jsonl`（thin 是 20 需求 / 10 企业，全量是 100 / 25）。
+`--dataset-version v0.1` 会同时把成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单切到全量：成果、标签、画像、向量、需求、企业在 `data/processed/`，评测在 `data/eval/`（thin 是 20 需求 / 10 企业，全量是 100 / 25）。
 
-（`--skip-hash` 因为 `private_data_v0.1-thin.json` 记录的是 thin 包的哈希；全量包发布后应更新该 manifest。）
+从薄切片库升级必须带 `--allow-mixed-versions`；导入器默认拒绝往已有其他 `dataset_version` 的库写入。
 
 ## 10. 与团队口径的偏差
 

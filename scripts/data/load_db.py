@@ -482,19 +482,19 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
             except ValueError:
                 v.error(f"{where}: valid_until is not ISO date ({valid_until!r})")
         tech_fields = row.get("tech_fields") or []
-        if not isinstance(tech_fields, list) or not 1 <= len(tech_fields) <= 2:
+        if isinstance(tech_fields, list) and not 1 <= len(tech_fields) <= 2:
             v.error(f"{where}: tech_fields must contain 1-2 items")
         for code in tech_fields if isinstance(tech_fields, list) else []:
             if code not in TECH_FIELDS:
                 v.error(f"{where}: unknown tech_field {code!r}")
         scenarios = row.get("application_scenarios") or []
-        if not isinstance(scenarios, list) or not 1 <= len(scenarios) <= 3:
+        if isinstance(scenarios, list) and not 1 <= len(scenarios) <= 3:
             v.error(f"{where}: application_scenarios must contain 1-3 items")
         for code in scenarios if isinstance(scenarios, list) else []:
             if code not in SCENARIOS:
                 v.error(f"{where}: unknown application_scenario {code!r}")
         modes = row.get("cooperation_modes") or []
-        if not isinstance(modes, list) or not 1 <= len(modes) <= 3:
+        if isinstance(modes, list) and not 1 <= len(modes) <= 3:
             v.error(f"{where}: cooperation_modes must contain 1-3 items")
         for code in modes if isinstance(modes, list) else []:
             if code not in COOPERATION_MODES:
@@ -1657,7 +1657,14 @@ def insert_pipeline_run(
     output_count: int,
     args: argparse.Namespace,
 ) -> None:
-    config = json.dumps({"source": "load_db.py", "limit": args.limit}, ensure_ascii=False)
+    config = json.dumps(
+        {
+            "source": "load_db.py",
+            "limit": args.limit,
+            "allow_mixed_versions": args.allow_mixed_versions,
+        },
+        ensure_ascii=False,
+    )
     sql = (
         "INSERT INTO pipeline_run (run_id, stage, started_at, finished_at, status, input_count, output_count, config, git_commit, dataset_version, log_path) "
         f"VALUES ({sql_literal(run_id)}, 'load', {sql_literal(iso(started))}::timestamptz, {sql_literal(iso(finished))}::timestamptz, "
@@ -1970,6 +1977,11 @@ def main() -> int:
                     file=sys.stderr,
                 )
                 return 1
+            if other_rows:
+                v.warn(
+                    f"database already holds {other_rows} achievements of another "
+                    f"dataset_version; continuing because --allow-mixed-versions"
+                )
         if args.migrate:
             print("Applying migrations")
             apply_migrations(db)
