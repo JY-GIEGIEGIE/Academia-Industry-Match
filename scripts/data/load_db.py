@@ -1817,6 +1817,10 @@ def resolve_data_paths(args: argparse.Namespace) -> None:
             eval_dir / "pair_labels_v0.1-thin.jsonl",
             eval_dir / "pair_labels_v0.1.jsonl",
         ),
+        "manifest": (
+            PROJECT_ROOT / "data/manifests/private_data_v0.1-thin.json",
+            PROJECT_ROOT / "data/manifests/private_data_v0.1.json",
+        ),
     }
     for attribute, (thin_path, full_path) in mapping.items():
         if getattr(args, attribute) is None:
@@ -1837,7 +1841,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pairs", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--labeled", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--profiles", type=Path, default=None, help="default: depends on --dataset-version")
-    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument("--manifest", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--zip", type=Path, default=None, help="optional handoff zip to verify")
     parser.add_argument("--skip-hash", action="store_true")
     parser.add_argument("--migrate", action="store_true", help="apply migrations/*.sql before loading")
