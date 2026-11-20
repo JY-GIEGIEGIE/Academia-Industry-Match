@@ -4,7 +4,7 @@
 > 验收人：张小桐（BE2）
 > 环境：Windows 11 / Python 3.12.6（`.venv`）/ Docker（WSL2 daemon）/ PostgreSQL 16.16 + pgvector 0.8.7
 > 关联：`migrations/0001_init.sql`、`scripts/data/load_db.py`、`docs/09-项目管理/数据侧分工安排.md`
-> 状态：v0.1-thin 通过；v0.1 全量与向量/标签文件到位后需重跑
+> 状态：v0.1-thin 通过；v0.1 全量已于 2026-11-20 复验，见 `BE2验收记录_v0.1_2026-11-20.md`
 
 ## 1. 结论
 
