@@ -33,8 +33,6 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 
-DEFAULT_QUERIES = PROJECT_ROOT / "data/eval/retrieval_queries_v0.1-thin.jsonl"
-DEFAULT_PAIRS = PROJECT_ROOT / "data/eval/pair_labels_v0.1-thin.jsonl"
 TAXONOMY_PATH = PROJECT_ROOT / "data/spec/taxonomy_v0.1.md"
 DEFAULT_MANIFEST = PROJECT_ROOT / "data/manifests/private_data_v0.1-thin.json"
 DEFAULT_IMPORT_MANIFEST = PROJECT_ROOT / "data/manifests/import_v0.1.json"
@@ -682,6 +680,7 @@ def validate_eval(
     pairs: list[dict[str, Any]],
     achievement_ids: set[str],
     demand_ids: set[str],
+    dataset_version: str,
     v: Validation,
 ) -> set[str]:
     query_ids: set[str] = set()
@@ -727,7 +726,7 @@ def validate_eval(
         if query_id:
             query_ids.add(str(query_id))
     if missing_version:
-        v.warn(f"queries: {missing_version} rows missing dataset_version; defaulting to v0.1-thin")
+        v.warn(f"queries: {missing_version} rows missing dataset_version; defaulting to {dataset_version}")
 
     pair_ids: set[str] = set()
     missing_pair_version = 0
@@ -763,7 +762,7 @@ def validate_eval(
         if pair_id:
             pair_ids.add(str(pair_id))
     if missing_pair_version:
-        v.warn(f"pairs: {missing_pair_version} rows missing dataset_version; defaulting to v0.1-thin")
+        v.warn(f"pairs: {missing_pair_version} rows missing dataset_version; defaulting to {dataset_version}")
     if empty_grades:
         v.warn(f"pairs: {empty_grades} rows have no relevance_grade (annotation pending)")
     return query_ids
@@ -1032,7 +1031,9 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
     enterprise_ids = validate_enterprises(data["enterprises"], v)
     achievement_ids = validate_achievements(data["achievements"], v)
     demand_ids = validate_demands(data["demands"], enterprise_ids, v)
-    query_ids = validate_eval(data["queries"], data["pairs"], achievement_ids, demand_ids, v)
+    query_ids = validate_eval(
+        data["queries"], data["pairs"], achievement_ids, demand_ids, args.dataset_version, v
+    )
     validate_embeddings(data["embeddings"], achievement_ids, demand_ids, query_ids, v)
     taxonomy = load_taxonomy_codes()
     if data["labeled"]:
@@ -1782,6 +1783,7 @@ def resolve_data_paths(args: argparse.Namespace) -> None:
     thin = args.dataset_version == "v0.1-thin"
     processed = PROJECT_ROOT / "data/processed"
     samples = PROJECT_ROOT / "data/samples"
+    eval_dir = PROJECT_ROOT / "data/eval"
     mapping = {
         "achievements": (
             processed / "achievements_clean_v0.1-thin.jsonl",
@@ -1807,6 +1809,14 @@ def resolve_data_paths(args: argparse.Namespace) -> None:
             samples / "enterprises_seed_v0.1.jsonl",
             processed / "enterprises_v0.1.jsonl",
         ),
+        "queries": (
+            eval_dir / "retrieval_queries_v0.1-thin.jsonl",
+            eval_dir / "retrieval_queries_v0.1.jsonl",
+        ),
+        "pairs": (
+            eval_dir / "pair_labels_v0.1-thin.jsonl",
+            eval_dir / "pair_labels_v0.1.jsonl",
+        ),
     }
     for attribute, (thin_path, full_path) in mapping.items():
         if getattr(args, attribute) is None:
@@ -1823,8 +1833,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--demands", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--enterprises", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--embeddings", type=Path, default=None, help="default: depends on --dataset-version")
-    parser.add_argument("--queries", type=Path, default=DEFAULT_QUERIES)
-    parser.add_argument("--pairs", type=Path, default=DEFAULT_PAIRS)
+    parser.add_argument("--queries", type=Path, default=None, help="default: depends on --dataset-version")
+    parser.add_argument("--pairs", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--labeled", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--profiles", type=Path, default=None, help="default: depends on --dataset-version")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)

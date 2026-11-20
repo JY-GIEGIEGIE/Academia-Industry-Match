@@ -204,6 +204,7 @@ class ResolvePathTests(unittest.TestCase):
             dataset_version=version,
             achievements=None, labeled=None, profiles=None,
             embeddings=None, demands=None, enterprises=None,
+            queries=None, pairs=None,
         )
 
     def test_thin_uses_thin_achievements_and_seed_seeds(self) -> None:
@@ -212,6 +213,8 @@ class ResolvePathTests(unittest.TestCase):
         self.assertTrue(str(args.achievements).endswith("achievements_clean_v0.1-thin.jsonl"))
         self.assertTrue(str(args.demands).endswith("demands_seed_v0.1.jsonl"))
         self.assertTrue(str(args.enterprises).endswith("enterprises_seed_v0.1.jsonl"))
+        self.assertTrue(str(args.queries).endswith("retrieval_queries_v0.1-thin.jsonl"))
+        self.assertTrue(str(args.pairs).endswith("pair_labels_v0.1-thin.jsonl"))
 
     def test_full_uses_processed_demands_and_enterprises(self) -> None:
         args = self.make_args("v0.1")
@@ -220,6 +223,8 @@ class ResolvePathTests(unittest.TestCase):
         self.assertIn("processed", str(args.demands))
         self.assertTrue(str(args.demands).endswith("demands_v0.1.jsonl"))
         self.assertTrue(str(args.enterprises).endswith("enterprises_v0.1.jsonl"))
+        self.assertTrue(str(args.queries).endswith("retrieval_queries_v0.1.jsonl"))
+        self.assertTrue(str(args.pairs).endswith("pair_labels_v0.1.jsonl"))
 
     def test_explicit_path_is_not_overridden(self) -> None:
         args = self.make_args("v0.1")
