@@ -32,19 +32,22 @@
 
 ## 3. 验收命令
 
-以下命令在激活 `.venv` 后执行（`.venv\Scripts\activate`，或直接调用 `.venv/Scripts/python.exe`）。
+以下命令在激活 `.venv` 后执行（`.venv\Scripts\activate`，或直接调用 `.venv/Scripts/python.exe`）。先建独立的薄切片库，**不要指向主库**：
 
 ```bash
+THIN_DSN="${DATABASE_URL%/*}/be2_acceptance"
+docker exec aim-pgvector psql -U aim -d academia_industry_match -c "CREATE DATABASE be2_acceptance"
+
 # 1) 空库迁移（新库 be2_acceptance，public 0 表）
-python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
+python scripts/data/load_db.py --dsn "$THIN_DSN" --migrate --migrate-only
 
 # 2) 第一次导入（校验交接包与 processed 文件的 SHA-256）
-python scripts/data/load_db.py --dsn "$DATABASE_URL" \
+python scripts/data/load_db.py --dsn "$THIN_DSN" \
   --manifest data/manifests/private_data_v0.1-thin.json \
   --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
 
 # 3) 第二次导入（验证幂等）
-python scripts/data/load_db.py --dsn "$DATABASE_URL" \
+python scripts/data/load_db.py --dsn "$THIN_DSN" \
   --manifest data/manifests/private_data_v0.1-thin.json \
   --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
 ```
@@ -158,7 +161,7 @@ hnsw index: ix_embedding_vector_hnsw
 全量到位后用一条命令切换：
 
 ```bash
-python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
+python scripts/data/load_db.py --dsn "$THIN_DSN" --migrate \
   --dataset-version v0.1 --allow-mixed-versions \
   --zip "D:/path/to/S-02_v0.1_组内交接.zip"
 ```
