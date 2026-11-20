@@ -135,6 +135,32 @@ class ValidateLabeledTests(unittest.TestCase):
         self.assertTrue(any("duplicate achievement_id" in error for error in v.errors))
 
 
+class DatasetVersionTests(unittest.TestCase):
+    def test_matching_version_passes(self) -> None:
+        v = load_db.Validation()
+        data = {
+            "achievements": [{"dataset_version": "v0.1"}],
+            "embeddings": [{"dataset_version": "v0.1"}],
+            "enterprises": [{}],
+        }
+        load_db.check_dataset_versions(data, "v0.1", v)
+        self.assertEqual(v.errors, [])
+
+    def test_mismatch_is_an_error(self) -> None:
+        v = load_db.Validation()
+        data = {"embeddings": [{"dataset_version": "v0.1-thin"}]}
+        load_db.check_dataset_versions(data, "v0.1", v)
+        self.assertEqual(len(v.errors), 1)
+        self.assertIn("v0.1-thin", v.errors[0])
+
+    def test_non_string_is_an_error(self) -> None:
+        v = load_db.Validation()
+        data = {"achievements": [{"dataset_version": 1}]}
+        load_db.check_dataset_versions(data, "v0.1", v)
+        self.assertEqual(len(v.errors), 1)
+        self.assertIn("must be a string", v.errors[0])
+
+
 class ValidateProfilesTests(unittest.TestCase):
     def setUp(self) -> None:
         self.ids = {"ach_1"}

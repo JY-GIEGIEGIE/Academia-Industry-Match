@@ -34,7 +34,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 
 TAXONOMY_PATH = PROJECT_ROOT / "data/spec/taxonomy_v0.1.md"
-DEFAULT_MANIFEST = PROJECT_ROOT / "data/manifests/private_data_v0.1-thin.json"
 DEFAULT_IMPORT_MANIFEST = PROJECT_ROOT / "data/manifests/import_v0.1.json"
 DEFAULT_REPORT = PROJECT_ROOT / "data/manifests/load_report_v0.1.md"
 
@@ -49,7 +48,6 @@ DIMENSIONS = {"tech_field", "application_scenario", "cooperation_mode"}
 LABEL_DIMENSIONS = DIMENSIONS
 PROFILE_LANGUAGES = {"zh", "en"}
 TAG_METHODS = {"llm", "rule", "human"}
-TEXT_TYPES = {"title_zh", "abstract_zh", "capability_profile_zh", "capability_profile_en"}
 TEXT_METHODS = {"original", "machine", "human", "llm"}
 IP_STATUSES = {"granted", "pending", "published", "unknown"}
 OBJECT_TYPES = {"achievement", "demand", "eval_query"}
@@ -1016,6 +1014,35 @@ def load_all(args: argparse.Namespace, v: Validation) -> dict[str, list[dict[str
     return data
 
 
+def check_dataset_versions(
+    data: dict[str, list[dict[str, Any]]], expected: str, v: Validation
+) -> None:
+    """Every row that declares a version must match the CLI version."""
+    keys = (
+        "achievements", "demands", "enterprises", "embeddings",
+        "queries", "pairs", "labeled", "profiles",
+    )
+    for key in keys:
+        mismatches: dict[str, int] = {}
+        for index, row in enumerate(data.get(key, []), 1):
+            value = row.get("dataset_version")
+            if value is None:
+                continue
+            if not isinstance(value, str):
+                v.error(
+                    f"{key}[{index}]: dataset_version must be a string, "
+                    f"got {type(value).__name__}"
+                )
+                continue
+            if value != expected:
+                mismatches[value] = mismatches.get(value, 0) + 1
+        if mismatches:
+            v.error(
+                f"{key}: dataset_version {mismatches} does not match "
+                f"--dataset-version {expected!r}"
+            )
+
+
 def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: argparse.Namespace) -> None:
     for key in ("achievements", "demands", "enterprises"):
         if not data[key]:
@@ -1024,6 +1051,8 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
         # Every other check resolves achievement ids; stop here instead of
         # emitting hundreds of cascade errors from one missing file.
         return
+    check_dataset_versions(data, args.dataset_version, v)
+
     if data["queries"] and len(data["queries"]) != 20:
         v.warn(f"queries: {len(data['queries'])} rows, expected 20")
     if data["pairs"] and len(data["pairs"]) != 50:
@@ -1041,12 +1070,6 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
     if data["profiles"]:
         data["profiles"] = validate_profiles(data["profiles"], achievement_ids, v)
     for key in ("achievements", "demands", "enterprises"):
-        bad_version = [
-            row for row in data[key]
-            if row.get("dataset_version") is not None and not isinstance(row["dataset_version"], str)
-        ]
-        for row in bad_version:
-            v.error(f"{key}: dataset_version must be a string, got {type(row['dataset_version']).__name__}")
         missing = sum(1 for row in data[key] if not row.get("dataset_version"))
         if missing:
             v.warn(f"{key}: {missing} rows missing dataset_version; defaulting to {args.dataset_version}")
@@ -1924,6 +1947,22 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001 - CLI boundary
         print(f"ERROR: cannot connect: {redact_dsn(str(exc))}", file=sys.stderr)
         return 2
+
+    if args.limit is not None:
+        other_rows = db.scalar(
+            "SELECT CASE WHEN to_regclass('public.achievement') IS NULL THEN 0 ELSE "
+            "(SELECT count(*) FROM achievement WHERE dataset_version IS DISTINCT FROM "
+            f"{sql_literal(args.dataset_version)}) END"
+        )
+        if other_rows:
+            print(
+                f"ERROR: --limit {args.limit} would mix {args.dataset_version} rows into a "
+                f"database that already holds {other_rows} achievements of another "
+                "dataset_version; run the smoke test against a throwaway database",
+                file=sys.stderr,
+            )
+            db.close()
+            return 1
 
     started = now_utc()
     run_id = "load-" + started.strftime("%Y%m%dT%H%M%S%fZ")
