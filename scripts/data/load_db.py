@@ -358,11 +358,6 @@ def check_int(value: Any, field: str, where: str, v: Validation) -> None:
         v.error(f"{where}: {field}={value!r} out of integer range")
 
 
-def check_list(value: Any, field: str, where: str, v: Validation) -> None:
-    if not isinstance(value, list):
-        v.error(f"{where}: {field} must be a list")
-
-
 def validate_achievements(rows: list[dict[str, Any]], v: Validation) -> set[str]:
     ids: set[str] = set()
     source_ids: set[tuple[str, str]] = set()
@@ -486,8 +481,6 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
                 date.fromisoformat(str(valid_until))
             except ValueError:
                 v.error(f"{where}: valid_until is not ISO date ({valid_until!r})")
-        for field in ("technical_metrics", "cooperation_modes", "tech_fields", "application_scenarios", "source_urls"):
-            check_list(row.get(field, []), field, where, v)
         tech_fields = row.get("tech_fields") or []
         if not isinstance(tech_fields, list) or not 1 <= len(tech_fields) <= 2:
             v.error(f"{where}: tech_fields must contain 1-2 items")
@@ -1873,6 +1866,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-hash", action="store_true")
     parser.add_argument("--migrate", action="store_true", help="apply migrations/*.sql before loading")
     parser.add_argument("--limit", type=int, default=None, help="limit rows per dataset for a smoke test")
+    parser.add_argument(
+        "--allow-mixed-versions",
+        action="store_true",
+        help="allow importing a dataset version into a database that holds another version",
+    )
     parser.add_argument("--dataset-version", default="v0.1-thin")
     parser.add_argument("--embedding-model-version", default=None)
     parser.add_argument("--import-manifest", type=Path, default=DEFAULT_IMPORT_MANIFEST)
@@ -1958,18 +1956,17 @@ def main() -> int:
         # Probe first: a missing table must not be referenced in the same
         # statement, because PostgreSQL resolves the name at parse time.
         # Check before migrating so a refused run leaves the schema untouched.
-        if args.limit is not None and db.scalar(
-            "SELECT to_regclass('public.achievement') IS NOT NULL"
-        ):
+        if db.scalar("SELECT to_regclass('public.achievement') IS NOT NULL"):
             other_rows = db.scalar(
                 "SELECT count(*) FROM achievement WHERE dataset_version IS DISTINCT FROM "
                 f"{sql_literal(args.dataset_version)}"
             )
-            if other_rows:
+            if other_rows and not args.allow_mixed_versions:
                 print(
-                    f"ERROR: --limit {args.limit} would mix {args.dataset_version} rows into "
-                    f"a database that already holds {other_rows} achievements of another "
-                    "dataset_version; run the smoke test against a throwaway database",
+                    f"ERROR: database already holds {other_rows} achievements with another "
+                    f"dataset_version; importing {args.dataset_version} would mix versions. "
+                    "Use a throwaway database, or pass --allow-mixed-versions for a "
+                    "deliberate upgrade.",
                     file=sys.stderr,
                 )
                 return 1

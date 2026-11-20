@@ -69,10 +69,11 @@ python scripts/data/load_db.py --dsn "${DATABASE_URL%/*}/s05_v01_accept" \
   --report data/manifests/load_report_v0.1_accept.md \
   --import-manifest data/manifests/import_v0.1_accept.json
 
-# 4) 主库覆盖（薄切片 → 全量）
+# 4) 主库覆盖（薄切片 → 全量；混版升级需显式开关）
 python scripts/data/load_db.py --dsn "$DATABASE_URL" \
   --dataset-version v0.1 \
   --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
+  --allow-mixed-versions \
   --zip "D:/path/to/S-02_v0.1_组内交接.zip"
 ```
 
@@ -149,6 +150,7 @@ demand.dataset_version:      v0.1 × 100
 
 - 验收库连续 3 次导入、主库连续 3 次导入，六张主表计数不变。
 - 主库原有 100 条 `v0.1-thin` 成果被同 ID 的 `v0.1` 记录覆盖，新增 200 条；需求 20 → 100，企业 10 → 25。
+- 导入器默认拒绝往已有其他 `dataset_version` 的库写入；本次薄切片 → 全量的升级发生在守卫加入前，现在重做同样的升级需加 `--allow-mixed-versions`。
 - `pipeline_run` / `dataset_manifest` 每次运行新增一条：验收库 3 条，主库 8 条（5 次 thin 历史 + 3 次全量），属于运行历史，不是数据重复。
 - 成果、需求、企业、评测、向量：`ON CONFLICT ... DO UPDATE`；标签/抽取/画像：先删本批旧记录再插入。
 
@@ -159,6 +161,7 @@ demand.dataset_version:      v0.1 × 100
 | 评测路径不随 `--dataset-version` 切换 | 全量导入会用 thin 的 20 query / 50 pair，并把评测行标成 `v0.1-thin` | `queries`、`pairs` 纳入版本解析 |
 | 哈希清单不随版本切换 | `--zip` 仍比 thin 包的哈希，全量包必然失败 | `manifest` 纳入版本解析，新增 `private_data_v0.1.json` |
 | `embedding_model_version` 未传 | 前两次导入 `dataset_manifest.embedding_model` 为 NULL | 第三次补传 `qwen3.7-text-embedding-flash-1024-v1`，主库最终 run 有值 |
+| 混版导入只拦 `--limit` | 薄切片命令可把全量库的成果和评测集静默改成 `v0.1-thin` | 所有导入默认拒绝混版；升级需 `--allow-mixed-versions` |
 
 ## 10. 未完成项
 

@@ -94,10 +94,10 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 # 只迁移，不导入
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
 
-# 小样本冒烟（必须指向空库/临时库；--limit 会拒绝写入已含其他 dataset_version 的库）
+# 小样本冒烟（必须指向空库/临时库；导入器会拒绝往已含其他 dataset_version 的库写入）
 python scripts/data/load_db.py --dsn "$SMOKE_DSN" --migrate --limit 20 --skip-hash
 
-# 薄切片（100 成果 / 20 需求 / 10 企业）
+# 薄切片（100 成果 / 20 需求 / 10 企业；在全量库上会被拒绝，需用空库）
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
   --dataset-version v0.1-thin \
   --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
@@ -111,6 +111,8 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" \
 ```
 
 `--dataset-version` 会同时切换成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单的默认路径。全量清单 `private_data_v0.1.json` 已就位，不需要再传 `--skip-hash`。
+
+导入默认拒绝往已有其他 `dataset_version` 的库写入。从薄切片升级到全量时加 `--allow-mixed-versions`；其余情况请用空库或临时库。
 
 输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`（运行时生成，每次覆盖，不入库）。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
 
