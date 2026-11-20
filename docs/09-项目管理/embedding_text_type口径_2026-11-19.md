@@ -50,13 +50,13 @@ embedding[1] emb_xxx: text_type='document' invalid
 成果向量：
 
 ```json
-{"embedding_id":"emb_ach_0001_cap","object_type":"achievement","object_id":"ach_openalex_W4210818813","text_type":"capability_profile","model":"qwen3.7-text-embedding-flash","dim":1024,"text_hash":"<归一化文本的 sha256>","vector":[0.001,0.002,...],"dataset_version":"v0.1-thin"}
+{"embedding_id":"emb_ach_0001_cap","object_type":"achievement","object_id":"ach_openalex_W4210818813","text_type":"capability_profile","model":"qwen3.7-text-embedding-flash","dim":1024,"text_hash":"<归一化文本的 sha256>","vector":[0.001,0.002,...],"dataset_version":"v0.1"}
 ```
 
 需求向量：
 
 ```json
-{"embedding_id":"emb_dem_0001_need","object_type":"demand","object_id":"dem_0001","text_type":"need_profile","model":"qwen3.7-text-embedding-flash","dim":1024,"text_hash":"<归一化文本的 sha256>","vector":[0.001,0.002,...],"dataset_version":"v0.1-thin"}
+{"embedding_id":"emb_dem_0001_need","object_type":"demand","object_id":"dem_0001","text_type":"need_profile","model":"qwen3.7-text-embedding-flash","dim":1024,"text_hash":"<归一化文本的 sha256>","vector":[0.001,0.002,...],"dataset_version":"v0.1"}
 ```
 
 字段要求：
@@ -65,6 +65,7 @@ embedding[1] emb_xxx: text_type='document' invalid
 - `dim` 固定 1024；`vector` 是 1024 个 float 的数组。
 - 换模型、换文本、换预处理都必须重算并换 `text_hash`，不得混维。
 - 模型统一 `qwen3.7-text-embedding-flash`，`embedding_model_version` 由 AI/DE 定一个固定串（如 `qwen3.7-text-embedding-flash-1024-v1`），导入时通过 `--embedding-model-version` 传入。
+- `dataset_version` 必须与本次导入的 `--dataset-version` 一致：全量写 `v0.1`，薄切片写 `v0.1-thin`。不一致时导入器直接报错。
 
 ## 6. 导入侧会做的校验
 
@@ -92,7 +93,7 @@ embedding[1] emb_xxx: text_type='document' invalid
 
 ### 7.3 `capability_profile` 的语言
 
-> **建议回复**：本冲刺只做中文单条 `capability_profile`。英文成果的画像由 LLM 从英文原文生成中文，因为需求侧 `need_profile` 必然是中文，跨语言匹配靠 Qwen 的多语言能力，不需要双语各一条、翻倍向量数和调用成本。若后续要做中英双语，注意当前导入按 `(object_type, object_id, text_type, model)` 替换：同一成果的 zh 和 en 画像向量会互相覆盖，最终只保留最后导入的一条。要做双语必须先改存储口径（例如给 `text_type` 增加语言维度，允许同对象多版本），由 BE2 与 AI 一起定，不要在数据里自行假设。
+> **建议回复**：本冲刺只做中文单条 `capability_profile`。英文成果的画像由 LLM 从英文原文生成中文，因为需求侧 `need_profile` 必然是中文，跨语言匹配靠 Qwen 的多语言能力，不需要双语各一条、翻倍向量数和调用成本。若后续要做中英双语，注意当前导入按 `(object_type, object_id, text_type)` 替换：同一成果同一 `text_type` 只保留最后导入的一条，zh 和 en 都映射到 `capability_profile`，会互相覆盖。换模型重算同样会删掉旧模型的向量，不会共存。要做双语必须先改存储口径（例如给 `text_type` 增加语言维度，允许同对象多版本），由 BE2 与 AI 一起定，不要在数据里自行假设。
 
 ### 7.4 提议的最终口径（确认这四条即可开工）
 

@@ -94,8 +94,8 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 # 只迁移，不导入
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
 
-# 小样本冒烟（跳过哈希与 eval，避免外键不完整）
-python scripts/data/load_db.py --dsn "$DATABASE_URL" --limit 20 --skip-hash
+# 小样本冒烟（必须指向空库/临时库；--limit 会拒绝写入已含其他 dataset_version 的库）
+python scripts/data/load_db.py --dsn "$SMOKE_DSN" --migrate --limit 20 --skip-hash
 
 # 薄切片（100 成果 / 20 需求 / 10 企业）
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
@@ -105,6 +105,7 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 # 标签 / 抽取 / 能力画像（全量；文件格式见 docs/09-项目管理/标签与画像文件格式_2026-11-19.md）
 python scripts/data/load_db.py --dsn "$DATABASE_URL" \
   --dataset-version v0.1 \
+  --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
   --labeled data/processed/achievements_labeled_v0.1.jsonl \
   --profiles data/processed/capability_profiles_v0.1.jsonl
 ```

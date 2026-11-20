@@ -33,7 +33,7 @@
 ## 标注步骤
 
 1. 打开 CSV（Excel 可直接读，UTF-8 BOM）。
-2. 检索 query：再看 `candidate_achievement_ids` 对应的成果标题/摘要（见 `data/processed/achievements_clean_v0.1-thin.jsonl`），把相关 ID 写入 `relevant_achievement_ids`，并在 `relevance_grades` 写 `id:2;id:1`。
+2. 检索 query：再看 `candidate_achievement_ids` 对应的成果标题/摘要——薄切片看 `data/processed/achievements_clean_v0.1-thin.jsonl`（100 条），全量看 `data/processed/achievements_clean_v0.1.jsonl`（300 条）。把相关 ID 写入 `relevant_achievement_ids`，并在 `relevance_grades` 写 `id:2;id:1`。
 3. pair：读 `demand_title` 与 `achievement_title`，必要时查全文；按 0/1/2 口径填 `relevance_grade` 和 `rationale`。
 4. 20% 双标：第二人另存一份，比较后写 `adjudication`。
 5. 标注完成后运行评测脚本（待实现 `evaluate.py`），输出 Recall@10、Precision@5、nDCG@10。

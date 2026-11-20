@@ -102,6 +102,8 @@ Applying migrations
   status: success
 ```
 
+> 验收库共 3 次导入：前两次（`load-20261120T140341205249Z`、`load-20261120T140354352715Z`）未传 `--embedding-model-version`，`dataset_manifest.embedding_model` 为 NULL；第三次 `load-20261120T140443436901Z` 补传后写入 `qwen3.7-text-embedding-flash-1024-v1`。§4 的命令是最终口径。
+
 ## 6. 数据库核对
 
 ```text
@@ -156,7 +158,7 @@ demand.dataset_version:      v0.1 × 100
 | --- | --- | --- |
 | 评测路径不随 `--dataset-version` 切换 | 全量导入会用 thin 的 20 query / 50 pair，并把评测行标成 `v0.1-thin` | `queries`、`pairs` 纳入版本解析 |
 | 哈希清单不随版本切换 | `--zip` 仍比 thin 包的哈希，全量包必然失败 | `manifest` 纳入版本解析，新增 `private_data_v0.1.json` |
-| `embedding_model_version` 未传 | `dataset_manifest.embedding_model` 为 NULL | 验收命令显式传入 `qwen3.7-text-embedding-flash-1024-v1` |
+| `embedding_model_version` 未传 | 前两次导入 `dataset_manifest.embedding_model` 为 NULL | 第三次补传 `qwen3.7-text-embedding-flash-1024-v1`，主库最终 run 有值 |
 
 ## 10. 未完成项
 
