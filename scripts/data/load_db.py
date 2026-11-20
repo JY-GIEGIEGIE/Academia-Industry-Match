@@ -238,9 +238,13 @@ def load_jsonl(path: Path | None, label: str, required: bool, v: Validation) -> 
     return rows
 
 
+def is_blank(value: Any) -> bool:
+    """True for None and for strings that carry no content."""
+    return value is None or (isinstance(value, str) and not value.strip())
+
+
 def require(record: dict[str, Any], field: str, where: str, v: Validation) -> None:
-    value = record.get(field)
-    if value is None or (isinstance(value, str) and not value.strip()):
+    if is_blank(record.get(field)):
         v.error(f"{where}: missing required field {field}")
 
 
@@ -716,7 +720,7 @@ def validate_eval(
                     v.error(f"{where}: relevance_grade {grade} for {key} not 0/1/2")
                 if key not in candidate_set:
                     v.error(f"{where}: graded id {key} not in candidate_achievement_ids")
-        if not row.get("dataset_version"):
+        if is_blank(row.get("dataset_version")):
             missing_version += 1
         query_id = row.get("query_id")
         if query_id in query_ids:
@@ -752,7 +756,7 @@ def validate_eval(
             empty_grades += 1
         if row.get("hard_negative_type") not in HARD_NEGATIVE_TYPES and row.get("hard_negative_type") is not None:
             v.error(f"{where}: hard_negative_type={row.get('hard_negative_type')!r} invalid")
-        if not row.get("dataset_version"):
+        if is_blank(row.get("dataset_version")):
             missing_pair_version += 1
         pair_id = row.get("pair_id")
         if pair_id in pair_ids:
@@ -1026,7 +1030,7 @@ def check_dataset_versions(
         mismatches: dict[str, int] = {}
         for index, row in enumerate(data.get(key, []), 1):
             value = row.get("dataset_version")
-            if value is None or (isinstance(value, str) and not value.strip()):
+            if is_blank(value):
                 continue
             if not isinstance(value, str):
                 v.error(
@@ -1070,7 +1074,7 @@ def validate_all(data: dict[str, list[dict[str, Any]]], v: Validation, args: arg
     if data["profiles"]:
         data["profiles"] = validate_profiles(data["profiles"], achievement_ids, v)
     for key in ("achievements", "demands", "enterprises"):
-        missing = sum(1 for row in data[key] if not row.get("dataset_version"))
+        missing = sum(1 for row in data[key] if is_blank(row.get("dataset_version")))
         if missing:
             v.warn(f"{key}: {missing} rows missing dataset_version; defaulting to {args.dataset_version}")
 
@@ -1266,7 +1270,7 @@ def build_rows(rows: list[dict[str, Any]], columns: list[str], transforms: dict[
         item: dict[str, Any] = {}
         for column in columns:
             value = row.get(column)
-            if column == "dataset_version" and not value:
+            if column == "dataset_version" and is_blank(value):
                 value = dataset_version
             if column in transforms:
                 value = transforms[column](value)
@@ -1951,11 +1955,9 @@ def main() -> int:
     started = now_utc()
     run_id = "load-" + started.strftime("%Y%m%dT%H%M%S%fZ")
     try:
-        if args.migrate:
-            print("Applying migrations")
-            apply_migrations(db)
         # Probe first: a missing table must not be referenced in the same
         # statement, because PostgreSQL resolves the name at parse time.
+        # Check before migrating so a refused run leaves the schema untouched.
         if args.limit is not None and db.scalar(
             "SELECT to_regclass('public.achievement') IS NOT NULL"
         ):
@@ -1971,6 +1973,9 @@ def main() -> int:
                     file=sys.stderr,
                 )
                 return 1
+        if args.migrate:
+            print("Applying migrations")
+            apply_migrations(db)
         print(f"  server: PostgreSQL {db.server_version()} / pgvector {db.vector_version()}")
         print("Importing")
         counts = import_all(db, data, args)

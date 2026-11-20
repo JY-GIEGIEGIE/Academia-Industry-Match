@@ -226,6 +226,23 @@ class HelperTests(unittest.TestCase):
 
 
 
+class BlankVersionTests(unittest.TestCase):
+    def test_blank_is_recognised(self) -> None:
+        for value in (None, "", "   ", "\t"):
+            self.assertTrue(load_db.is_blank(value), value)
+        for value in ("v0.1", 0, []):
+            self.assertFalse(load_db.is_blank(value), value)
+
+    def test_build_rows_fills_blank_version(self) -> None:
+        rows = load_db.build_rows(
+            [{"dataset_version": "   "}, {"dataset_version": "v0.1-thin"}],
+            ["dataset_version"],
+            {},
+            "v0.1",
+        )
+        self.assertEqual([row["dataset_version"] for row in rows], ["v0.1", "v0.1-thin"])
+
+
 class ResolvePathTests(unittest.TestCase):
     """Guard the switch between thin slice and full dataset files."""
 
