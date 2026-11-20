@@ -17,7 +17,7 @@
 | 连续两次导入不重复 | 通过 | 两次导入后 100/20/10/20/50 完全不变 |
 | 外键违规 0 | 通过 | `fk_demand_enterprise`、`fk_eval_label_achievement`、`fk_eval_label_demand` 均为 0 |
 
-附加验证：向量写入与距离查询、标签/抽取/画像导入、`--limit` 冒烟、交接包 SHA-256 校验、29 个单元测试。
+附加验证：向量写入与距离查询、标签/抽取/画像导入、`--limit` 冒烟、交接包 SHA-256 校验、32 个单元测试。
 
 ## 2. 环境
 
@@ -139,7 +139,7 @@ hnsw index: ix_embedding_vector_hnsw
 | 标签变更 | 主标签 `electrolyte` 改为 `separator` 后重跑 | 旧行被替换，主标签正确，无残留 |
 | 小样本 | `--limit 20` 在临时库 | 20 成果 / 20 需求 / 10 企业，eval 跳过，`success` |
 | 哈希校验 | `--manifest` + `--zip` | zip 与两个 processed 文件 SHA-256 全部匹配 |
-| 单元测试 | `python -m unittest discover -s tests -t .` | 32 个通过（无 psycopg 的解释器也通过） |
+| 单元测试 | `python -m unittest discover -s tests -t .` | 32 个通过（验收当日；后续修复新增后为 38 个） |
 
 测试向量与构造标签在验证后已删除，验收库 `be2_acceptance` 已 drop，主库回到 100/20/10/20/50 的干净状态。
 
