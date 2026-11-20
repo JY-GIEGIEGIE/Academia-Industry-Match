@@ -116,4 +116,4 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" \
 
 验证记录（2026-11-20，psycopg 3.3.9 + Docker PostgreSQL 16.16 + pgvector 0.8.7）：空库（public 0 表）一键迁移成功；导入 300 成果 / 100 需求 / 25 企业 / 20 query / 50 pair；连续三次导入数量不变，重复 DOI 0、孤儿向量 0、外键 0、`vector(1024)` 正常；主库从薄切片 100/20/10 覆盖到全量 300/100/25，`v0.1-thin` 残留 0；zip 与 processed 文件的 SHA-256 与 `private_data_v0.1.json` 一致。薄切片记录见 `docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`。
 
-标签、抽取、画像已支持导入（`--labeled` / `--profiles`）。标签 code 按 `taxonomy_v0.1.md` 校验；每个成果最多 2 个 `tech_field`、恰好 1 个 `is_primary`，缺主标签只警告（覆盖率问题），多个主标签或超过 2 个 `tech_field` 直接报错；重跑会先删除该批成果的旧标签/抽取/画像再重建，避免主标签唯一索引冲突。`match_score` 表已建好，导入留给匹配引擎。
+标签、抽取、画像已支持导入（`--labeled` / `--profiles`）。标签 code 按 `taxonomy_v0.1.md` 校验；每个成果最多 2 个 `tech_field`、恰好 1 个 `is_primary`。没有 `tech_field` 标签只警告（覆盖率问题）；有 `tech_field` 但缺主标签、多个主标签或超过 2 个 `tech_field` 直接报错；重跑会先删除该批成果的旧标签/抽取/画像再重建，避免主标签唯一索引冲突。`match_score` 表已建好，导入留给匹配引擎。

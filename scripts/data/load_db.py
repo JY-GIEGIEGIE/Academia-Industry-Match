@@ -9,7 +9,7 @@ schema from ``migrations/0001_init.sql``.
 Examples:
     python scripts/data/load_db.py --check
     python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate
-    python scripts/data/load_db.py --dsn "$DATABASE_URL" --skip-hash --limit 20
+    python scripts/data/load_db.py --dsn "$SMOKE_DSN" --migrate --skip-hash --limit 20
 
 The script does not download data. Put the handoff package's
 ``data/processed/`` files in place first.
@@ -1026,7 +1026,7 @@ def check_dataset_versions(
         mismatches: dict[str, int] = {}
         for index, row in enumerate(data.get(key, []), 1):
             value = row.get("dataset_version")
-            if value is None:
+            if value is None or (isinstance(value, str) and not value.strip()):
                 continue
             if not isinstance(value, str):
                 v.error(
@@ -1948,28 +1948,29 @@ def main() -> int:
         print(f"ERROR: cannot connect: {redact_dsn(str(exc))}", file=sys.stderr)
         return 2
 
-    if args.limit is not None:
-        other_rows = db.scalar(
-            "SELECT CASE WHEN to_regclass('public.achievement') IS NULL THEN 0 ELSE "
-            "(SELECT count(*) FROM achievement WHERE dataset_version IS DISTINCT FROM "
-            f"{sql_literal(args.dataset_version)}) END"
-        )
-        if other_rows:
-            print(
-                f"ERROR: --limit {args.limit} would mix {args.dataset_version} rows into a "
-                f"database that already holds {other_rows} achievements of another "
-                "dataset_version; run the smoke test against a throwaway database",
-                file=sys.stderr,
-            )
-            db.close()
-            return 1
-
     started = now_utc()
     run_id = "load-" + started.strftime("%Y%m%dT%H%M%S%fZ")
     try:
         if args.migrate:
             print("Applying migrations")
             apply_migrations(db)
+        # Probe first: a missing table must not be referenced in the same
+        # statement, because PostgreSQL resolves the name at parse time.
+        if args.limit is not None and db.scalar(
+            "SELECT to_regclass('public.achievement') IS NOT NULL"
+        ):
+            other_rows = db.scalar(
+                "SELECT count(*) FROM achievement WHERE dataset_version IS DISTINCT FROM "
+                f"{sql_literal(args.dataset_version)}"
+            )
+            if other_rows:
+                print(
+                    f"ERROR: --limit {args.limit} would mix {args.dataset_version} rows into "
+                    f"a database that already holds {other_rows} achievements of another "
+                    "dataset_version; run the smoke test against a throwaway database",
+                    file=sys.stderr,
+                )
+                return 1
         print(f"  server: PostgreSQL {db.server_version()} / pgvector {db.vector_version()}")
         print("Importing")
         counts = import_all(db, data, args)

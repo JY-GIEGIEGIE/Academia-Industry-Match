@@ -153,6 +153,12 @@ class DatasetVersionTests(unittest.TestCase):
         self.assertEqual(len(v.errors), 1)
         self.assertIn("v0.1-thin", v.errors[0])
 
+    def test_blank_version_is_left_to_require(self) -> None:
+        v = load_db.Validation()
+        data = {"achievements": [{"dataset_version": "   "}]}
+        load_db.check_dataset_versions(data, "v0.1", v)
+        self.assertEqual(v.errors, [])
+
     def test_non_string_is_an_error(self) -> None:
         v = load_db.Validation()
         data = {"achievements": [{"dataset_version": 1}]}
