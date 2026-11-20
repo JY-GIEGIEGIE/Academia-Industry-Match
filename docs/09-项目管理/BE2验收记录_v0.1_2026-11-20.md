@@ -172,6 +172,8 @@ demand.dataset_version:      v0.1 × 100
 | 画像覆盖 | `capability_profiles_v0.1.jsonl`（陈镇灏） | `--profiles` 导入，检查 `achievements_without_profile` |
 | 评测标注 | 20 query / 50 pair 的 `relevance_grade` | 标注完成后重导 `eval_query` / `eval_label` |
 
+上述三份文件的导入路径已用合成数据在临时库预演：300 条标签行写入 900 条 tag / 300 条 extraction，300 条画像写入 300 条 text，400 条向量（300 成果 + 100 需求），二次导入按替换语义计数不变。真实文件到位后按 §4 的命令重跑即可。
+
 ## 11. 口径说明
 
 - 25 条企业记录没有 `dataset_version` 字段，导入时按 `--dataset-version` 默认填 `v0.1`，只产生 warning。
