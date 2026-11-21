@@ -17,11 +17,22 @@
 
 硬约束（见 taxonomy §8.3，脚本内强制校验，不依赖模型自觉）：
   1. 只能输出 taxonomy 中的枚举 code；非法 code 直接拒绝并重试，重试耗尽后剔除非法项。
-  2. 每个标签必须有 evidence；无证据时 confidence ≤0.4 且 review_status=needs_review。
+  2. 每个标签必须有 evidence；无证据时 confidence ≤0.4。
   3. tech_field 恰好 1 个 is_primary=true，最多 2 个。
-  4. trl 必须带 trl_evidence；无证据或非 1—9 整数则 trl=null。
+  4. trl 必须带 trl_evidence；无证据 / 非法值 / 论文越级（5—6 无中试放大、7—9 无装车量产证据）均 trl=null 并标 needs_review。
   5. 不确定字段写 unknown，禁止编造 IP/合作模式/性能指标。
   6. 成果侧 cooperation_mode 只是潜在模式，confidence ≤0.5，不参与硬过滤。
+
+review_status 口径（对齐契约）：
+  - achievement_tag 只允许 pending/approved/rejected，故标签一律写 "pending"；缺证据/低置信只体现在
+    evidence 为空 + confidence≤0.4，并上提到记录级。
+  - needs_review 只写进顶级记录（labeled_record["review_status"]）与 extraction["review_status"]，
+    成果本身**不丢弃**、不下线。
+  - 画像缺失 → capability_profile_zh=null，前端回退 abstract_preview；不阻断该成果的标签/向量链路。
+  - review_reasons 分类：missing_evidence / trl / profile / key_metrics / tech_field / retry_exhausted。
+
+ID 归属：tag_id / extraction_id / text_id 不由本脚本生成（由 load_db.py 导入器生成），
+  JSONL 中不包含这些 ID 字段；标签以 achievement_id + dimension + code 交叉引用。
 
 用法：
   # 环境自检（不调用 API）
@@ -43,6 +54,7 @@ import argparse
 import json
 import subprocess
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -67,6 +79,21 @@ PROMPT_VERSION = "v0.1"
 TAXONOMY_VERSION = "v0.1"
 MAX_ABSTRACT_CHARS = 4000  # 控制单条输入长度，避免超长摘要撑爆 token
 DEFAULT_MAX_TOKENS = 2048   # 抽取 JSON + 150—250 字中文画像，1024 可能不够
+SPRINT = "2026-11-22"       # 第一次冲刺
+
+# 能力画像目标长度（契约 §4.3：150—250 字）
+PROFILE_MIN_CHARS = 150
+PROFILE_MAX_CHARS = 250
+
+# needs_review 原因分类（manifest 与抽检报告据此归类，不报单一总数）
+REVIEW_REASONS = (
+    "missing_evidence",   # 标签缺 evidence（confidence 封顶 0.4）
+    "trl",                # TRL 无证据 / 非法值 / 论文越级被降为 null
+    "profile",            # 能力画像缺失或长度超界
+    "key_metrics",        # 非法 key_metrics 项被丢弃
+    "tech_field",         # 无合法 tech_field（标签覆盖不足）
+    "retry_exhausted",    # 非法 code 重试耗尽，已剔除非法项
+)
 
 # ---------------------------------------------------------------------------
 # 枚举中文标签与定义（与 taxonomy_v0.1.md 保持一致；仅用于构造 Prompt 与提示，
@@ -274,52 +301,98 @@ def _apply_evidence_rule(item: dict) -> bool:
 
 def _normalize_trl(
     raw: dict, source_type: str | None
-) -> tuple[int | None, str | None, bool]:
-    """返回 (trl, trl_evidence, needs_review)。无证据或非法则 trl=None。"""
+) -> tuple[int | None, str | None, bool, str | None]:
+    """返回 (trl, trl_evidence, needs_review, reason)。
+
+    严格降级（taxonomy §4 TRL 硬规则）：
+    - 未断言 trl → (None, None, False, None)
+    - 非法值 / 无证据 / 论文越级 → trl=null + needs_review，reason="trl"
+    - 论文/预印本 TRL 5—6 需中试/放大/原型证据，7—9 需装车/量产/认证/定型证据
+    """
     trl = raw.get("trl")
     evidence = (raw.get("trl_evidence") or "").strip()
+    if trl is None:
+        return None, None, False, None
     if not isinstance(trl, int) or isinstance(trl, bool) or not 1 <= trl <= 9:
-        return None, None, False
+        return None, None, True, "trl"  # 非法值 → null + needs_review
     if not evidence:
-        return None, None, True  # 无证据：trl=null + needs_review
-    needs_review = False
+        return None, None, True, "trl"  # 无证据 → null + needs_review
     if source_type in ("article", "review", "preprint"):
         ev_low = evidence.lower()
         if trl >= 7:
-            strong = ("field test", "vehicle", "commercial", "mass production",
-                      "certified", "装车", "量产", "商用", "认证", "定型")
+            # 只接受明确现场/装车/量产证据，去掉过宽的 vehicle/commercial。
+            strong = ("field test", "vehicle demo", "mass production",
+                      "装车", "量产", "认证", "定型")
             if not any(k in ev_low for k in strong):
-                return None, None, True  # 论文不得无装车/量产证据标 7—9
+                return None, None, True, "trl"
         elif trl >= 5:
-            pilot = ("pilot", "scale-up", "scale up", "ah-level", "中试", "放大")
+            pilot = ("pilot", "scale-up", "scale up", "ah-level",
+                     "中试", "放大", "prototype", "demonstrator", "module", "pack-level")
             if not any(k in ev_low for k in pilot):
-                needs_review = True  # 论文标 5 需中试/放大证据，交由人工确认
-    return trl, evidence, needs_review
+                return None, None, True, "trl"  # 5—6 无中试/原型证据 → null，不保留只标 review
+    return trl, evidence, False, None
+
+
+def _clean_key_metrics(raw: object) -> tuple[list[dict], bool]:
+    """只接受 {name,value,unit,evidence} 且 name/value 非空；非法项丢弃。
+
+    返回 (合法指标列表, 是否有非法项被丢弃)。全部为空不阻断，详情页不渲染指标区。
+    """
+    if raw is None:
+        return [], False
+    if not isinstance(raw, list):
+        return [], True
+    cleaned: list[dict] = []
+    dropped = False
+    for m in raw:
+        if not isinstance(m, dict):
+            dropped = True
+            continue
+        name = str(m.get("name") or "").strip()
+        value = str(m.get("value") or "").strip()
+        if not name or not value:
+            dropped = True
+            continue
+        cleaned.append(
+            {
+                "name": name,
+                "value": value,
+                "unit": str(m.get("unit") or "").strip(),
+                "evidence": str(m.get("evidence") or "").strip(),
+            }
+        )
+    return cleaned, dropped
 
 
 def validate_extraction(
     raw: object,
     source_type: str | None,
-    *,
-    raise_illegal: bool = True,
-) -> tuple[dict, list[str], bool]:
+) -> tuple[dict, list[str], bool, list[str]]:
     """校验并归一化模型输出。
 
-    返回 (normalized, illegal_errors, needs_review)。
+    返回 (normalized, illegal_errors, needs_review, review_reasons)。
     - illegal_errors：非空表示存在非法枚举 code（调用方据此重试）。
-    - needs_review：存在缺证据 / TRL 越界等软问题，需人工复核。
+    - needs_review：存在缺证据 / TRL 降级 / 画像缺失或超界 / key_metrics 非法等问题。
+    - review_reasons：needs_review 的原因分类，取值见 REVIEW_REASONS。
     """
     if not isinstance(raw, dict):
-        return {}, ["模型输出不是 JSON 对象"], True
+        return {}, ["模型输出不是 JSON 对象"], True, ["invalid_output"]
 
     illegal: list[str] = []
     needs_review = False
+    reasons: list[str] = []
+
+    def _flag(reason: str) -> None:
+        nonlocal needs_review
+        needs_review = True
+        if reason not in reasons:
+            reasons.append(reason)
 
     # tech_fields：恰好 1 个 primary，最多 2 个
     tech_items, tech_illegal = _clean_coded_list(raw.get("tech_fields"), TECH_FIELDS)
     illegal += tech_illegal
     if not tech_items:
-        needs_review = True
+        _flag("tech_field")
     else:
         # 去重后最多 2 个
         if len(tech_items) > 2:
@@ -329,7 +402,7 @@ def validate_extraction(
         for i, item in enumerate(tech_items):
             item["is_primary"] = (i == best_idx)
             if _apply_evidence_rule(item):
-                needs_review = True
+                _flag("missing_evidence")
 
     # application_scenarios：最多 3 个
     app_items, app_illegal = _clean_coded_list(raw.get("application_scenarios"), APPLICATION_SCENARIOS)
@@ -337,7 +410,7 @@ def validate_extraction(
     app_items = app_items[:3]
     for item in app_items:
         if _apply_evidence_rule(item):
-            needs_review = True
+            _flag("missing_evidence")
 
     # cooperation_modes：confidence ≤0.5，缺证据 ≤0.4
     coop_items, coop_illegal = _clean_coded_list(raw.get("cooperation_modes"), COOPERATION_MODES)
@@ -345,7 +418,7 @@ def validate_extraction(
     for item in coop_items:
         item["confidence"] = min(_clamp01(item.get("confidence")), 0.5)
         if _apply_evidence_rule(item):
-            needs_review = True
+            _flag("missing_evidence")
 
     # ip_status
     ip_status = raw.get("ip_status")
@@ -354,15 +427,23 @@ def validate_extraction(
             illegal.append(f"ip_status={ip_status!r}")
         ip_status = "unknown"
 
-    # trl
-    trl, trl_evidence, trl_review = _normalize_trl(raw, source_type)
+    # trl（严格降级）
+    trl, trl_evidence, trl_review, trl_reason = _normalize_trl(raw, source_type)
     if trl_review:
-        needs_review = True
+        _flag(trl_reason or "trl")
 
+    # key_metrics：非法项丢弃并标 review
+    key_metrics, km_dropped = _clean_key_metrics(raw.get("key_metrics"))
+    if km_dropped:
+        _flag("key_metrics")
+
+    # capability_profile_zh：目标 150—250 字；缺失 → null，超界 → 保留但标 review
     profile_text = (raw.get("capability_profile_zh") or "").strip()
-    # 能力画像目标 150—250 字；过短/过长软标记，交由抽检复核。
-    if profile_text and (len(profile_text) < 100 or len(profile_text) > 400):
-        needs_review = True
+    if not profile_text:
+        profile_text = None
+        _flag("profile")
+    elif len(profile_text) < PROFILE_MIN_CHARS or len(profile_text) > PROFILE_MAX_CHARS:
+        _flag("profile")
 
     normalized = {
         "tech_fields": tech_items,
@@ -373,15 +454,14 @@ def validate_extraction(
         "trl_confidence": _clamp01(raw.get("trl_confidence")) if trl is not None else None,
         "trl_evidence": trl_evidence,
         "material_system": (raw.get("material_system") or "unknown").strip() or "unknown",
-        "key_metrics": raw.get("key_metrics") if isinstance(raw.get("key_metrics"), list) else [],
+        "key_metrics": key_metrics,
         "process": raw.get("process") if isinstance(raw.get("process"), list) else [],
         "capability_profile_zh": profile_text,
+        "_needs_review": needs_review,
+        "_review_reasons": sorted(set(reasons)),
     }
 
-    if raise_illegal and illegal:
-        # 存在非法 code：整体“拒绝”，交由调用方重试。
-        return normalized, illegal, needs_review
-    return normalized, illegal, needs_review
+    return normalized, illegal, needs_review, sorted(set(reasons))
 
 
 # ---------------------------------------------------------------------------
@@ -396,14 +476,20 @@ def build_records(
     dataset_version: str,
     run_id: str,
 ) -> tuple[dict, dict | None, bool]:
-    """返回 (labeled_record, profile_record_or_None, needs_review)。"""
+    """返回 (labeled_record, profile_record_or_None, needs_review)。
+
+    review_status 口径：tag 一律 "pending"（achievement_tag 仅允许 pending/approved/rejected）；
+    needs_review 只写进 extraction 与顶级记录，单一来源 normalized["_needs_review"]，避免与 stats 不一致。
+    tag_id / extraction_id / text_id 由导入器生成，不在此处写入 JSONL。
+    """
     achievement_id = ach["achievement_id"]
     created_at = _now_utc()
-    needs_review = normalized.get("_needs_review", False)
+    needs_review = bool(normalized.get("_needs_review", False))
 
     def _tag(dimension: str, code: str, item: dict, is_primary: bool) -> dict:
+        # achievement_tag 只允许 pending/approved/rejected；needs_review 只上提到记录级。
+        # tag_id 由导入器生成，不在此处填写。
         return {
-            "tag_id": f"tag_{achievement_id}_{dimension}_{code}",
             "achievement_id": achievement_id,
             "dimension": dimension,
             "code": code,
@@ -413,7 +499,7 @@ def build_records(
             "method": "llm",
             "model": model,
             "prompt_version": PROMPT_VERSION,
-            "review_status": "needs_review" if not (item.get("evidence") or "").strip() else "pending",
+            "review_status": "pending",
             "created_at": created_at,
         }
 
@@ -425,10 +511,9 @@ def build_records(
     for item in normalized["cooperation_modes"]:
         tags.append(_tag("cooperation_mode", item["code"], item, False))
 
-    extraction_review = needs_review or (normalized["trl"] is None and raw_output.get("trl") is not None)
+    record_review = "needs_review" if needs_review else "pending"
 
     extraction = {
-        "extraction_id": f"ext_{achievement_id}",
         "achievement_id": achievement_id,
         "material_system": normalized["material_system"],
         "key_metrics": normalized["key_metrics"],
@@ -441,7 +526,7 @@ def build_records(
         "model": model,
         "prompt_version": PROMPT_VERSION,
         "raw_output": raw_output,
-        "review_status": "needs_review" if extraction_review else "pending",
+        "review_status": record_review,
         "created_at": created_at,
     }
 
@@ -452,16 +537,15 @@ def build_records(
         "model": model,
         "prompt_version": PROMPT_VERSION,
         "extraction_run_id": run_id,
-        "review_status": "needs_review" if (needs_review or extraction_review) else "pending",
+        "review_status": record_review,
         "tags": tags,
         "extraction": extraction,
     }
 
     profile_text = normalized["capability_profile_zh"]
     profile_record = None
-    if profile_text:
+    if profile_text:  # 缺失时 capability_profile_zh=null，不生成画像记录，成果仍保留
         profile_record = {
-            "text_id": f"txt_{achievement_id}_capability_profile_zh_zh",
             "achievement_id": achievement_id,
             "text_type": "capability_profile_zh",
             "language": "zh",
@@ -485,8 +569,8 @@ def extract_one(
     *,
     model: str | None,
     max_field_retries: int,
-) -> tuple[dict, dict, bool, int]:
-    """返回 (normalized, raw_output, needs_review, retries_used)。"""
+) -> tuple[dict, dict, bool, int, list[str]]:
+    """返回 (normalized, raw_output, needs_review, retries_used, review_reasons)。"""
     system = build_system_prompt()
     user = build_user_message(ach)
     messages: list[dict] = [
@@ -498,10 +582,9 @@ def extract_one(
     for attempt in range(max_field_retries + 1):
         raw = client.chat_json(messages, model=model, max_tokens=DEFAULT_MAX_TOKENS)
         last_raw = raw
-        normalized, illegal, needs_review = validate_extraction(raw, source_type, raise_illegal=True)
+        normalized, illegal, needs_review, reasons = validate_extraction(raw, source_type)
         if not illegal:
-            normalized["_needs_review"] = needs_review
-            return normalized, raw, needs_review, attempt
+            return normalized, raw, needs_review, attempt, reasons
         feedback = (
             "上一轮输出存在非法枚举 code，已拒绝。请修正后重新只输出 JSON：\n"
             + "\n".join(f"- 非法：{e}" for e in illegal)
@@ -511,9 +594,10 @@ def extract_one(
             {"role": "user", "content": feedback},
         ]
     # 重试耗尽：剔除非法项，标记 needs_review。
-    normalized, _, needs_review = validate_extraction(last_raw, source_type, raise_illegal=False)
+    normalized, _, needs_review, reasons = validate_extraction(last_raw, source_type)
     normalized["_needs_review"] = True
-    return normalized, last_raw, True, max_field_retries
+    reasons = sorted(set(reasons) | {"retry_exhausted"})
+    return normalized, last_raw, True, max_field_retries, reasons
 
 
 # ---------------------------------------------------------------------------
@@ -544,6 +628,14 @@ def _append_jsonl(path: Path, record: dict) -> None:
 # ---------------------------------------------------------------------------
 # 主流程
 # ---------------------------------------------------------------------------
+def _relpath(path: Path) -> str:
+    """转仓库相对路径；转不了就回退绝对路径。"""
+    try:
+        return str(path.resolve().relative_to(_ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def run(args: argparse.Namespace) -> int:
     input_path = Path(args.input) if args.input else PROCESSED_DIR / f"achievements_clean_{args.version}.jsonl"
     out_dir = Path(args.output_dir) if args.output_dir else PROCESSED_DIR
@@ -554,6 +646,16 @@ def run(args: argparse.Namespace) -> int:
         print(f"[错误] 未找到输入文件：{input_path}", file=sys.stderr)
         print("       请把交接包中的 achievements_clean_<version>.jsonl 放到 data/processed/，", file=sys.stderr)
         print("       或用 --input 指定路径。", file=sys.stderr)
+        return 2
+
+    # 幂等：非 --resume 时拒绝覆盖已有输出，保证连续两次运行不重复追加。
+    if not args.resume and (labeled_path.exists() or profile_path.exists()):
+        print("[错误] 输出文件已存在，拒绝覆盖以避免重复追加：", file=sys.stderr)
+        if labeled_path.exists():
+            print(f"  {labeled_path}", file=sys.stderr)
+        if profile_path.exists():
+            print(f"  {profile_path}", file=sys.stderr)
+        print("       请删除后重跑，或加 --resume 断点续跑。", file=sys.stderr)
         return 2
 
     try:
@@ -582,7 +684,7 @@ def run(args: argparse.Namespace) -> int:
         print("没有待处理的成果（已全部处理，或 --limit 为 0）。")
         return 0
 
-    run_id = args.run_id or f"extract-{args.version}-{datetime.now(timezone.utc):%Y%m%d}"
+    run_id = args.run_id or f"{args.version}-{datetime.now(timezone.utc):%Y%m%d}"
     model = args.model or client.chat_model
     started = _now_utc()
 
@@ -592,31 +694,35 @@ def run(args: argparse.Namespace) -> int:
     print(f"输出：{labeled_path}\n      {profile_path}\n")
 
     stats = {
-        "ok": 0, "needs_review": 0, "failed": 0,
+        "ok": 0, "needs_review": 0, "failed": 0, "written": 0,
         "profiles_written": 0, "profile_missing": 0, "retries_used": 0,
     }
+    reason_counter: Counter = Counter()
     for idx, ach in enumerate(todo, 1):
         aid = ach.get("achievement_id", "?")
         try:
-            normalized, raw, needs_review, retries = extract_one(
+            normalized, raw, needs_review, retries, reasons = extract_one(
                 client, ach, model=model, max_field_retries=args.max_retries
             )
             stats["retries_used"] += retries
-            labeled, profile, _ = build_records(
+            labeled, profile, rec_review = build_records(
                 ach, normalized, raw,
                 model=model, dataset_version=args.version, run_id=run_id,
             )
             _append_jsonl(labeled_path, labeled)
+            stats["written"] += 1
             if profile:
                 _append_jsonl(profile_path, profile)
                 stats["profiles_written"] += 1
             else:
                 stats["profile_missing"] += 1
-            if needs_review:
+            if rec_review:
                 stats["needs_review"] += 1
             else:
                 stats["ok"] += 1
-            print(f"[{idx}/{len(todo)}] {aid}  needs_review={needs_review}  retries={retries}")
+            for reason in reasons:
+                reason_counter[reason] += 1
+            print(f"[{idx}/{len(todo)}] {aid}  needs_review={rec_review}  retries={retries}  reasons={reasons}")
         except Exception as exc:  # noqa: BLE001 —— 单条失败不中断全量
             stats["failed"] += 1
             print(f"[{idx}/{len(todo)}] {aid}  失败：{exc}", file=sys.stderr)
@@ -624,23 +730,39 @@ def run(args: argparse.Namespace) -> int:
     manifest = {
         "run_id": run_id,
         "stage": "extract",
+        "sprint": SPRINT,
+        "status": (
+            "success"
+            if stats["failed"] == 0
+            else ("failed" if stats["failed"] == len(todo) else "partial")
+        ),
         "dataset_version": args.version,
         "taxonomy_version": TAXONOMY_VERSION,
         "prompt_version": PROMPT_VERSION,
         "model": model,
-        "input_path": str(input_path),
-        "labeled_path": str(labeled_path),
-        "profile_path": str(profile_path),
+        "input_path": _relpath(input_path),
+        "labeled_path": _relpath(labeled_path),
+        "profile_path": _relpath(profile_path),
         "started_at": started,
         "finished_at": _now_utc(),
         "input_count": len(achievements),
         "processed_count": len(todo),
+        "output_count": stats["written"],
         "ok": stats["ok"],
         "needs_review": stats["needs_review"],
         "failed": stats["failed"],
         "profiles_written": stats["profiles_written"],
         "profile_missing": stats["profile_missing"],
         "retries_used": stats["retries_used"],
+        "review_reasons": dict(reason_counter),
+        "config": {
+            "model": model,
+            "prompt_version": PROMPT_VERSION,
+            "taxonomy_version": TAXONOMY_VERSION,
+            "max_retries": args.max_retries,
+            "limit": args.limit,
+            "resume": args.resume,
+        },
         "git_commit": _git_commit(),
         "args": vars(args),
     }
@@ -650,6 +772,7 @@ def run(args: argparse.Namespace) -> int:
 
     print(f"\n完成：ok={stats['ok']}  needs_review={stats['needs_review']}  failed={stats['failed']}")
     print(f"画像：written={stats['profiles_written']}  missing={stats['profile_missing']}")
+    print(f"needs_review 分类：{dict(reason_counter)}")
     print(f"清单：{manifest_path}")
     return 0 if stats["failed"] == 0 else 1
 
@@ -665,7 +788,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", default="v0.1-thin", help="数据版本，决定输入/输出文件名")
     parser.add_argument("--input", default=None, help="覆盖输入 jsonl 路径")
     parser.add_argument("--output-dir", default=None, help="覆盖输出目录（默认 data/processed/）")
-    parser.add_argument("--run-id", default=None, help="运行 ID（默认 extract-<version>-<日期>）")
+    parser.add_argument("--run-id", default=None, help="运行 ID（默认 <version>-<日期>）")
     parser.add_argument("--model", default=None, help="覆盖对话模型（默认读 .env 的 QWEN_CHAT_MODEL）")
     parser.add_argument("--limit", type=int, default=None, help="只处理前 N 条（用于 30 条校准试跑）")
     parser.add_argument("--resume", action="store_true", help="断点续跑：跳过已存在于输出文件的成果")
