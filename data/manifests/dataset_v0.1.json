@@ -1,0 +1,55 @@
+{
+  "sprint": "2026-11-22",
+  "task": "S-02",
+  "dataset_version": "v0.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "base_commit": "15789651dfbecfd223567184a22919633e79fa95",
+  "source": "OpenAlex",
+  "run_id": "s02-v01",
+  "source_requests": 74,
+  "source_errors": 0,
+  "source_records_returned": 4026,
+  "files": {
+    "achievements_clean": {
+      "path": "data/processed/achievements_clean_v0.1.jsonl",
+      "sha256": "2eb903d3e09a76afb37fe72e19470c4c1f7dc35cb62b2243e49b84309c922655"
+    },
+    "demands": {
+      "path": "data/processed/demands_v0.1.jsonl",
+      "sha256": "cf3035f4d4a2357bcc749b39f3b5be482bb194799c380152a12d8573809b0117"
+    },
+    "enterprises": {
+      "path": "data/processed/enterprises_v0.1.jsonl",
+      "sha256": "74d50bfed7d892df3f54e6842c1f91c3a2667655cb5b2be5bb57db3ac6630c07"
+    }
+  },
+  "quality": {
+    "dataset_version": "v0.1",
+    "achievements": 300,
+    "selected_by_tag": {
+      "anode": 45,
+      "cathode": 45,
+      "cell_system": 45,
+      "electrolyte": 45,
+      "flow": 15,
+      "recycling": 45,
+      "separator": 45,
+      "supercap": 15
+    },
+    "required_fields_complete": 300,
+    "completeness_rate": 1.0,
+    "duplicate_count": 0,
+    "duplicate_rate": 0.0,
+    "source_traced": 300,
+    "demands": 100,
+    "public_seed_rewrites": 20,
+    "enterprises": 25,
+    "errors": []
+  },
+  "evaluation": {
+    "retrieval_queries": 20,
+    "pairs": 50,
+    "annotation_status": "pending_human_review"
+  }
+}
