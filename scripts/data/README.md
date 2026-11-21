@@ -103,7 +103,8 @@ python scripts/data/load_db.py --dsn "$THIN_DSN" --migrate \
   --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
 
 # 标签 / 抽取 / 能力画像（全量；文件格式见 docs/09-项目管理/标签与画像文件格式_2026-11-19.md）
-python scripts/data/load_db.py --dsn "$DATABASE_URL" \
+# --migrate 同时应用 0002 的 review_status 约束；已有库重复执行安全
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
   --dataset-version v0.1 \
   --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
   --labeled data/processed/achievements_labeled_v0.1.jsonl \
