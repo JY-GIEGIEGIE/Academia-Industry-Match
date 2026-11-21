@@ -1,6 +1,6 @@
 # scripts/data
 
-数据采集、清洗、种子与评测模板脚本。设计目标是**无第三方依赖、可重跑、每步留痕**，先支撑 v0.1 薄切片，再扩展到全量。
+数据采集、清洗、种子与评测模板脚本。设计目标是**无第三方依赖、可重跑、每步留痕**，v0.1 薄切片与全量均已支持。
 
 ## 1. 脚本
 
@@ -57,7 +57,7 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 
 - `extract_labels.py`：Qwen 标签/TRL/指标抽取，JSON schema + 证据 + confidence；
 - `embed.py`：Qwen `qwen3.7-text-embedding-flash` 1024 维向量化，`text_hash` 缓存；
-- `load_db.py`：PostgreSQL + pgvector 幂等导入；
+- `load_db.py`：已提供（见第 8 节），已在 PostgreSQL 16.16 + pgvector 0.8.7 上验证 300 条全量导入与重复导入；
 - `evaluate.py`：Recall@10、Precision@5、nDCG@10；本冲刺先做 B0—B2 三组基线（BM25 / 纯向量 / 标签+向量），B3（LLM 精排）待匹配引擎就绪后补。
 
 ## 7. 共享 API 客户端
@@ -76,3 +76,47 @@ hits = rerank(query, documents, top_n=10)
 - embedding 按 `(model, dim, text_type, text_hash)` 缓存到 `data/interim/`，不重复计费；
 - 调用开销写 `data/interim/api_usage.jsonl`；
 - 自检：`python scripts/common/llm_client.py --check`；小样本：`--demo`。
+
+## 8. 数据库迁移与导入（BE2）
+
+前置：PostgreSQL 16 + pgvector 0.8.x；`pip install -r requirements.txt`（psycopg 3）。完整数据从群文件交接包解压到 `data/processed/`。
+
+```bash
+# 只校验文件，不连库（默认薄切片；加 --dataset-version v0.1 校验全量）
+python scripts/data/load_db.py --check --dataset-version v0.1
+
+# 空库一键迁移 + 全量导入（校验 zip 与 processed 文件的 SHA-256）
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
+  --dataset-version v0.1 \
+  --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
+  --zip "D:/path/to/S-02_v0.1_组内交接.zip"
+
+# 只迁移，不导入
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
+
+# 小样本冒烟（必须指向空库/临时库；导入器会拒绝往已含其他 dataset_version 的库写入）
+python scripts/data/load_db.py --dsn "$SMOKE_DSN" --migrate --limit 20 --skip-hash
+
+# 薄切片（100 成果 / 20 需求 / 10 企业；用独立的空库，不能写到全量库）
+python scripts/data/load_db.py --dsn "$THIN_DSN" --migrate \
+  --dataset-version v0.1-thin \
+  --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
+
+# 标签 / 抽取 / 能力画像（全量；文件格式见 docs/09-项目管理/标签与画像文件格式_2026-11-19.md）
+# --migrate 同时应用 0002 的 review_status 约束；已有库重复执行安全
+python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
+  --dataset-version v0.1 \
+  --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
+  --labeled data/processed/achievements_labeled_v0.1.jsonl \
+  --profiles data/processed/capability_profiles_v0.1.jsonl
+```
+
+`--dataset-version` 会同时切换成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单的默认路径。全量清单 `private_data_v0.1.json` 已就位，不需要再传 `--skip-hash`。
+
+导入默认拒绝往已有其他 `dataset_version` 的库写入。从薄切片升级到全量时加 `--allow-mixed-versions`；其余情况请用空库或临时库。
+
+输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`（运行时生成，每次覆盖，不入库）。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
+
+验证记录（2026-11-20，psycopg 3.3.9 + Docker PostgreSQL 16.16 + pgvector 0.8.7）：空库（public 0 表）一键迁移成功；导入 300 成果 / 100 需求 / 25 企业 / 20 query / 50 pair；连续三次导入数量不变，重复 DOI 0、孤儿向量 0、外键 0、`vector(1024)` 正常；主库从薄切片 100/20/10 覆盖到全量 300/100/25，`v0.1-thin` 残留 0；zip 与 processed 文件的 SHA-256 与 `private_data_v0.1.json` 一致。薄切片记录见 `docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`。
+
+标签、抽取、画像已支持导入（`--labeled` / `--profiles`）。标签 code 按 `taxonomy_v0.1.md` 校验；每个成果最多 2 个 `tech_field`、恰好 1 个 `is_primary`。没有 `tech_field` 标签只警告（覆盖率问题）；有 `tech_field` 但缺主标签、多个主标签或超过 2 个 `tech_field` 直接报错；重跑会先删除该批成果的旧标签/抽取/画像再重建，避免主标签唯一索引冲突。`match_score` 表已建好，导入留给匹配引擎。

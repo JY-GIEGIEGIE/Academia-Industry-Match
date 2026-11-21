@@ -1,0 +1,15 @@
+{
+  "version": "v0.1",
+  "achievements": 300,
+  "demands": 20,
+  "queries": 20,
+  "pairs": 50,
+  "query_outputs": {
+    "csv": "data\\eval\\retrieval_queries_v0.1.csv",
+    "jsonl": "data\\eval\\retrieval_queries_v0.1.jsonl"
+  },
+  "pair_outputs": {
+    "csv": "data\\eval\\pair_labels_v0.1.csv",
+    "jsonl": "data\\eval\\pair_labels_v0.1.jsonl"
+  }
+}
