@@ -250,8 +250,8 @@ pipeline_run 1 ── * dataset_manifest
 | `semantic_score` | float(0—100) | 是 | 向量相似度归一化 |
 | `llm_score` | float(0—100) | 否 | LLM 精排分 |
 | `reason` | text | 是 | 推荐理由 |
-| `risk` | json | 是 | 四维风险：技术/市场/IP/合作 |
-| `evidence` | json | 是 | 引用片段与字段 |
+| `risk` | json | 是 | 四维风险：technical/market/ip/collaboration，各含 score/description，另有 overall |
+| `evidence` | json | 是 | 匹配证据：tag_matches/snippets/metric_matches |
 | `model` | string | 是 | 精排模型 |
 | `prompt_version` | string | 是 | |
 | `dataset_version` | string | 是 | |
@@ -259,6 +259,8 @@ pipeline_run 1 ── * dataset_manifest
 | `embedding_model_version` | string | 是 | |
 | `is_stale` | bool | 是 | 数据/模型变更后标记失效 |
 | `created_at` | datetime | 是 | |
+
+`risk` / `evidence` 的完整 JSON 子结构见 `docs/02-需求分析/数据API契约_v0.1.md` §6.4；持久化记录按该结构落库，两处必须同步变更。
 
 ### 4.11 评测对象
 
