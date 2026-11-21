@@ -4,6 +4,7 @@
 > 版本：v0.1
 > 日期：2026-11-17
 > 状态：v0.1，第一次冲刺使用；字段/枚举变更走第 9 节变更控制
+> 补充：2026-11-21 补齐 `match_score.risk` / `evidence` JSON 子结构（评审补全；待 DE/AI/BE2 在契约评审确认）
 > 负责人：黄欣悦（DE）、陈镇灏（AI）、张小桐（BE2）
 > 批准：贾越（PM）
 > 关联文档：`taxonomy_v0.1.md`、`eval_spec_v0.1.md`、`data/README.md`
@@ -110,7 +111,7 @@ pipeline_run 1 ── * dataset_manifest
 | `retrieved_at` | datetime(UTC) | 是 | 取得时间 |
 | `content_hash` | string | 是 | 归一化标题+摘要+DOI+source_id 的 sha256 |
 | `clean_status` | enum(`raw`/`cleaned`/`labeled`/`embedded`/`published`) | 是 | 流水线状态 |
-| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | 人工审核状态 |
+| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | 人工审核状态；`needs_review` 见 6.3 |
 | `quality_flags` | json array | 是 | 见 6.1 |
 | `is_simulated` | bool | 是 | 成果默认 `false` |
 | `dataset_version` | string | 是 | 如 `v0.1-thin` |
@@ -148,7 +149,7 @@ pipeline_run 1 ── * dataset_manifest
 | `method` | enum(`llm`/`rule`/`human`) | 是 | 生成方式 |
 | `model` | string | 否 | 抽取模型 |
 | `prompt_version` | string | 否 | Prompt 版本 |
-| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | `needs_review` 表示已产出但需人工复核，记录仍入库 |
+| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | 见 6.3 审核口径 |
 | `created_at` | datetime | 是 | |
 
 ### 4.5 `achievement_extraction`（抽取结果）
@@ -168,7 +169,7 @@ pipeline_run 1 ── * dataset_manifest
 | `model` | string | 是 | |
 | `prompt_version` | string | 是 | |
 | `raw_output` | json | 否 | 模型原始输出，便于复核 |
-| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | `needs_review` 表示已产出但需人工复核，记录仍入库 |
+| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | 见 6.3 审核口径 |
 | `created_at` | datetime | 是 | |
 
 ### 4.6 `embedding`（向量）
@@ -250,8 +251,8 @@ pipeline_run 1 ── * dataset_manifest
 | `semantic_score` | float(0—100) | 是 | 向量相似度归一化 |
 | `llm_score` | float(0—100) | 否 | LLM 精排分 |
 | `reason` | text | 是 | 推荐理由 |
-| `risk` | json | 是 | 四维风险：技术/市场/IP/合作 |
-| `evidence` | json | 是 | 引用片段与字段 |
+| `risk` | json | 是 | 四维风险：technical/market/ip/collaboration，各含 score/description，另有 overall |
+| `evidence` | json | 是 | 匹配证据：tag_matches/snippets/metric_matches |
 | `model` | string | 是 | 精排模型 |
 | `prompt_version` | string | 是 | |
 | `dataset_version` | string | 是 | |
@@ -259,6 +260,29 @@ pipeline_run 1 ── * dataset_manifest
 | `embedding_model_version` | string | 是 | |
 | `is_stale` | bool | 是 | 数据/模型变更后标记失效 |
 | `created_at` | datetime | 是 | |
+
+`risk` / `evidence` 的字段结构以本节下方为准；`docs/02-需求分析/数据API契约_v0.1.md` §6.4 提供响应示例与字段展开，两处必须同步变更。
+
+**`risk` 子结构**
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `technical` / `market` / `ip` / `collaboration` | object | 是 | 四维风险 |
+| `<dimension>.score` | int(1—5) | 是 | 1=低风险，5=高风险 |
+| `<dimension>.description` | string | 是 | 一句话说明，必须对应评估依据 |
+| `overall` | object | 是 | 综合风险提示与规避建议 |
+| `overall.summary` | string | 是 | 综合风险提示 |
+| `overall.mitigation` | array[string] | 是 | 1—3 条可执行规避建议 |
+
+**`evidence` 子结构**
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `tag_matches` | array | 否 | 命中的成果/需求标签；元素含 dimension/code/achievement_confidence/demand_confidence |
+| `snippets` | array | 否 | 原文摘录；元素含 side/field/text/source_ref |
+| `metric_matches` | array | 否 | 指标对比；元素含 name/achievement_value/required_value/unit/matched |
+
+`is_stale=false` 时，`tag_matches`、`snippets`、`metric_matches` 至少一项非空；否则 `evidence=null`。`capability_profile_zh` 等机器生成文本不得作为唯一证据。
 
 ### 4.11 评测对象
 
@@ -353,6 +377,15 @@ pipeline_run 1 ── * dataset_manifest
 | 合作模式 | 成果侧只作为“潜在模式”推断，`confidence ≤0.5`，不用于硬过滤；需求侧按企业填报 |
 | 未知处理 | 不确定写 `unknown`，禁止编造 IP 状态、合作模式、性能指标 |
 | 人工抽检 | 10% 样本、≥30 条，逐字段比对；标签准确率 ≥90% |
+
+**review_status 与严格校验口径（2026-11-21）**
+
+- `review_status` 统一四种值：`pending`（默认待审核）、`approved`（人工确认）、`rejected`（不采用）、`needs_review`（已产出但有缺证据、越界或格式问题，需复核）。`needs_review` 不是失败，不得因此丢弃成果或让接口返回 404。
+- 标签无 `evidence`：保留标签，`confidence ≤0.4`，`review_status=needs_review`；前端显示“证据不足/待复核”，不隐藏结果。
+- TRL 无 `trl_evidence`：`trl=null`、`review_status=needs_review`。论文/预印本没有明确中试/放大证据时，TRL 5—6 降为 `null`；没有明确 `field test` / `vehicle demo` / `mass production` / `装车` / `量产` / `认证` / `定型` 证据时，TRL 7—9 降为 `null`；不得保留无依据的高 TRL。匹配时 `trl=null` 视为未知，不做硬过滤，前端显示“TRL 待确认”。
+- 能力画像目标 150—250 字；缺失或超界时 `review_status=needs_review`。缺失画像不丢弃成果：`capability_profile_zh=null`，前端回退到 `abstract_preview`；画像有但超界时保留原文并加“待复核”标记。
+- `key_metrics` 只接受 `{name,value,unit,evidence}`：`name`、`value`、`unit` 非空，`evidence` 非空；非法项丢弃并标 `needs_review`，其余有效指标保留。全部为空时不渲染指标区，不阻断详情页；前端显示“部分指标待复核”或省略该区。
+- `pending` / `needs_review` 的记录仍参与匹配和展示；列表/详情显示“待复核”标识，人工确认后改为 `approved`；`rejected` 不进入推荐和展示。严格校验的目标是“不编造、可追溯”，不是让页面无数据。
 
 ### 6.4 向量与匹配
 
