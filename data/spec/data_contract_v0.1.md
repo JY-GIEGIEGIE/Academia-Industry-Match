@@ -148,7 +148,7 @@ pipeline_run 1 ── * dataset_manifest
 | `method` | enum(`llm`/`rule`/`human`) | 是 | 生成方式 |
 | `model` | string | 否 | 抽取模型 |
 | `prompt_version` | string | 否 | Prompt 版本 |
-| `review_status` | enum(`pending`/`approved`/`rejected`) | 是 | |
+| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | `needs_review` 表示已产出但需人工复核，记录仍入库 |
 | `created_at` | datetime | 是 | |
 
 ### 4.5 `achievement_extraction`（抽取结果）
@@ -168,7 +168,7 @@ pipeline_run 1 ── * dataset_manifest
 | `model` | string | 是 | |
 | `prompt_version` | string | 是 | |
 | `raw_output` | json | 否 | 模型原始输出，便于复核 |
-| `review_status` | enum(`pending`/`approved`/`rejected`) | 是 | |
+| `review_status` | enum(`pending`/`approved`/`rejected`/`needs_review`) | 是 | `needs_review` 表示已产出但需人工复核，记录仍入库 |
 | `created_at` | datetime | 是 | |
 
 ### 4.6 `embedding`（向量）

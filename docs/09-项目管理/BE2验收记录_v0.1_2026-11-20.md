@@ -187,7 +187,14 @@ demand.dataset_version:      v0.1 × 100
 - 导入报告：`data/manifests/load_report_v0.1.md`（主库）、`data/manifests/load_report_v0.1_accept.md`（验收库）；运行时生成，每次覆盖，不入库
 - 导入清单：`data/manifests/import_v0.1.json`、`data/manifests/import_v0.1_accept.json`；同上
 - 私有数据哈希：`data/manifests/private_data_v0.1.json`
-- 表结构：`migrations/0001_init.sql`
+- 表结构：`migrations/0001_init.sql`、`migrations/0002_review_status_needs_review.sql`
 - 导入脚本：`scripts/data/load_db.py`
 - 单元测试：`tests/test_load_db.py`
 - 薄切片记录：`docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`
+
+## 13. 2026-11-21 口径同步（正式标签/画像文件导入前）
+
+- `achievement_tag`、`achievement_extraction`、`demand_tag` 的 `review_status` 放开 `needs_review`，由 `migrations/0002_review_status_needs_review.sql` 完成；`needs_review` 记录仍入库。
+- `load_db.py` 接受脚本生成的 `tag_id`、`extraction_id`、`text_id`（要求全局唯一、跨次运行稳定）；缺省时仍按原公式生成。
+- `trl=null`、`key_metrics=[]`、画像缺失均不阻塞导入；覆盖率仍由 INFO 类检查报告，不作为导入失败条件。
+- 单元测试全仓 44 条通过（load_db 36 条；新增 `needs_review`、脚本 ID、空 TRL/空指标用例）。

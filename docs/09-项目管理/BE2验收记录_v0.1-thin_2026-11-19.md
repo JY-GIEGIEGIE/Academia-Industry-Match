@@ -139,7 +139,7 @@ hnsw index: ix_embedding_vector_hnsw
 | 标签变更 | 主标签 `electrolyte` 改为 `separator` 后重跑 | 旧行被替换，主标签正确，无残留 |
 | 小样本 | `--limit 20` 在临时库 | 20 成果 / 20 需求 / 10 企业，eval 跳过，`success` |
 | 哈希校验 | `--manifest` + `--zip` | zip 与两个 processed 文件 SHA-256 全部匹配 |
-| 单元测试 | `python -m unittest discover -s tests -t .` | 32 个通过（验收当日；后续修复新增后为 38 个） |
+| 单元测试 | `python -m unittest discover -s tests -t .` | 32 个通过（验收当日；后续新增后为 44 个：load_db 36 + llm_client 8） |
 
 测试向量与构造标签在验证后已删除，验收库 `be2_acceptance` 已 drop，主库回到 100/20/10/20/50 的干净状态。
 

@@ -134,6 +134,67 @@ class ValidateLabeledTests(unittest.TestCase):
         _, v = self.check([record, dict(record)])
         self.assertTrue(any("duplicate achievement_id" in error for error in v.errors))
 
+    def test_accepts_needs_review_on_tags_and_extractions(self) -> None:
+        rows, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag(review_status="needs_review")],
+            "extraction": {
+                "trl": None,
+                "model": "qwen3.8-flash",
+                "prompt_version": "v1",
+                "ip_status": "unknown",
+                "review_status": "needs_review",
+            },
+        }])
+        self.assertEqual(v.errors, [])
+        self.assertEqual(rows[0]["tags"][0]["review_status"], "needs_review")
+        self.assertEqual(rows[0]["extraction"]["review_status"], "needs_review")
+
+    def test_null_trl_and_empty_metrics_are_accepted(self) -> None:
+        rows, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag()],
+            "extraction": {
+                "trl": None,
+                "key_metrics": [],
+                "process": [],
+                "model": "qwen3.8-flash",
+                "prompt_version": "v1",
+                "ip_status": "unknown",
+            },
+        }])
+        self.assertEqual(v.errors, [])
+        self.assertIsNone(rows[0]["extraction"]["trl"])
+        self.assertEqual(rows[0]["extraction"]["key_metrics"], [])
+
+    def test_keeps_script_generated_tag_and_extraction_ids(self) -> None:
+        rows, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag(tag_id="tag_script_1")],
+            "extraction": {
+                "extraction_id": "ext_script_1",
+                "trl": 4,
+                "trl_evidence": "coin cell tested",
+                "model": "qwen3.8-flash",
+                "prompt_version": "v1",
+                "ip_status": "unknown",
+            },
+        }])
+        self.assertEqual(v.errors, [])
+        self.assertEqual(rows[0]["tags"][0]["tag_id"], "tag_script_1")
+        self.assertEqual(rows[0]["extraction"]["extraction_id"], "ext_script_1")
+
+    def test_rejects_duplicate_script_tag_id(self) -> None:
+        _, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [
+                make_tag(tag_id="tag_dup"),
+                make_tag(code="separator", primary=False, tag_id="tag_dup"),
+            ],
+            "extraction": None,
+        }])
+        self.assertTrue(any("duplicate tag_id" in error for error in v.errors))
+
 
 class DatasetVersionTests(unittest.TestCase):
     def test_matching_version_passes(self) -> None:
@@ -192,6 +253,28 @@ class ValidateProfilesTests(unittest.TestCase):
         _rows, v = self.check([{"achievement_id": "ach_1", "language": "zh", "text": "太短"}])
         self.assertEqual(v.errors, [])
         self.assertTrue(any("outside the 150-250" in warning for warning in v.warnings))
+
+    def test_keeps_script_generated_text_id(self) -> None:
+        rows, v = self.check([{
+            "achievement_id": "ach_1",
+            "language": "zh",
+            "text": "该成果围绕固态电池关键材料展开。" * 12,
+            "text_id": "txt_script_1",
+        }])
+        self.assertEqual(v.errors, [])
+        self.assertEqual(rows[0]["text_id"], "txt_script_1")
+
+    def test_rejects_duplicate_script_text_id(self) -> None:
+        original = self.ids
+        self.ids = {"ach_1", "ach_2"}
+        try:
+            _rows, v = self.check([
+                {"achievement_id": "ach_1", "language": "zh", "text": "x" * 160, "text_id": "txt_dup"},
+                {"achievement_id": "ach_2", "language": "zh", "text": "y" * 160, "text_id": "txt_dup"},
+            ])
+        finally:
+            self.ids = original
+        self.assertTrue(any("duplicate text_id" in error for error in v.errors))
 
     def test_empty_text_is_error(self) -> None:
         _, v = self.check([{"achievement_id": "ach_1", "language": "zh", "text": "   "}])

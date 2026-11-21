@@ -43,7 +43,8 @@ LANGUAGES = {"en", "zh", "mixed", "unknown"}
 TYPES = {"article", "review", "preprint", "patent", "other"}
 CLEAN_STATUSES = {"raw", "cleaned", "labeled", "embedded", "published"}
 REVIEW_STATUSES = {"pending", "approved", "rejected", "needs_review"}
-TAG_REVIEW_STATUSES = {"pending", "approved", "rejected"}
+# achievement_tag / achievement_extraction / demand_tag share this enum.
+TAG_REVIEW_STATUSES = REVIEW_STATUSES
 DIMENSIONS = {"tech_field", "application_scenario", "cooperation_mode"}
 LABEL_DIMENSIONS = DIMENSIONS
 PROFILE_LANGUAGES = {"zh", "en"}
@@ -784,6 +785,8 @@ def validate_labeled(
     """Validate achievements_labeled JSONL; return normalized tag/extraction records."""
     normalized: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
+    seen_tag_ids: set[str] = set()
+    seen_extraction_ids: set[str] = set()
     for index, row in enumerate(rows, 1):
         achievement_id = row.get("achievement_id")
         where = f"labeled[{index}] {achievement_id or '?'}"
@@ -829,7 +832,10 @@ def validate_labeled(
                 continue
             review = tag.get("review_status") or "pending"
             if review not in TAG_REVIEW_STATUSES:
-                v.error(f"{tag_where}: review_status={review!r} invalid (pending/approved/rejected)")
+                v.error(
+                    f"{tag_where}: review_status={review!r} invalid "
+                    "(pending/approved/rejected/needs_review)"
+                )
                 continue
             tag_key = (str(dimension), str(code))
             if tag_key in seen_tag_codes:
@@ -852,11 +858,21 @@ def validate_labeled(
                     "taxonomy section 5 treats it as a potential mode only"
                 )
             check_text_fields(tag, TAG_TEXT_FIELDS, tag_where, v)
+            raw_tag_id = tag.get("tag_id")
+            if raw_tag_id is not None and not isinstance(raw_tag_id, str):
+                v.error(f"{tag_where}: tag_id must be a string")
+                raw_tag_id = None
+            provided_tag_id = None if is_blank(raw_tag_id) else raw_tag_id
+            if provided_tag_id is not None:
+                if provided_tag_id in seen_tag_ids:
+                    v.error(f"{tag_where}: duplicate tag_id {provided_tag_id!r}")
+                    continue
+                seen_tag_ids.add(provided_tag_id)
             evidence = tag.get("evidence")
             if not evidence and float(confidence) > 0.4:
                 v.warn(f"{tag_where}: no evidence but confidence {confidence}; contract expects <=0.4")
             tags.append({
-                "tag_id": f"tag_{achievement_id}_{dimension}_{code}",
+                "tag_id": provided_tag_id or f"tag_{achievement_id}_{dimension}_{code}",
                 "achievement_id": achievement_id,
                 "dimension": dimension,
                 "code": code,
@@ -917,8 +933,21 @@ def validate_labeled(
                 review = extraction.get("review_status") or row.get("review_status") or "pending"
                 if review not in TAG_REVIEW_STATUSES:
                     v.error(f"{where}: extraction review_status={review!r} invalid")
+                raw_extraction_id = extraction.get("extraction_id")
+                if raw_extraction_id is None:
+                    raw_extraction_id = row.get("extraction_id")
+                if raw_extraction_id is not None and not isinstance(raw_extraction_id, str):
+                    v.error(f"{where}: extraction_id must be a string")
+                    raw_extraction_id = None
+                provided_extraction_id = None if is_blank(raw_extraction_id) else raw_extraction_id
+                if provided_extraction_id is not None:
+                    if provided_extraction_id in seen_extraction_ids:
+                        v.error(f"{where}: duplicate extraction_id {provided_extraction_id!r}")
+                        provided_extraction_id = None
+                    else:
+                        seen_extraction_ids.add(provided_extraction_id)
                 normalized_extraction = {
-                    "extraction_id": f"ext_{achievement_id}",
+                    "extraction_id": provided_extraction_id or f"ext_{achievement_id}",
                     "achievement_id": achievement_id,
                     "material_system": text_value(extraction.get("material_system")),
                     "key_metrics": valid_json_array(extraction, "key_metrics", where, v),
@@ -949,6 +978,7 @@ def validate_profiles(
     """Validate capability_profiles JSONL; fill text_id, text_type and text_hash."""
     normalized: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
+    seen_text_ids: set[str] = set()
     for index, row in enumerate(rows, 1):
         achievement_id = row.get("achievement_id")
         where = f"profile[{index}] {achievement_id or '?'}"
@@ -983,8 +1013,18 @@ def validate_profiles(
             v.error(f"{where}: method={method!r} invalid")
             continue
         text_type = "capability_profile_zh" if language == "zh" else "capability_profile_en"
+        raw_text_id = row.get("text_id")
+        if raw_text_id is not None and not isinstance(raw_text_id, str):
+            v.error(f"{where}: text_id must be a string")
+            raw_text_id = None
+        provided_text_id = None if is_blank(raw_text_id) else raw_text_id
+        if provided_text_id is not None:
+            if provided_text_id in seen_text_ids:
+                v.error(f"{where}: duplicate text_id {provided_text_id!r}")
+                continue
+            seen_text_ids.add(provided_text_id)
         normalized.append({
-            "text_id": f"txt_{achievement_id}_{text_type}_{language}",
+            "text_id": provided_text_id or f"txt_{achievement_id}_{text_type}_{language}",
             "achievement_id": achievement_id,
             "text_type": text_type,
             "language": language,
