@@ -223,15 +223,21 @@ class BuildRecordsTest(unittest.TestCase):
         self.assertIsNotNone(profile)
         self.assertNotIn("text_id", profile)
 
-    def test_tag_review_status_is_pending(self):
-        # 缺证据的标签：tag 级仍 pending，needs_review 只上提到记录级 + extraction
+    def test_tag_review_status_reflects_evidence(self):
+        # evidence 空（None 或空串）→ needs_review；有 evidence → pending
         raw = make_raw(
-            application_scenarios=[{"code": "ev_power", "confidence": 0.9, "evidence": ""}]
+            application_scenarios=[
+                {"code": "ev_power", "confidence": 0.9, "evidence": ""},   # 空串
+                {"code": "grid_storage", "confidence": 0.8},               # 缺 evidence（None）
+            ]
         )
         labeled, profile, review = self._build(raw)
         self.assertTrue(review)
-        for tag in labeled["tags"]:
-            self.assertEqual(tag["review_status"], "pending")
+        app_tags = {t["code"]: t for t in labeled["tags"] if t["dimension"] == "application_scenario"}
+        self.assertEqual(app_tags["ev_power"]["review_status"], "needs_review")
+        self.assertEqual(app_tags["grid_storage"]["review_status"], "needs_review")
+        tech = next(t for t in labeled["tags"] if t["dimension"] == "tech_field")
+        self.assertEqual(tech["review_status"], "pending")
         self.assertEqual(labeled["review_status"], "needs_review")
         self.assertEqual(labeled["extraction"]["review_status"], "needs_review")
 

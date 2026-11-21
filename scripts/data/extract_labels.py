@@ -23,11 +23,11 @@
   5. 不确定字段写 unknown，禁止编造 IP/合作模式/性能指标。
   6. 成果侧 cooperation_mode 只是潜在模式，confidence ≤0.5，不参与硬过滤。
 
-review_status 口径（对齐契约）：
-  - achievement_tag 只允许 pending/approved/rejected，故标签一律写 "pending"；缺证据/低置信只体现在
-    evidence 为空 + confidence≤0.4，并上提到记录级。
-  - needs_review 只写进顶级记录（labeled_record["review_status"]）与 extraction["review_status"]，
-    成果本身**不丢弃**、不下线。
+review_status 口径（对齐契约四值）：
+  - achievement_tag 的 review_status 按 evidence 是否有值：evidence 为空（None/空串）→ needs_review，
+    否则 pending。
+  - 顶级记录（labeled_record["review_status"]）与 extraction["review_status"] 用 normalized 的
+    needs_review（单一来源，避免与 stats 不一致）；成果本身**不丢弃**、不下线。
   - 画像缺失 → capability_profile_zh=null，前端回退 abstract_preview；不阻断该成果的标签/向量链路。
   - review_reasons 分类：missing_evidence / trl / profile / key_metrics / tech_field / retry_exhausted。
 
@@ -478,8 +478,8 @@ def build_records(
 ) -> tuple[dict, dict | None, bool]:
     """返回 (labeled_record, profile_record_or_None, needs_review)。
 
-    review_status 口径：tag 一律 "pending"（achievement_tag 仅允许 pending/approved/rejected）；
-    needs_review 只写进 extraction 与顶级记录，单一来源 normalized["_needs_review"]，避免与 stats 不一致。
+    review_status 口径：achievement_tag 四值，evidence 空（None/空串）→ needs_review，否则 pending；
+    顶级记录与 extraction 用 normalized["_needs_review"]（单一来源，避免与 stats 不一致）。
     tag_id / extraction_id / text_id 由导入器生成，不在此处写入 JSONL。
     """
     achievement_id = ach["achievement_id"]
@@ -487,19 +487,20 @@ def build_records(
     needs_review = bool(normalized.get("_needs_review", False))
 
     def _tag(dimension: str, code: str, item: dict, is_primary: bool) -> dict:
-        # achievement_tag 只允许 pending/approved/rejected；needs_review 只上提到记录级。
+        # achievement_tag 允许四值；evidence 为空（None/空串）→ needs_review，否则 pending。
         # tag_id 由导入器生成，不在此处填写。
+        evidence = (item.get("evidence") or "").strip()
         return {
             "achievement_id": achievement_id,
             "dimension": dimension,
             "code": code,
             "is_primary": is_primary,
             "confidence": _clamp01(item.get("confidence")),
-            "evidence": (item.get("evidence") or "").strip(),
+            "evidence": evidence,
             "method": "llm",
             "model": model,
             "prompt_version": PROMPT_VERSION,
-            "review_status": "pending",
+            "review_status": "needs_review" if not evidence else "pending",
             "created_at": created_at,
         }
 
