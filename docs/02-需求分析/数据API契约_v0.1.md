@@ -176,6 +176,8 @@
 | review_status | string | achievement |
 | trl_evidence | string / null | achievement_extraction |
 | key_metrics | array | achievement_extraction |
+| material_system | string / null | achievement_extraction |
+| process | array | achievement_extraction |
 | ip_status | string | achievement_extraction |
 
 说明：
@@ -186,6 +188,9 @@
 - `trl` 的显示标签（如“4 实验室器件”）由 `/api/v1/taxonomy` 的 `trl` 维度提供。
 - `capability_profile_zh` 来源于 `achievement_text`，筛选条件为 `text_type=capability_profile_zh`；机器生成文本，原文证据仍以 `abstract_original` 为准。
 - `trl_evidence`、`key_metrics` 和 `ip_status` 来源于 `achievement_extraction`。
+- `key_metrics` 元素结构为 `{"name","value","unit","evidence"}`；无 `evidence` 的指标不得作为结论展示。
+- `material_system` 和 `process` 来源于 `achievement_extraction`；无证据写 `null` / 空数组，不编造。
+- `achievement_summary` 中的 `tech_fields` 只含 `code` / `is_primary`；需要 `confidence` / `evidence` 时调用 tags API。
 
 ### 3.4 响应示例
 
@@ -240,7 +245,7 @@
 | required_trl | integer | 按需求最低可接受 TRL 精确筛选，取值范围 1–9。例如 required_trl=5 仅返回该字段等于 5 的需求。 |
 | region | string | 意向地区 |
 | status | string | 需求状态 |
-| cooperation_mode | string | 合作模式 |
+| cooperation_mode | string | 合作模式 code；匹配 demand.cooperation_modes 包含该 code 的需求 |
 
 筛选规则说明：
 
@@ -255,7 +260,7 @@ required_trl 表示企业需求可接受的最低技术成熟度。API 列表筛
 | title                 | string | 是 | 需求标题      |
 | pain_point            | string | 是 | 技术痛点      |
 | expected_solution     | string | 是 | 期望解决方案    |
-| technical_metrics     | array | 是 | 技术指标      |
+| technical_metrics     | array | 是 | 技术指标；元素结构为 {name,value,unit} |
 | budget_range          | string / null | 否 | 预算范围      |
 | timeline              | string / null | 否 | 预计周期      |
 | cooperation_modes     | array | 是 | 合作方式      |
@@ -281,7 +286,7 @@ required_trl 表示企业需求可接受的最低技术成熟度。API 列表筛
 | enterprise.industry | string | `enterprise.industry` | 企业行业枚举 code |
 | enterprise.size | string | `enterprise.size` | 企业规模枚举 code：`large` / `medium` / `small` |
 
-`enterprise` 为 API 聚合对象，不属于 `demand` 实体的原始字段，不修改现有数据契约；原 `enterprise_display_name` 由 `enterprise.display_name` 替代，不再单独返回。API 不返回企业真实名称 `legal_name`。
+`enterprise` 为 API 聚合对象，不属于 `demand` 实体的原始字段，不修改现有数据契约；原 `enterprise_display_name` 由 `enterprise.display_name` 替代，不再单独返回。API 不返回企业真实名称 `legal_name`。兼容性说明：v0.1 初版曾返回 `enterprise_display_name`；本版改为 `enterprise.display_name`，FE 以本版为准。
 
 需求列表和匹配列表中的 `demand_summary` 至少包含：`demand_id`、`enterprise_id`、`title`、`pain_point`、`required_trl`、`tech_fields`、`application_scenarios`、`is_simulated`、`dataset_version` 和 `enterprise`；详情接口返回完整字段。
 
@@ -516,6 +521,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | tag_score | number | 是 | 标签分数，0–100 |
 | semantic_score | number | 是 | 语义分数，0–100 |
 | llm_score | number / null | 否 | LLM 精排分数 |
+| risk_overall_score | integer / null | 否 | 列表卡片用的综合风险分，1=低风险，5=高风险；不返回四维详情 |
 | reason | string | 是 | 推荐理由 |
 | achievement_summary | object | 是 | 成果摘要，结构见 §3.3；不含作者/机构 |
 | demand_summary | object | 是 | 需求摘要，结构见 §4.3；含 `enterprise` 对象 |
@@ -545,7 +551,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 #### `risk` 结构
 
 ```json
-"risk": {
+{
+  "risk": {
   "technical": {
     "score": 4,
     "description": "成果 TRL 4，低于需求要求 TRL 5，需中试验证。"
@@ -570,6 +577,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
     ]
   }
 }
+}
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
@@ -592,7 +600,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 #### `evidence` 结构
 
 ```json
-"evidence": {
+{
+  "evidence": {
   "tag_matches": [
     {
       "dimension": "tech_field",
@@ -604,9 +613,9 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
   "snippets": [
     {
       "side": "achievement",
-      "field": "capability_profile_zh",
-      "text": "该成果围绕硫化物固态电解质的中试放大展开。",
-      "source_ref": "achievement_text.capability_profile_zh"
+      "field": "abstract_original",
+      "text": "Sulfide solid electrolytes were scaled up to pilot-scale cells ...",
+      "source_ref": "achievement.abstract_original"
     },
     {
       "side": "demand",
@@ -625,6 +634,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
     }
   ]
 }
+}
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
@@ -634,11 +644,11 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | evidence.tag_matches[].code | string | 是 | taxonomy 枚举 code |
 | evidence.tag_matches[].achievement_confidence | number | 否 | 成果标签置信度 0—1 |
 | evidence.tag_matches[].demand_confidence | number | 否 | 需求标签置信度 0—1 |
-| evidence.snippets | array | 否 | 原文/画像摘录 |
+| evidence.snippets | array | 否 | 原文摘录；机器画像只能作补充 |
 | evidence.snippets[].side | enum(`achievement`/`demand`) | 是 | 证据所属一侧 |
-| evidence.snippets[].field | string | 是 | 展示字段，如 `capability_profile_zh`、`pain_point` |
+| evidence.snippets[].field | string | 是 | 展示字段，如 `abstract_original`、`pain_point` |
 | evidence.snippets[].text | string | 是 | 摘录，建议 ≤200 字符 |
-| evidence.snippets[].source_ref | string | 是 | 可追溯来源，如 `achievement_text.capability_profile_zh` |
+| evidence.snippets[].source_ref | string | 是 | 可追溯来源，如 `achievement.abstract_original` |
 | evidence.metric_matches | array | 否 | 指标对比 |
 | evidence.metric_matches[].name | string | 是 | 指标名称 |
 | evidence.metric_matches[].achievement_value | string / number | 否 | 成果指标值 |
@@ -650,7 +660,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 
 - `is_stale=false` 时，`tag_matches`、`snippets`、`metric_matches` 至少有一项非空；否则 `evidence=null`，`reason` 不能编造证据。
 - `source_ref` 必须能定位到数据表/字段：标签来自 `achievement_tag` / `demand_tag`，文本来自 `achievement_text` / `abstract_original` / `demand.pain_point`，指标来自 `achievement_extraction.key_metrics` 与需求 `technical_metrics`。
-- `risk` / `evidence` 的 JSON 子结构以本节为准；`data/spec/data_contract_v0.1.md` §4.10 已引用本节，两处必须同步变更。
+- `capability_profile_zh` 等机器生成文本不得作为唯一证据；如需展示，必须同时提供 `abstract_original` 原文片段。
+- `risk` / `evidence` 的字段结构以 `data/spec/data_contract_v0.1.md` §4.10 为准；本节提供响应示例与字段展开，两处必须同步变更。
 
 ### 6.5 响应示例
 
@@ -745,9 +756,9 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
       "snippets": [
         {
           "side": "achievement",
-          "field": "capability_profile_zh",
-          "text": "该成果围绕硫化物固态电解质的中试放大展开。",
-          "source_ref": "achievement_text.capability_profile_zh"
+          "field": "abstract_original",
+          "text": "Sulfide solid electrolytes were scaled up to pilot-scale cells ...",
+          "source_ref": "achievement.abstract_original"
         },
         {
           "side": "demand",
@@ -817,4 +828,4 @@ OpenAlex 元数据可以用于项目，但科研摘要可能受出版商版权�
 | 版本 | 变更内容 | 负责人 |
 |---|---|---|
 | v0.1 | 初版：成果、需求、标签、匹配结果 API 字段契约及通用接口规范 | 朱柔璇 |
-| v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇 |
+| v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇（原稿）、贾越（评审补全） |

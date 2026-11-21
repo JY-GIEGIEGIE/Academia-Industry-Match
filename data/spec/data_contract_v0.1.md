@@ -4,6 +4,7 @@
 > 版本：v0.1
 > 日期：2026-11-17
 > 状态：v0.1，第一次冲刺使用；字段/枚举变更走第 9 节变更控制
+> 补充：2026-11-21 补齐 `match_score.risk` / `evidence` JSON 子结构（评审补全；待 DE/AI/BE2 在契约评审确认）
 > 负责人：黄欣悦（DE）、陈镇灏（AI）、张小桐（BE2）
 > 批准：贾越（PM）
 > 关联文档：`taxonomy_v0.1.md`、`eval_spec_v0.1.md`、`data/README.md`
@@ -260,7 +261,28 @@ pipeline_run 1 ── * dataset_manifest
 | `is_stale` | bool | 是 | 数据/模型变更后标记失效 |
 | `created_at` | datetime | 是 | |
 
-`risk` / `evidence` 的完整 JSON 子结构见 `docs/02-需求分析/数据API契约_v0.1.md` §6.4；持久化记录按该结构落库，两处必须同步变更。
+`risk` / `evidence` 的字段结构以本节下方为准；`docs/02-需求分析/数据API契约_v0.1.md` §6.4 提供响应示例与字段展开，两处必须同步变更。
+
+**`risk` 子结构**
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `technical` / `market` / `ip` / `collaboration` | object | 是 | 四维风险 |
+| `<dimension>.score` | int(1—5) | 是 | 1=低风险，5=高风险 |
+| `<dimension>.description` | string | 是 | 一句话说明，必须对应评估依据 |
+| `overall` | object | 是 | 综合风险提示与规避建议 |
+| `overall.summary` | string | 是 | 综合风险提示 |
+| `overall.mitigation` | array[string] | 是 | 1—3 条可执行规避建议 |
+
+**`evidence` 子结构**
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `tag_matches` | array | 否 | 命中的成果/需求标签；元素含 dimension/code/achievement_confidence/demand_confidence |
+| `snippets` | array | 否 | 原文摘录；元素含 side/field/text/source_ref |
+| `metric_matches` | array | 否 | 指标对比；元素含 name/achievement_value/required_value/unit/matched |
+
+`is_stale=false` 时，`tag_matches`、`snippets`、`metric_matches` 至少一项非空；否则 `evidence=null`。`capability_profile_zh` 等机器生成文本不得作为唯一证据。
 
 ### 4.11 评测对象
 
