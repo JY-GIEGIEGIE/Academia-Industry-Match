@@ -50,6 +50,15 @@
   "evaluation": {
     "retrieval_queries": 20,
     "pairs": 50,
-    "annotation_status": "pending_human_review"
+    "annotation_status": "frozen",
+    "annotation_method": "human_first_pass + independent_double_label + category_adjudication",
+    "double_labeled": "4 query + 10 pair",
+    "kappa_query_linear": 0.465318,
+    "kappa_query_quadratic": 0.6321,
+    "kappa_pair_linear": 0.482759,
+    "kappa_pair_quadratic": 0.5714,
+    "adjudication": "20 query 0->1; 16 user 2s kept 1; 3 pair decisions resolved to first annotator",
+    "adjudication_log": "data/manifests/eval_adjudication_v0.1.md",
+    "frozen_at": "2026-11-22T12:33:58.422819+00:00"
   }
 }
