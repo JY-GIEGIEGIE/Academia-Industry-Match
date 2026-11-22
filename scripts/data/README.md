@@ -9,9 +9,9 @@
 | `config.py` | 子方向查询、关键词、评测 query、枚举映射 | 无 |
 | `fetch_openalex.py` | 抓取 OpenAlex 原始快照 | `data/raw/openalex/<run_id>/*.json`、`data/manifests/fetch_openalex_*.json` |
 | `build_thin_slice.py` | 摘要重建、清洗、去重、按子方向分层抽样 | `data/processed/achievements_clean_*.jsonl`、`data/samples/achievements_sample_*.jsonl` |
-| `make_seed_data.py` | 生成 10 家企业 + 20 条模拟需求 | `data/samples/enterprises_seed_v0.1.jsonl/.csv`、`data/samples/demands_seed_v0.1.jsonl/.csv` |
+| `make_seed_data.py` | 生成薄切片种子，或与组内补充种子合并生成全量 | `data/samples/*_seed_v0.1.*` 或 `data/processed/{enterprises,demands}_v0.1.jsonl` |
 | `make_eval_templates.py` | 生成 20 条检索 query + 50 对 pair 模板 | `data/eval/retrieval_queries_*.csv/.jsonl`、`data/eval/pair_labels_*.csv/.jsonl` |
-| `validate_thin_slice.py` | 校验薄切片数量/字段/模拟标记 | 终端报告 |
+| `validate_thin_slice.py` | 校验数量、字段、重复、模拟标记和全量来源追溯 | 终端报告 |
 
 ## 2. 运行顺序
 
@@ -44,7 +44,9 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 - 按子方向配额抽样：6 个主方向 × 15 + 液流/超级电容 × 5 = 100；
 - 每年最多 4 条，避免年份偏斜；
 - 全量清洗集写 `data/processed/`（不入 git）；20 条截断样例写 `data/samples/`（入 git）。
-- 扩到 300—400 条时，先扩充 `config.py` 的 `SUBFIELD_SPECS[*]["queries"]` 和每子方向 `target`（当前是薄切片 15/5），再传 `--target-total 300` 以上；只改总目标数会从剩余池按分数补足，子方向分布会偏。
+- 全量使用 `v0.1`。`config.py` 为该版本增加专项查询，配额为 6 个主方向各 45 条、2 个辅助方向各 15 条。抽样先满足子方向，再按分数补足总数。
+- 全量运行沿用“抓取 → 清洗 → 生成种子 → 校验”。这四步均选用 `v0.1`，本次抓取与清洗的运行标识为 `s02-v01`，每次请求上限 100 条，成果目标 300 条。生成全量种子使用组内交接包中的 `data/interim/seeds_v0.1.json`。
+- 有组内快照时可直接开始清洗。全量来源校验要求保留 `data/raw/openalex/s02-v01/` 中的候选快照；公开仓库保留现有截断样例。
 
 ## 5. 数据政策
 
