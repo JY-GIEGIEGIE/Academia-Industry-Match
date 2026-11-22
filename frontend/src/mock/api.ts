@@ -90,6 +90,26 @@ export class MockApi {
     if (this.delay) await new Promise((resolve) => setTimeout(resolve, this.delay))
     return { code: 0, message: 'success', data: structuredClone(data) }
   }
+  private paginate<T>(items: T[], params: { page?: number; page_size?: number } = {}): Page<T> {
+    const { page = 1, page_size = 20 } = params
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      !Number.isInteger(page_size) ||
+      page_size < 1 ||
+      page_size > 100
+    )
+      throw new ApiError(40001, '筛选或页码参数无效')
+    return {
+      items: items.slice((page - 1) * page_size, page * page_size),
+      pagination: {
+        page,
+        page_size,
+        total: items.length,
+        total_pages: Math.ceil(items.length / page_size),
+      },
+    }
+  }
   private findAchievement(id: string) {
     const a = this.data.achievements.find((item) => item.achievement_id === id)
     if (!a) throw new ApiError(40401, '找不到这条科研成果')
@@ -118,11 +138,15 @@ export class MockApi {
   getTaxonomy() {
     return this.respond(this.data.taxonomy)
   }
-  getAchievements() {
-    return this.respond(this.data.achievements.map(achievementSummary))
+  getAchievements(
+    params: { page?: number; page_size?: number } = {},
+  ): Promise<ApiResponse<Page<AchievementSummary>>> {
+    return this.respond(this.paginate(this.data.achievements.map(achievementSummary), params))
   }
-  getDemands() {
-    return this.respond(this.data.demands.map(demandSummary))
+  getDemands(
+    params: { page?: number; page_size?: number } = {},
+  ): Promise<ApiResponse<Page<DemandSummary>>> {
+    return this.respond(this.paginate(this.data.demands.map(demandSummary), params))
   }
   getAchievement(id: string) {
     return this.respond(this.findAchievement(id))
@@ -135,7 +159,7 @@ export class MockApi {
     id: string,
     params: { page?: number; page_size?: number; min_score?: number; is_stale?: boolean } = {},
   ): Promise<ApiResponse<Page<MatchSummary>>> {
-    const { page = 1, page_size = 3, min_score = 0, is_stale = false } = params
+    const { page = 1, page_size = 20, min_score = 0, is_stale = false } = params
     if (
       !Number.isInteger(page) ||
       page < 1 ||

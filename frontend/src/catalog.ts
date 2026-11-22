@@ -7,12 +7,12 @@ export const catalog = reactive<{
   taxonomy: Taxonomy | null
 }>({ achievements: [], demands: [], taxonomy: null })
 export const catalogReady = Promise.all([
-  api.getAchievements(),
-  api.getDemands(),
+  api.getAchievements({ page_size: 100 }),
+  api.getDemands({ page_size: 100 }),
   api.getTaxonomy(),
 ]).then(([a, d, t]) => {
-  catalog.achievements = a.data
-  catalog.demands = d.data
+  catalog.achievements = a.data.items
+  catalog.demands = d.data.items
   catalog.taxonomy = t.data
 })
 export function label(dimension: string, code: string | number | null | undefined): string {

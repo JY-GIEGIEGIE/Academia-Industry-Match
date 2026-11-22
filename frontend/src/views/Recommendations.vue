@@ -59,6 +59,11 @@ function selectState(event: Event) {
 function reset() {
   update({ min_score: 0, is_stale: 'false' })
 }
+function riskLabel(match: MatchSummary) {
+  if (match.is_stale) return '风险待重算'
+  if (match.risk_overall_score === null) return '风险待精排/评估'
+  return `综合风险 ${match.risk_overall_score}/5 · 演示`
+}
 function detailQuery() {
   return {
     ...route.query,
@@ -286,11 +291,7 @@ watch(() => route.fullPath, load, { immediate: true })
               <Score :value="match.total_score" :stale="match.is_stale" /><span
                 class="risk-summary"
                 :class="{ 'risk-pending': match.is_stale || match.risk_overall_score === null }"
-                >{{
-                  match.is_stale || match.risk_overall_score === null
-                    ? '风险待重算'
-                    : '综合风险 ' + match.risk_overall_score + '/5 · 演示'
-                }}</span
+                >{{ riskLabel(match) }}</span
               ><RouterLink
                 class="detail-link"
                 :to="{ path: '/matches/' + match.match_id, query: detailQuery() }"
