@@ -11,6 +11,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import json
@@ -20,6 +21,9 @@ from pathlib import Path
 from config import (
     APPLICATION_SCENARIOS,
     COOPERATION_MODES,
+    DATA_DIR,
+    FULL_VERSION,
+    PROCESSED_DIR,
     SAMPLE_DIR,
     TECH_FIELDS,
 )
@@ -775,10 +779,12 @@ def content_hash(*parts: str) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def validate() -> None:
-    enterprise_ids = {item["enterprise_id"] for item in ENTERPRISES}
+def validate(enterprises: list[dict], demands: list[dict]) -> None:
+    enterprise_ids = {item["enterprise_id"] for item in enterprises}
+    assert len(enterprise_ids) == len(enterprises), "duplicate enterprise_id"
+    assert all(item["is_simulated"] is True for item in enterprises)
     demand_ids: set[str] = set()
-    for demand in DEMANDS:
+    for demand in demands:
         assert demand["demand_id"] not in demand_ids, f"duplicate {demand['demand_id']}"
         demand_ids.add(demand["demand_id"])
         assert demand["enterprise_id"] in enterprise_ids, demand["enterprise_id"]
@@ -786,6 +792,7 @@ def validate() -> None:
         assert set(demand["application_scenarios"]) <= APPLICATION_SCENARIOS, demand["application_scenarios"]
         assert set(demand["cooperation_modes"]) <= COOPERATION_MODES, demand["cooperation_modes"]
         assert 1 <= demand["required_trl"] <= 9
+        assert demand["is_simulated"] is True
 
 
 def write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -805,27 +812,50 @@ def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    validate()
-    SAMPLE_DIR.mkdir(parents=True, exist_ok=True)
 
-    for demand in DEMANDS:
+    parser = argparse.ArgumentParser(description="Generate simulated enterprise and demand data.")
+    parser.add_argument("--version", default=VERSION, choices=[VERSION, FULL_VERSION])
+    args = parser.parse_args()
+    enterprises = ENTERPRISES
+    demands = [dict(demand) for demand in DEMANDS]
+    if args.version == FULL_VERSION:
+        source = DATA_DIR / "interim" / "seeds_v0.1.json"
+        if not source.is_file():
+            parser.error(f"missing supplemental seeds: {source.relative_to(PROJECT_ROOT)}")
+        additional = json.loads(source.read_text(encoding="utf-8"))
+        enterprises = [*enterprises, *additional["enterprises"]]
+        demands.extend(additional["demands"])
+        if len(enterprises) != 25 or len(demands) != 100:
+            parser.error("v0.1 requires 25 enterprises and 100 demands")
+    validate(enterprises, demands)
+
+    for demand in demands:
+        demand["dataset_version"] = args.version
         demand["content_hash"] = content_hash(
             demand["title"], demand["pain_point"], demand["expected_solution"]
         )
 
+    if args.version == FULL_VERSION:
+        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+        write_jsonl(PROCESSED_DIR / "enterprises_v0.1.jsonl", enterprises)
+        write_jsonl(PROCESSED_DIR / "demands_v0.1.jsonl", demands)
+        print(f"wrote {len(enterprises)} enterprises and {len(demands)} demands to data/processed/")
+        return 0
+
+    SAMPLE_DIR.mkdir(parents=True, exist_ok=True)
     enterprises_path = SAMPLE_DIR / "enterprises_seed_v0.1.jsonl"
     demands_path = SAMPLE_DIR / "demands_seed_v0.1.jsonl"
-    write_jsonl(enterprises_path, ENTERPRISES)
-    write_jsonl(demands_path, DEMANDS)
+    write_jsonl(enterprises_path, enterprises)
+    write_jsonl(demands_path, demands)
 
     write_csv(
         SAMPLE_DIR / "enterprises_seed_v0.1.csv",
-        ENTERPRISES,
+        enterprises,
         ["enterprise_id", "display_name", "industry", "size", "region", "main_business", "is_simulated"],
     )
     write_csv(
         SAMPLE_DIR / "demands_seed_v0.1.csv",
-        DEMANDS,
+        demands,
         [
             "demand_id",
             "enterprise_id",
@@ -840,8 +870,8 @@ def main() -> int:
         ],
     )
 
-    print(f"wrote {len(ENTERPRISES)} enterprises -> {enterprises_path}")
-    print(f"wrote {len(DEMANDS)} demands -> {demands_path}")
+    print(f"wrote {len(enterprises)} enterprises -> {enterprises_path}")
+    print(f"wrote {len(demands)} demands -> {demands_path}")
     return 0
 
 
