@@ -46,7 +46,7 @@
     "S-02 handover covers the full v0.1 set: 300 achievements, 100 demands, 25 enterprises.",
     "The package's own SHA256SUMS.txt matched 88/88 files when this manifest was created.",
     "data/raw and data/interim stay local; only processed and eval files are listed here.",
-    "The eval templates are unannotated: relevance_grade is empty for all 50 pairs.",
+    "Eval templates were frozen by S-09 on 2026-11-22; formal query/pair annotations are in data/eval/*_v0.1.jsonl and freeze hashes are in data/manifests/eval_annotation_summary_v0.1.md. This package hash still covers the original S-02 handoff.",
     "Only the private processed files are hashed here. The eval templates are tracked in git and normalised to LF by .gitattributes, so their bytes differ from the CRLF files inside the package; the package sha256 above covers them."
   ],
   "created_at": "2026-11-20"
