@@ -1,0 +1,47 @@
+{
+  "run_id": "v0.1-thin-20261121",
+  "stage": "extract",
+  "sprint": "2026-11-22",
+  "status": "success",
+  "dataset_version": "v0.1-thin",
+  "taxonomy_version": "v0.1",
+  "prompt_version": "v0.1",
+  "model": "qwen3.8-flash",
+  "input_path": "data\\processed\\achievements_clean_v0.1-thin.jsonl",
+  "labeled_path": "data\\processed\\achievements_labeled_v0.1-thin.jsonl",
+  "profile_path": "data\\processed\\capability_profiles_v0.1-thin.jsonl",
+  "started_at": "2026-11-21T15:33:35.515089+00:00",
+  "finished_at": "2026-11-21T15:38:24.706632+00:00",
+  "input_count": 100,
+  "processed_count": 30,
+  "output_count": 30,
+  "ok": 19,
+  "needs_review": 11,
+  "failed": 0,
+  "profiles_written": 30,
+  "profile_missing": 0,
+  "retries_used": 0,
+  "review_reasons": {
+    "profile": 10,
+    "trl": 1
+  },
+  "config": {
+    "model": "qwen3.8-flash",
+    "prompt_version": "v0.1",
+    "taxonomy_version": "v0.1",
+    "max_retries": 2,
+    "limit": 30,
+    "resume": false
+  },
+  "git_commit": "3905439",
+  "args": {
+    "version": "v0.1-thin",
+    "input": null,
+    "output_dir": null,
+    "run_id": null,
+    "model": null,
+    "limit": 30,
+    "resume": false,
+    "max_retries": 2
+  }
+}
