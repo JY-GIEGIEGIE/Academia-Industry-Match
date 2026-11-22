@@ -16,7 +16,7 @@
 
 ## 1. 当前数据状态
 
-- 100 条成果薄切片已清洗；完整集在交接包 `数据侧交接_v0.1-thin_2026-11-18_v3.zip` 的 `data/processed/achievements_clean_v0.1-thin.jsonl`（仓库不入库），另见同包 `README_交接.md`。
+- 100 条成果薄切片已清洗；完整集在组内私有交接包的 `data/processed/achievements_clean_v0.1-thin.jsonl`（仓库不入库）。接收者自行选择解压目录，取得方式与路径规则见仓库内 `data/README.md`，不依赖提交者本机目录。
 - 仓库 `data/samples/` 只有 20 条截断样例；**不要以为仓库里有完整数据**。
 - 20 条需求、10 家企业、20 条 query、50 对 pair 模板已有；query/pair 标注为空。
 - 没有 `extract_labels.py`、`embed.py`、`load_db.py`、`evaluate.py`；没有数据库。
