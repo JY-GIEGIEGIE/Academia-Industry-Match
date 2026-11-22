@@ -80,7 +80,7 @@
     "The S-04 corrected package's own SHA256SUMS.txt matched 25/25 files; its data/eval files and dataset_v0.1.json are byte-identical to main at cba15e7.",
     "data/raw and data/interim stay local; only processed files are hashed here.",
     "Eval templates were frozen by S-09 on 2026-11-22; formal query/pair annotations are in data/eval/*_v0.1.jsonl and freeze hashes are in data/manifests/eval_annotation_summary_v0.1.md.",
-    "Only the private processed files are hashed here. The eval templates are tracked in git and normalised to LF by .gitattributes, so their bytes differ from the CRLF files inside the package; the package sha256 above covers them.",
+    "Only the private processed files are hashed here. The eval templates are tracked in git and are byte-identical to the S-04 corrected package; the package sha256 above covers the whole handoff.",
     "S-03 data quality: 79 rows are needs_review; 74 profiles exceed the 250-character guidance; 58 TRL values are null (all non-null TRLs carry trl_evidence). These are accepted as known limitations and left for S-08 disposition."
   ],
   "created_at": "2026-11-20",
