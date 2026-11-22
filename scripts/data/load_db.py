@@ -18,6 +18,7 @@ The script does not download data. Put the handoff package's
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import math
@@ -237,6 +238,67 @@ def load_jsonl(path: Path | None, label: str, required: bool, v: Validation) -> 
                 continue
             rows.append(record)
     return rows
+
+
+def load_csv(
+    path: Path,
+    label: str,
+    required: bool,
+    v: Validation,
+    csv_kind: str | None = None,
+) -> list[dict[str, Any]]:
+    """Read an eval CSV (the format produced by make_eval_templates.py).
+
+    CSV values arrive as strings, so the two eval-specific columns are
+    normalised here: query candidates become a list and pair grades an int.
+    """
+    if not path.exists():
+        if required:
+            v.error(f"{label}: missing file {path}")
+        else:
+            v.warn(f"{label}: file not found, skipped ({path})")
+        return []
+    rows: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if not reader.fieldnames:
+            v.error(f"{label}: CSV has no header")
+            return []
+        for line_number, raw in enumerate(reader, 2):
+            row = {key: (value if value is not None else "") for key, value in raw.items()}
+            if csv_kind == "queries":
+                row["candidate_achievement_ids"] = parse_id_list(
+                    row.get("candidate_achievement_ids")
+                )
+            elif csv_kind == "pairs":
+                grade = str(row.get("relevance_grade") or "").strip()
+                if not grade:
+                    row["relevance_grade"] = None
+                else:
+                    try:
+                        row["relevance_grade"] = int(grade)
+                    except ValueError:
+                        v.error(
+                            f"{label}:{line_number}: relevance_grade={grade!r} is not an integer"
+                        )
+                        row["relevance_grade"] = None
+            if not row.get("dataset_version"):
+                row["dataset_version"] = ""
+            rows.append(row)
+    return rows
+
+
+def load_table(
+    path: Path | None,
+    label: str,
+    required: bool,
+    v: Validation,
+    *,
+    csv_kind: str | None = None,
+) -> list[dict[str, Any]]:
+    if path is not None and path.suffix.lower() == ".csv":
+        return load_csv(path, label, required, v, csv_kind)
+    return load_jsonl(path, label, required, v)
 
 
 def is_blank(value: Any) -> bool:
@@ -776,6 +838,43 @@ def valid_json_array(record: dict[str, Any], field: str, where: str, v: Validati
     return value
 
 
+def validate_key_metrics(value: Any, where: str, v: Validation) -> list[dict[str, Any]]:
+    """Enforce the contract's {name,value,unit,evidence} metric objects."""
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        v.error(f"{where}: key_metrics must be an array")
+        return []
+    cleaned: list[dict[str, Any]] = []
+    for index, metric in enumerate(value, 1):
+        metric_where = f"{where} key_metrics[{index}]"
+        if not isinstance(metric, dict):
+            v.error(f"{metric_where}: must be an object")
+            continue
+        name = metric.get("name")
+        unit = metric.get("unit")
+        evidence = metric.get("evidence")
+        metric_value = metric.get("value")
+        if not isinstance(name, str) or not name.strip():
+            v.error(f"{metric_where}: name must be a non-empty string")
+            continue
+        if isinstance(metric_value, bool) or not isinstance(metric_value, (str, int, float)):
+            v.error(f"{metric_where}: value must be a string or number")
+            continue
+        if isinstance(metric_value, str) and not metric_value.strip():
+            v.error(f"{metric_where}: value must not be blank")
+            continue
+        if not isinstance(unit, str) or not unit.strip():
+            v.error(f"{metric_where}: unit must be a non-empty string")
+            continue
+        if not isinstance(evidence, str) or not evidence.strip():
+            v.error(f"{metric_where}: evidence must be a non-empty string")
+            continue
+        check_json_value(metric, "key_metrics", metric_where, v)
+        cleaned.append(metric)
+    return cleaned
+
+
 def validate_labeled(
     rows: list[dict[str, Any]],
     achievement_ids: set[str],
@@ -868,9 +967,18 @@ def validate_labeled(
                     v.error(f"{tag_where}: duplicate tag_id {provided_tag_id!r}")
                     continue
                 seen_tag_ids.add(provided_tag_id)
-            evidence = tag.get("evidence")
-            if not evidence and float(confidence) > 0.4:
-                v.warn(f"{tag_where}: no evidence but confidence {confidence}; contract expects <=0.4")
+            evidence = text_value(tag.get("evidence"))
+            if not evidence:
+                if review != "needs_review":
+                    v.error(
+                        f"{tag_where}: no evidence requires review_status=needs_review "
+                        f"(got {review!r})"
+                    )
+                if float(confidence) > 0.4:
+                    v.error(
+                        f"{tag_where}: no evidence but confidence {confidence}; "
+                        "contract requires <=0.4"
+                    )
             tags.append({
                 "tag_id": provided_tag_id or f"tag_{achievement_id}_{dimension}_{code}",
                 "achievement_id": achievement_id,
@@ -878,7 +986,7 @@ def validate_labeled(
                 "code": code,
                 "is_primary": bool(is_primary),
                 "confidence": float(confidence),
-                "evidence": text_value(evidence),
+                "evidence": evidence,
                 "method": method,
                 "model": text_value(tag.get("model")),
                 "prompt_version": text_value(tag.get("prompt_version")),
@@ -950,7 +1058,9 @@ def validate_labeled(
                     "extraction_id": provided_extraction_id or f"ext_{achievement_id}",
                     "achievement_id": achievement_id,
                     "material_system": text_value(extraction.get("material_system")),
-                    "key_metrics": valid_json_array(extraction, "key_metrics", where, v),
+                    "key_metrics": validate_key_metrics(
+                        extraction.get("key_metrics"), where, v
+                    ),
                     "process": valid_json_array(extraction, "process", where, v),
                     "trl": trl,
                     "trl_confidence": float(trl_confidence) if trl_confidence is not None else None,
@@ -1043,8 +1153,8 @@ def load_all(args: argparse.Namespace, v: Validation) -> dict[str, list[dict[str
         "enterprises": load_jsonl(args.enterprises, "enterprises", True, v),
         "demands": load_jsonl(args.demands, "demands", True, v),
         "embeddings": load_jsonl(args.embeddings, "embeddings", False, v),
-        "queries": load_jsonl(args.queries, "queries", False, v),
-        "pairs": load_jsonl(args.pairs, "pairs", False, v),
+        "queries": load_table(args.queries, "queries", False, v, csv_kind="queries"),
+        "pairs": load_table(args.pairs, "pairs", False, v, csv_kind="pairs"),
         "labeled": load_jsonl(args.labeled, "labeled", False, v),
         "profiles": load_jsonl(args.profiles, "profiles", False, v),
     }

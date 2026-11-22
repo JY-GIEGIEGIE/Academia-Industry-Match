@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -195,6 +196,63 @@ class ValidateLabeledTests(unittest.TestCase):
         }])
         self.assertTrue(any("duplicate tag_id" in error for error in v.errors))
 
+    def test_tag_without_evidence_requires_needs_review(self) -> None:
+        _, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag(evidence="", confidence=0.3, review_status="pending")],
+            "extraction": None,
+        }])
+        self.assertTrue(any("requires review_status=needs_review" in error for error in v.errors))
+
+    def test_tag_without_evidence_needs_review_is_accepted(self) -> None:
+        _, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag(evidence="", confidence=0.3, review_status="needs_review")],
+            "extraction": None,
+        }])
+        self.assertEqual(v.errors, [])
+
+    def test_tag_without_evidence_rejects_high_confidence(self) -> None:
+        _, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag(evidence=None, confidence=0.6, review_status="needs_review")],
+            "extraction": None,
+        }])
+        self.assertTrue(any("contract requires <=0.4" in error for error in v.errors))
+
+    def test_key_metrics_require_the_full_schema(self) -> None:
+        _, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag()],
+            "extraction": {
+                "trl": 4,
+                "trl_evidence": "coin cell tested",
+                "key_metrics": [{"name": "ionic conductivity", "value": 10, "unit": "mS/cm"}],
+                "model": "qwen3.8-flash",
+                "prompt_version": "v1",
+                "ip_status": "unknown",
+            },
+        }])
+        self.assertTrue(any("evidence must be a non-empty string" in error for error in v.errors))
+
+    def test_key_metrics_valid_schema_is_kept(self) -> None:
+        rows, v = self.check([{
+            "achievement_id": "ach_1",
+            "tags": [make_tag()],
+            "extraction": {
+                "trl": 4,
+                "trl_evidence": "coin cell tested",
+                "key_metrics": [
+                    {"name": "ionic conductivity", "value": 10, "unit": "mS/cm", "evidence": "10 mS cm-1"}
+                ],
+                "model": "qwen3.8-flash",
+                "prompt_version": "v1",
+                "ip_status": "unknown",
+            },
+        }])
+        self.assertEqual(v.errors, [])
+        self.assertEqual(len(rows[0]["extraction"]["key_metrics"]), 1)
+
 
 class DatasetVersionTests(unittest.TestCase):
     def test_matching_version_passes(self) -> None:
@@ -324,6 +382,52 @@ class BlankVersionTests(unittest.TestCase):
             "v0.1",
         )
         self.assertEqual([row["dataset_version"] for row in rows], ["v0.1", "v0.1-thin"])
+
+
+class CSVInputTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_query_csv_candidates_become_a_list(self) -> None:
+        path = self.dir / "queries.csv"
+        path.write_text(
+            "query_id,query_text,query_language,query_type,target_tech_field,"
+            "candidate_achievement_ids,relevant_achievement_ids,relevance_grades,annotator,notes\n"
+            "q01,hello,zh,zh_business,electrolyte,a;b,,,,\n",
+            encoding="utf-8-sig",
+        )
+        v = load_db.Validation()
+        rows = load_db.load_table(path, "queries", True, v, csv_kind="queries")
+        self.assertEqual(v.errors, [])
+        self.assertEqual(rows[0]["candidate_achievement_ids"], ["a", "b"])
+
+    def test_pair_csv_grade_becomes_int(self) -> None:
+        path = self.dir / "pairs.csv"
+        path.write_text(
+            "pair_id,achievement_id,demand_id,relevance_grade,rationale,annotator,adjudication\n"
+            "pair_001,ach_1,dem_1,2,ok,alice,\n",
+            encoding="utf-8-sig",
+        )
+        v = load_db.Validation()
+        rows = load_db.load_table(path, "pairs", True, v, csv_kind="pairs")
+        self.assertEqual(v.errors, [])
+        self.assertEqual(rows[0]["relevance_grade"], 2)
+
+    def test_pair_csv_rejects_non_integer_grade(self) -> None:
+        path = self.dir / "pairs.csv"
+        path.write_text(
+            "pair_id,achievement_id,demand_id,relevance_grade,rationale,annotator,adjudication\n"
+            "pair_001,ach_1,dem_1,high,ok,alice,\n",
+            encoding="utf-8-sig",
+        )
+        v = load_db.Validation()
+        rows = load_db.load_table(path, "pairs", True, v, csv_kind="pairs")
+        self.assertTrue(v.errors)
+        self.assertIsNone(rows[0]["relevance_grade"])
 
 
 class ResolvePathTests(unittest.TestCase):

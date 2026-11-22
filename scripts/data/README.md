@@ -113,7 +113,7 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
   --profiles data/processed/capability_profiles_v0.1.jsonl
 ```
 
-`--dataset-version` 会同时切换成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单的默认路径。全量清单 `private_data_v0.1.json` 已就位，不需要再传 `--skip-hash`。
+`--dataset-version` 会同时切换成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单的默认路径。全量清单 `private_data_v0.1.json` 已就位，不需要再传 `--skip-hash`。`--queries` / `--pairs` 同时接受 JSONL 和 `make_eval_templates.py` 生成的 CSV；CSV 的候选 ID 用分号分隔，pair 的 `relevance_grade` 会转成整数。
 
 导入默认拒绝往已有其他 `dataset_version` 的库写入。从薄切片升级到全量时加 `--allow-mixed-versions`；其余情况请用空库或临时库。
 

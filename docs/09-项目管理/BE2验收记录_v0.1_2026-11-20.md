@@ -126,6 +126,8 @@ demand.dataset_version:      v0.1 × 100
 
 ## 7. 一致性检查
 
+> 2026-11-22 补充：`load_db --check` 已支持 `--queries` / `--pairs` 直接读取 CSV；标签无 evidence 必须 `needs_review` 且 confidence ≤0.4；`key_metrics` 必须满足 `{name,value,unit,evidence}`。对应测试已加入 `tests/test_load_db.py`。
+
 来自 `data/manifests/load_report_v0.1.md`，22 项 OK：
 
 | 检查 | 值 | 结果 |
@@ -197,4 +199,4 @@ demand.dataset_version:      v0.1 × 100
 - `achievement_tag`、`achievement_extraction`、`demand_tag` 的 `review_status` 放开 `needs_review`，由 `migrations/0002_review_status_needs_review.sql` 完成；`needs_review` 记录仍入库。
 - `load_db.py` 接受脚本生成的 `tag_id`、`extraction_id`、`text_id`（要求全局唯一、跨次运行稳定）；缺省时仍按原公式生成。
 - `trl=null`、`key_metrics=[]`、画像缺失均不阻塞导入；覆盖率仍由 INFO 类检查报告，不作为导入失败条件。
-- 单元测试全仓 44 条通过（load_db 36 条；新增 `needs_review`、脚本 ID、空 TRL/空指标用例）。
+- 单元测试全仓 52 条通过（load_db 44 条；新增 `needs_review`、脚本 ID、空 TRL/空指标、无证据标签、`key_metrics` 字段、CSV eval 输入用例）。
