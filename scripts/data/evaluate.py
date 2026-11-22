@@ -6,18 +6,19 @@
   - data/spec/data_contract_v0.1.md（字段口径）
 
 基线：
-  - B0：BM25 / 关键词（纯文本，自实现 BM25，无第三方依赖）
+  - B0：BM25 / 关键词（纯文本，自实现 BM25；文本用原始 title_original + abstract_original，
+    不依赖抽取阶段的画像）
   - B1：纯向量（query 向量 vs 成果向量余弦相似度）
-  - B2：标签硬过滤 + 向量（先按 tech_field 过滤，再向量排序）
+  - B2：标签硬过滤 + 向量（先按 tech_field 过滤，再向量排序；过滤为空则返回空结果，不回退全量）
 
 指标：Recall@10、Precision@5、nDCG@10、MRR。
 相关口径：relevance_grade 0/1/2，1 或 2 记为“相关”；nDCG 用 2^g-1 增益。
 
 输入：
-  data/eval/retrieval_queries_<version>.jsonl   （20 条 query，标注后含 relevant/grades）
-  data/processed/embeddings_<version>.jsonl     （embed.py 产出，B1/B2）
-  data/processed/achievements_labeled_<version>.jsonl （extract_labels.py 产出，B2 用 tech_field）
-  data/processed/capability_profiles_<version>.jsonl  （B0 用中文画像作检索文本）
+  data/eval/retrieval_queries_<version>.jsonl        （20 条 query，标注后含 relevant/grades）
+  data/processed/embeddings_<version>.jsonl          （embed.py 产出，B1/B2；只接受 text_type=capability_profile 且 dim=1024）
+  data/processed/achievements_labeled_<version>.jsonl（extract_labels.py 产出，B2 用 tech_field）
+  data/processed/achievements_clean_<version>.jsonl  （B0 用原始标题+摘要）
 
 输出：
   data/manifests/baseline_<version>.md          （基线指标报告）
@@ -47,6 +48,10 @@ for _p in (str(_ROOT), str(_DATA_SCRIPT_DIR)):
 from config import EVAL_DIR, MANIFEST_DIR, PROCESSED_DIR  # noqa: E402
 from scripts.common.llm_client import DashScopeClient, LlmClientError  # noqa: E402
 
+SPRINT = "2026-11-22"
+TAXONOMY_VERSION = "v0.1"
+EMBEDDING_DIM = 1024
+
 # ---------------------------------------------------------------------------
 # 基础工具（纯标准库）
 # ---------------------------------------------------------------------------
@@ -57,7 +62,7 @@ def _now_utc() -> str:
 def _git_commit() -> str | None:
     try:
         out = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
+            ["git", "-C", str(_ROOT), "rev-parse", "--short", "HEAD"],
             capture_output=True,
             text=True,
             timeout=5,
@@ -203,7 +208,6 @@ def _parse_query(query: dict) -> tuple[set[str], list[str], dict[str, int]]:
     candidates = _split(query.get("candidate_achievement_ids"))
 
     graded: dict[str, int] = {}
-    # 优先解析 relevance_grades："id:2;id:1"
     grades_raw = query.get("relevance_grades")
     if isinstance(grades_raw, str) and grades_raw.strip():
         for seg in grades_raw.split(";"):
@@ -220,7 +224,6 @@ def _parse_query(query: dict) -> tuple[set[str], list[str], dict[str, int]]:
                 graded[str(aid)] = int(g)
             except (ValueError, TypeError):
                 continue
-    # 回退：只有 relevant_achievement_ids 时，相关按 grade=1 处理。
     relevant_ids = _split(query.get("relevant_achievement_ids"))
     for aid in relevant_ids:
         graded.setdefault(aid, 1)
@@ -231,6 +234,56 @@ def _relevant_set(graded: dict[str, int]) -> set[str]:
     return {aid for aid, g in graded.items() if g > 0}
 
 
+def _restrict_graded(graded: dict[str, int], candidates: list[str]) -> dict[str, int]:
+    """把标注限定在候选集内，避免候选集外的标注影响 IDCG / Recall。"""
+    if not candidates:
+        return graded
+    cand_set = set(candidates)
+    return {aid: g for aid, g in graded.items() if aid in cand_set}
+
+
+# ---------------------------------------------------------------------------
+# 加载与排序（拆出便于测试）
+# ---------------------------------------------------------------------------
+def _load_ach_vectors(
+    embeddings: list[dict], *, dim: int = EMBEDDING_DIM
+) -> tuple[dict[str, list[float]], set[str]]:
+    """从 embedding 记录加载成果向量，只接受 text_type=capability_profile 且 dim 一致。
+
+    返回 (ach_vectors, models)。dim 不一致 / 向量长度不符 / 混模型抛 ValueError。
+    """
+    vectors: dict[str, list[float]] = {}
+    models: set[str] = set()
+    for e in embeddings:
+        if e.get("object_type") != "achievement":
+            continue
+        if e.get("text_type") != "capability_profile":
+            continue
+        vec = e.get("vector")
+        if not isinstance(vec, list):
+            continue
+        rec_dim = e.get("dim")
+        if rec_dim is not None and int(rec_dim) != dim:
+            raise ValueError(f"向量维度异常 {rec_dim}（期望 {dim}）：{e.get('object_id')}")
+        if len(vec) != dim:
+            raise ValueError(f"向量长度 {len(vec)} != {dim}：{e.get('object_id')}")
+        vectors[e["object_id"]] = vec
+        if e.get("model"):
+            models.add(e["model"])
+    if len(models) > 1:
+        raise ValueError(f"成果向量混用多个模型：{sorted(models)}")
+    return vectors, models
+
+
+def _rank_b0(cand_ids: list[str], bm25: BM25, index_of: dict[str, int], qtext: str) -> list[str]:
+    """B0：BM25 排序；不在索引里的候选跳过（不落到第 0 篇文档）。"""
+    return sorted(
+        (aid for aid in cand_ids if aid in index_of),
+        key=lambda aid: bm25.score(qtext, index_of[aid]),
+        reverse=True,
+    )
+
+
 # ---------------------------------------------------------------------------
 # 主流程
 # ---------------------------------------------------------------------------
@@ -238,26 +291,37 @@ def run(args: argparse.Namespace) -> int:
     queries_path = Path(args.queries) if args.queries else EVAL_DIR / f"retrieval_queries_{args.version}.jsonl"
     embeddings_path = Path(args.embeddings) if args.embeddings else PROCESSED_DIR / f"embeddings_{args.version}.jsonl"
     labels_path = Path(args.labels) if args.labels else PROCESSED_DIR / f"achievements_labeled_{args.version}.jsonl"
-    profiles_path = Path(args.profiles) if args.profiles else PROCESSED_DIR / f"capability_profiles_{args.version}.jsonl"
+    achievements_path = Path(args.achievements) if args.achievements else PROCESSED_DIR / f"achievements_clean_{args.version}.jsonl"
     out_path = Path(args.output) if args.output else MANIFEST_DIR / f"baseline_{args.version}.md"
 
-    if not queries_path.exists():
-        print(f"[错误] 找不到 query 文件：{queries_path}", file=sys.stderr)
+    # 缺失输入直接报错，避免静默产出部分基线。
+    missing = [
+        (name, path)
+        for name, path in (
+            ("query", queries_path),
+            ("embeddings", embeddings_path),
+            ("labels", labels_path),
+            ("achievements", achievements_path),
+        )
+        if not path.exists()
+    ]
+    if missing:
+        for name, path in missing:
+            print(f"[错误] 找不到 {name} 文件：{path}", file=sys.stderr)
         return 2
 
     queries = _load_jsonl(queries_path)
     embeddings = _load_jsonl(embeddings_path)
     labels = _load_jsonl(labels_path)
-    profiles = _load_jsonl(profiles_path)
+    achievements = _load_jsonl(achievements_path)
 
-    print(f"query：{len(queries)} 条；向量：{len(embeddings)} 条；标签：{len(labels)} 条；画像：{len(profiles)} 条")
+    # 成果向量（校验 text_type / dim / 混模型）
+    try:
+        ach_vectors, ach_embedding_models = _load_ach_vectors(embeddings)
+    except ValueError as exc:
+        print(f"[错误] {exc}", file=sys.stderr)
+        return 2
 
-    # 成果向量：只取 object_type=achievement
-    ach_vectors: dict[str, list[float]] = {
-        e["object_id"]: e["vector"]
-        for e in embeddings
-        if e.get("object_type") == "achievement" and isinstance(e.get("vector"), list)
-    }
     # 成果主 tech_field（B2 用）
     ach_primary: dict[str, str] = {}
     for rec in labels:
@@ -270,65 +334,91 @@ def run(args: argparse.Namespace) -> int:
             primary = tech_fields[0]["code"]
         if primary:
             ach_primary[aid] = primary
-    # 成果检索文本（B0 用中文画像）
-    ach_texts: dict[str, str] = {
-        p["achievement_id"]: (p.get("text") or "")
-        for p in profiles
-        if p.get("achievement_id") and p.get("text")
-    }
 
-    # 全量成果 ID 顺序（BM25 索引 & 兜底候选）
-    all_ids = list(ach_texts) or list(ach_vectors)
-    bm25 = BM25([ach_texts.get(aid, "") for aid in all_ids])
-    index_of = {aid: i for i, aid in enumerate(all_ids)}
+    # 成果原始文本（B0 用 title + abstract，不依赖抽取画像）
+    ach_texts: dict[str, str] = {}
+    for a in achievements:
+        aid = a.get("achievement_id")
+        title = (a.get("title_original") or "").strip()
+        abstract = (a.get("abstract_original") or a.get("abstract_truncated") or "").strip()
+        text = " ".join(part for part in (title, abstract) if part)
+        if aid and text:
+            ach_texts[aid] = text
 
-    # query 向量（API text_type=query）
-    q_vectors: list[list[float]] = []
-    if queries:
-        try:
-            client = DashScopeClient()
-            q_vectors = client.embed_texts(
-                [q.get("query_text", "") for q in queries], text_type="query"
-            )
-        except LlmClientError as exc:
-            print(f"[警告] query 向量化失败，B1/B2 将跳过：{exc}", file=sys.stderr)
+    # 全量成果 ID（画像文本与向量取并集，避免只用一边）
+    all_ids = list(dict.fromkeys(list(ach_texts) + list(ach_vectors)))
+
+    # B0 索引：只对「有原始文本」的成果建 BM25；未知候选不参与排序
+    b0_ids = [aid for aid in all_ids if aid in ach_texts]
+    bm25 = BM25([ach_texts[aid] for aid in b0_ids])
+    index_of = {aid: i for i, aid in enumerate(b0_ids)}
+    b0_missing = len(all_ids) - len(b0_ids)
+
+    # query 向量（text_type=query），校验 model/dim 与成果向量一致
+    try:
+        client = DashScopeClient()
+    except LlmClientError as exc:
+        print(f"[错误] 初始化共享客户端失败：{exc}", file=sys.stderr)
+        return 2
+    query_model = client.embedding_model
+    dim = int(client.embedding_dim)
+    if dim != EMBEDDING_DIM:
+        print(f"[错误] embedding 维度 {dim} != {EMBEDDING_DIM}，请检查 .env。", file=sys.stderr)
+        return 2
+    if ach_embedding_models and query_model not in ach_embedding_models:
+        print(f"[错误] query 向量模型 {query_model} 与成果向量模型 {sorted(ach_embedding_models)} 不一致。", file=sys.stderr)
+        return 2
+    try:
+        q_vectors = client.embed_texts(
+            [q.get("query_text", "") for q in queries], text_type="query", dimensions=dim
+        )
+    except LlmClientError as exc:
+        print(f"[错误] query 向量化失败：{exc}", file=sys.stderr)
+        return 1
+    if len(q_vectors) != len(queries):
+        print(f"[错误] query 向量返回 {len(q_vectors)} 条，期望 {len(queries)} 条。", file=sys.stderr)
+        return 1
+
+    # 标注完整性：无标注 → 不产出基线
+    annotated = sum(1 for q in queries if _relevant_set(_parse_query(q)[2]))
+    if annotated == 0:
+        print("[错误] 评测集未标注，不产出基线（请先完成 20 query + 50 pair 标注）。", file=sys.stderr)
+        return 2
+    rc = 0 if annotated == len(queries) else 1
+    if annotated < len(queries):
+        print(f"[警告] 仅标注 {annotated}/{len(queries)} 条 query，基线指标为部分结果。", file=sys.stderr)
 
     baselines = ["B0", "B1", "B2"]
-    # per-baseline 聚合：{metric: sum}
     agg = {b: {"recall10": 0.0, "prec5": 0.0, "ndcg10": 0.0, "mrr": 0.0, "n": 0} for b in baselines}
     per_query_rows: list[str] = []
+    b2_empty_queries = 0
 
     for qi, q in enumerate(queries):
         qid = q.get("query_id", "?")
         qtext = q.get("query_text", "")
         target_fields, candidates, graded = _parse_query(q)
+        graded = _restrict_graded(graded, candidates)
         relevant = _relevant_set(graded)
 
-        # 候选集：优先用 query 自带 candidate_achievement_ids，否则全量
         cand_ids = candidates if candidates else all_ids
 
         for baseline in baselines:
             if baseline == "B0":
-                ranked = sorted(cand_ids, key=lambda aid: bm25.score(qtext, index_of.get(aid, 0)), reverse=True)
+                ranked = _rank_b0(cand_ids, bm25, index_of, qtext)
             elif baseline == "B1":
-                if not q_vectors:
-                    continue
-                qvec = q_vectors[qi]
                 ranked = sorted(
                     (aid for aid in cand_ids if aid in ach_vectors),
-                    key=lambda aid: _cosine(qvec, ach_vectors[aid]),
+                    key=lambda aid: _cosine(q_vectors[qi], ach_vectors[aid]),
                     reverse=True,
                 )
             elif baseline == "B2":
-                if not q_vectors:
-                    continue
-                qvec = q_vectors[qi]
-                # 标签硬过滤：主 tech_field 命中目标字段
                 filtered = [aid for aid in cand_ids if aid in ach_primary and ach_primary[aid] in target_fields]
-                pool = filtered if filtered else cand_ids  # 过滤为空则回退，避免除零
+                if not filtered:
+                    b2_empty_queries += 1
+                # 硬过滤为空 → 空结果，不回退全量，保持“硬过滤”语义
                 ranked = sorted(
-                    (aid for aid in pool if aid in ach_vectors),
-                    key=lambda aid: _cosine(qvec, ach_vectors[aid]),
+                    (aid for aid in filtered if aid in ach_vectors),
+                    key=lambda aid: _cosine(q_vectors[qi], ach_vectors[aid]),
                     reverse=True,
                 )
             else:
@@ -351,7 +441,7 @@ def run(args: argparse.Namespace) -> int:
                 f"| {qid} | {baseline} | {r10:.3f} | {p5:.3f} | {n10:.3f} | {m:.3f} |"
             )
 
-    # 汇总表
+    # 汇总
     summary_lines = [
         "| 基线 | Recall@10 | Precision@5 | nDCG@10 | MRR | 有效 query 数 |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
@@ -366,15 +456,18 @@ def run(args: argparse.Namespace) -> int:
             f"| {agg[b]['ndcg10']/n:.3f} | {agg[b]['mrr']/n:.3f} | {n} |"
         )
 
-    annotated = sum(1 for q in queries if _relevant_set(_parse_query(q)[2]))
+    embedding_model = next(iter(ach_embedding_models), query_model)
     report = "\n".join(
         [
             f"# 基线评测报告（{args.version}）",
             "",
             f"- 生成时间：{_now_utc()}",
             f"- git commit：{_git_commit() or '（未知）'}",
+            f"- sprint：{SPRINT}",
+            f"- embedding_model：{embedding_model}；dim：{EMBEDDING_DIM}",
+            f"- taxonomy_version：{TAXONOMY_VERSION}；eval set：{args.version}",
             f"- query 数：{len(queries)}；已标注：{annotated}",
-            f"- 成果向量数：{len(ach_vectors)}；画像数：{len(ach_texts)}；主标签数：{len(ach_primary)}",
+            f"- 成果向量数：{len(ach_vectors)}；B0 文本数：{len(ach_texts)}（缺 {b0_missing}）；主标签数：{len(ach_primary)}",
             "",
             "## 指标汇总（B0=BM25，B1=纯向量，B2=标签+向量）",
             "",
@@ -390,6 +483,9 @@ def run(args: argparse.Namespace) -> int:
             "",
             "- B3（标签+向量+LLM 精排）待匹配引擎就绪后补。",
             "- 相关口径：relevance_grade 1/2 记为相关；nDCG 增益 2^g-1。",
+            "- B2 标签硬过滤为空时返回空结果（不回退全量）；本次空过滤 query 数："
+            f"{b2_empty_queries}。",
+            f"- B0 用原始标题+摘要；缺文本的成果不计入 B0 排序（缺 {b0_missing} 条）。",
             "- 错误分析（假阳/假阴各 5 例）在标注完成后人工补充。",
             "",
         ]
@@ -399,7 +495,11 @@ def run(args: argparse.Namespace) -> int:
     out_path.write_text(report, encoding="utf-8")
     print(f"\n报告已生成：{out_path}")
     print("\n".join(summary_lines))
-    return 0
+
+    if b0_missing > 0:
+        print(f"[警告] B0 文本覆盖不足：{b0_missing} 条成果缺原始标题/摘要。", file=sys.stderr)
+        rc = 1 if rc == 0 else rc
+    return rc
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -414,7 +514,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--queries", default=None, help="query jsonl（默认 data/eval/retrieval_queries_<version>.jsonl）")
     parser.add_argument("--embeddings", default=None, help="向量 jsonl（默认 data/processed/embeddings_<version>.jsonl）")
     parser.add_argument("--labels", default=None, help="标签 jsonl（默认 data/processed/achievements_labeled_<version>.jsonl）")
-    parser.add_argument("--profiles", default=None, help="画像 jsonl（默认 data/processed/capability_profiles_<version>.jsonl）")
+    parser.add_argument("--achievements", default=None, help="清洗成果 jsonl（默认 data/processed/achievements_clean_<version>.jsonl，B0 用原始标题+摘要）")
     parser.add_argument("--output", default=None, help="报告输出（默认 data/manifests/baseline_<version>.md）")
     args = parser.parse_args(argv)
     return run(args)
