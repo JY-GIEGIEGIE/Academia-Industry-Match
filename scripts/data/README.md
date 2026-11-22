@@ -102,7 +102,7 @@ python scripts/data/load_db.py --check --dataset-version v0.1
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
   --dataset-version v0.1 \
   --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
-  --zip "D:/path/to/S-04_v0.1_2026-11-22_修订_corrected_2026-11-23.zip"
+  --zip "D:/path/to/S-02_v0.1_组内交接.zip"
 
 # 只迁移，不导入
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate --migrate-only
@@ -115,14 +115,13 @@ python scripts/data/load_db.py --dsn "$THIN_DSN" --migrate \
   --dataset-version v0.1-thin \
   --zip "D:/path/to/数据侧交接_v0.1-thin_2026-11-18_v3.zip"
 
-# 标签 / 抽取 / 能力画像 / 向量（全量；文件格式见 docs/09-项目管理/标签与画像文件格式_2026-11-19.md）
+# 标签 / 抽取 / 能力画像（全量；文件格式见 docs/09-项目管理/标签与画像文件格式_2026-11-19.md）
 # --migrate 同时应用 0002 的 review_status 约束；已有库重复执行安全
 python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
   --dataset-version v0.1 \
   --embedding-model-version qwen3.7-text-embedding-flash-1024-v1 \
   --labeled data/processed/achievements_labeled_v0.1.jsonl \
-  --profiles data/processed/capability_profiles_v0.1.jsonl \
-  --embeddings data/processed/embeddings_v0.1.jsonl
+  --profiles data/processed/capability_profiles_v0.1.jsonl
 ```
 
 `--dataset-version` 会同时切换成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单的默认路径。全量清单 `private_data_v0.1.json` 已就位，不需要再传 `--skip-hash`。`--queries` / `--pairs` 同时接受 JSONL 和 `make_eval_templates.py` 生成的 CSV；CSV 的候选 ID 用分号分隔，pair 的 `relevance_grade` 会转成整数。
@@ -136,5 +135,3 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 验证记录（2026-11-20，psycopg 3.3.9 + Docker PostgreSQL 16.16 + pgvector 0.8.7）：空库（public 0 表）一键迁移成功；导入 300 成果 / 100 需求 / 25 企业 / 20 query / 50 pair；连续三次导入数量不变，重复 DOI 0、孤儿向量 0、外键 0、`vector(1024)` 正常；主库从薄切片 100/20/10 覆盖到全量 300/100/25，`v0.1-thin` 残留 0；zip 与 processed 文件的 SHA-256 与 `private_data_v0.1.json` 一致。薄切片记录见 `docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`。
 
 标签、抽取、画像已支持导入（`--labeled` / `--profiles`）。标签 code 按 `taxonomy_v0.1.md` 校验；每个成果最多 2 个 `tech_field`、恰好 1 个 `is_primary`。没有 `tech_field` 标签只警告（覆盖率问题）；有 `tech_field` 但缺主标签、多个主标签或超过 2 个 `tech_field` 直接报错；重跑会先删除该批成果的旧标签/抽取/画像再重建，避免主标签唯一索引冲突。`match_score` 表已建好，导入留给匹配引擎。
-
-2026-11-22 全量复验（main `cba15e7` + S-04 校正包）：`--check --zip` **errors 0 / warnings 77**；验收库与主库均导入 300 成果 / 100 需求 / 25 企业 / **1268 标签 / 300 抽取 / 300 画像 / 400 向量 / 307 需求标签** / 20 query / 50 pair，重复导入计数不变；主标签覆盖 299/300，`text_hash` mismatch 0，孤儿向量 0。已知限制（79 条 `needs_review`、74 条画像超 250 字、58 条 `TRL=null`）与详细证据见 `docs/09-项目管理/BE2验收记录_v0.1_全量_2026-11-22.md`。
