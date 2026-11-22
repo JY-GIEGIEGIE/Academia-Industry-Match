@@ -1,0 +1,85 @@
+{
+  "sprint": "2026-11-22",
+  "provider": "Gemini in Google AI Studio",
+  "source_url": "https://aistudio.google.com/prompts/12PqGf6-M4frYEoDG9KjX1BXGu4hX0NHi",
+  "task": "Review report readability and repository-relative handoff documentation",
+  "documents": [
+    "README.md",
+    "data/README.md",
+    "scripts/data/README.md",
+    "docs/README.md",
+    "frontend/DESIGN.md",
+    "frontend/docs/交付与验收记录.md",
+    "data/manifests/demands_review_v0.1.md"
+  ],
+  "kept_newer_concurrent_edits": [
+    "frontend/README.md"
+  ],
+  "validation": {
+    "fenced_code_blocks": "unchanged",
+    "link_targets": "unchanged",
+    "sample_count": 30,
+    "sample_verdicts": "23 passed; 7 not passed; dem_028 and dem_029 passed with source verification pending",
+    "demand_json_patches": 7,
+    "source_pending_ids": [
+      "dem_028",
+      "dem_029"
+    ]
+  },
+  "scope": "Original demand and enterprise datasets, frozen data contract, taxonomy and seven JSON patches unchanged. Content verdicts exclude web access failures; source verification remains separately recorded.",
+  "merge_note": "Applied Gemini prose to the repository README while retaining the newer HANDOFF navigation and removal of a duplicate frontend section; kept the newer frontend README in full.",
+  "latest_round": {
+    "date": "2026-11-22",
+    "document": "data/manifests/demands_review_v0.1.md",
+    "provider": "Gemini in Google AI Studio",
+    "source_url": "https://aistudio.google.com/prompts/12PqGf6-M4frYEoDG9KjX1BXGu4hX0NHi",
+    "background_supplied": "Course project, 100 demands and 25 simulated enterprises, 20 public rewrites plus 10 constructed samples across eight directions, frozen contract semantics and repository-relative paths.",
+    "editing_priorities": [
+      "Reduce excessive defensive wording; state necessary scope once and remove repeated disclaimers or pre-emptive rebuttals.",
+      "Organize conclusions, evidence, specific problems, recommendations and follow-up work in a clear logical order.",
+      "Use natural, concrete project-report language; reduce AI-like boilerplate, empty summaries and rigid parallel phrasing.",
+      "Keep measured facts, pending source checks, URLs, commands and locked JSON patches intact."
+    ],
+    "verdict_revision": {
+      "before": {
+        "passed": 21,
+        "not_passed": 9
+      },
+      "after": {
+        "passed": 23,
+        "not_passed": 7
+      },
+      "reclassified_ids": [
+        "dem_028",
+        "dem_029"
+      ],
+      "reason": "User requested excluding web lookup failures from non-pass verdicts; content and source status recorded separately."
+    },
+    "post_edit_fact_check": "Restored lowercase sprint metadata; limited content-hash consistency to the 100 demands; kept dem_034 phrasing at the original cathode-feedstock preparation scope; normalized list spacing.",
+    "validation": {
+      "sprint": "2026-11-22",
+      "sample_count": 30,
+      "passed": 23,
+      "not_passed": 7,
+      "source_pending_ids": [
+        "dem_028",
+        "dem_029"
+      ],
+      "failed_ids": [
+        "dem_021",
+        "dem_032",
+        "dem_036",
+        "dem_052",
+        "dem_053",
+        "dem_066",
+        "dem_099"
+      ],
+      "json_blocks_unchanged": 7,
+      "bash_unchanged": true,
+      "link_targets_unchanged": 15,
+      "original_inputs_unchanged": true,
+      "report_characters_before": 19311,
+      "report_characters_after": 19162
+    }
+  }
+}
