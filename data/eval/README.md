@@ -6,6 +6,8 @@
 
 ## 文件
 
+### 薄切片 `v0.1-thin`
+
 | 文件 | 说明 |
 | --- | --- |
 | `retrieval_queries_v0.1-thin.csv` | 20 条检索 query；`relevant_achievement_ids` / `relevance_grades` / `annotator` 待填 |
@@ -18,6 +20,20 @@
 | `pair_labels_v0.1.csv` | 50 个 v0.1（需求,成果）对；`relevance_grade` / `rationale` / `annotator` / `adjudication` 待填 |
 | `pair_labels_v0.1.jsonl` | 同上的程序可读版本 |
 | `eval_templates_manifest_v0.1.json` | v0.1 生成清单（300 成果 / 20 需求 / 20 query / 50 pair） |
+
+### 全量 `v0.1`
+
+来自 S-02 组内交接（2026-11-20），query ID 与 pair ID 与薄切片一致，可复用同一批标注。
+
+| 文件 | 说明 |
+| --- | --- |
+| `retrieval_queries_v0.1.csv` | 20 条检索 query，20 个候选/条（全量成果） |
+| `retrieval_queries_v0.1.jsonl` | 同上的程序可读版本 |
+| `pair_labels_v0.1.csv` | 50 个（需求,成果）对；40 同领域、10 跨领域 |
+| `pair_labels_v0.1.jsonl` | 同上的程序可读版本 |
+| `eval_templates_manifest_v0.1.json` | 生成清单 |
+
+两个版本的标注字段目前都为空。导入时用 `--dataset-version v0.1` 会自动读取全量模板，用 `v0.1-thin` 读薄切片。
 
 ## 标注步骤
 
@@ -33,3 +49,4 @@
 - 不要因为“标题相似”就标相关；要看技术领域、应用场景、TRL、合作模式是否兼容。
 - 模拟需求已在 `demand_title` 中标明；标注时按正常需求处理，不因“模拟”降分。
 - `q20` 是电网储能钠电材料（英文原文 "cost-effective sodium-ion battery materials for grid storage"）；`消费电子高电压钴酸锂` 是 `dem_020` 的配对需求（pair_039/040），不是 q20。q20 在 v0.1-thin 中相关候选较弱，v0.1 全量后需重新标注。若某 query 确实没有相关候选，在 `notes` 记录原因，评测时将该 query 单列，不强行凑 5 条相关。
+- 全量模板的候选来自 300 条成果；标注时以全量候选集为准，不要用薄切片候选替换。

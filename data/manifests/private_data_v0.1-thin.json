@@ -1,0 +1,44 @@
+{
+  "dataset_version": "v0.1-thin",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": null,
+  "sprint": "2026-11-22",
+  "package": {
+    "filename": "数据侧交接_v0.1-thin_2026-11-18_v3.zip",
+    "version": "v3",
+    "bytes": 199478,
+    "sha256": "c454b04f9bbefefa2bcb1659b8c064439481d4eac4ae0ddcd7462a633c3590c8"
+  },
+  "source": "WeChat group file; the package itself is not committed to this repository",
+  "private_root_in_package": "data/processed/",
+  "files": [
+    {
+      "path": "data/processed/achievements_clean_v0.1-thin.jsonl",
+      "format": "jsonl",
+      "rows": 100,
+      "bytes": 317277,
+      "sha256": "67ad938c44087c18fbb39772ac1fd016a39fcade52b4dee6a1197a6f5b99ab3d"
+    },
+    {
+      "path": "data/processed/achievements_clean_v0.1-thin.csv",
+      "format": "csv",
+      "rows": 100,
+      "bytes": 25215,
+      "sha256": "2c2295c7e510cac3b47fc6de0e1e4177e280c79c55c9086e5fd62d35c6c1efd4"
+    }
+  ],
+  "counts": {
+    "achievements": 100,
+    "demands": 20,
+    "enterprises": 10,
+    "retrieval_queries": 20,
+    "pair_labels": 50
+  },
+  "verification": "Before load_db.py imports, verify the downloaded zip and the extracted files against sha256 in this manifest; abort on mismatch.",
+  "notes": [
+    "v3 is the only valid handoff package; v2 and earlier are void.",
+    "This manifest records hashes only; the data stays in the group zip and local data/processed/.",
+    "data/raw is not included in the package; raw snapshots stay with DE/local."
+  ],
+  "created_at": "2026-11-18"
+}

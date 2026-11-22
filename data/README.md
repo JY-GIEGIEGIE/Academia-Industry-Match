@@ -10,13 +10,15 @@ data/
 ├── spec/                     # 数据契约、标签体系、评测规范（入库，长期维护）
 ├── samples/                  # 可入库的小样例（20 条成果、20 条需求、10 家企业画像）
 ├── eval/                     # 检索 query 与 pair 标注模板（入库）
-├── manifests/                # 每次抓取/构建的清单与统计（入库）
+├── manifests/                # 抓取/构建清单（入库）；导入运行日志除外
 ├── raw/                      # 原始 JSON 快照（不入库，本地保留）
 ├── interim/                  # 中间结果（不入库）
 └── processed/                # 全量清洗/标注数据（不入库，本地保留）
 ```
 
 **入库原则**：`spec/`、`samples/`、`eval/`、`manifests/` 入库；`raw/`、`interim/`、`processed/` 不入库。原因是原始摘要可能涉及出版商版权，且数据量会增长。完整数据放本地、网盘或私有对象存储。
+
+例外：`manifests/import_*.json`、`manifests/load_report_*.md` 是每次导入覆盖的运行产物，不入库（见 `.gitignore`）；验收快照记录在 `docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`。
 
 ## 2. 当前版本
 

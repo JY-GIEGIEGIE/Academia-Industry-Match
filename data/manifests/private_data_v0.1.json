@@ -1,0 +1,53 @@
+{
+  "dataset_version": "v0.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "sprint": "2026-11-22",
+  "package": {
+    "filename": "S-02_v0.1_组内交接.zip",
+    "version": "v0.1",
+    "bytes": 10469610,
+    "sha256": "154dfe1c092c3540b705231e55219405ae449db2a1466b7b7153d24bf82364a5"
+  },
+  "source": "WeChat group file (S-02 handover, 2026-11-20); the package itself is not committed to this repository",
+  "private_root_in_package": "data/processed/",
+  "files": [
+    {
+      "path": "data/processed/achievements_clean_v0.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 949659,
+      "sha256": "2eb903d3e09a76afb37fe72e19470c4c1f7dc35cb62b2243e49b84309c922655"
+    },
+    {
+      "path": "data/processed/demands_v0.1.jsonl",
+      "format": "jsonl",
+      "rows": 100,
+      "bytes": 105105,
+      "sha256": "cf3035f4d4a2357bcc749b39f3b5be482bb194799c380152a12d8573809b0117"
+    },
+    {
+      "path": "data/processed/enterprises_v0.1.jsonl",
+      "format": "jsonl",
+      "rows": 25,
+      "bytes": 14042,
+      "sha256": "74d50bfed7d892df3f54e6842c1f91c3a2667655cb5b2be5bb57db3ac6630c07"
+    }
+  ],
+  "counts": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25,
+    "retrieval_queries": 20,
+    "pair_labels": 50
+  },
+  "verification": "Before load_db.py imports, verify the downloaded zip and the extracted files against sha256 in this manifest; abort on mismatch.",
+  "notes": [
+    "S-02 handover covers the full v0.1 set: 300 achievements, 100 demands, 25 enterprises.",
+    "The package's own SHA256SUMS.txt matched 88/88 files when this manifest was created.",
+    "data/raw and data/interim stay local; only processed and eval files are listed here.",
+    "The eval templates are unannotated: relevance_grade is empty for all 50 pairs.",
+    "Only the private processed files are hashed here. The eval templates are tracked in git and normalised to LF by .gitattributes, so their bytes differ from the CRLF files inside the package; the package sha256 above covers them."
+  ],
+  "created_at": "2026-11-20"
+}
