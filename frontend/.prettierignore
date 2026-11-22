@@ -1,0 +1,5 @@
+node_modules
+dist
+package-lock.json
+src/mock/fixtures.json
+src/mock/manifest.json

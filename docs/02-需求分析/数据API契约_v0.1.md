@@ -595,7 +595,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 - 市场风险依据：成果 `application_scenarios` 与企业主营/行业匹配度。
 - 知识产权风险依据：`ip_status`、专利状态与权利清晰度；论文默认 `unknown`，不得编造。
 - 合作风险依据：地区距离、合作模式偏好冲突、企业规模匹配度。
-- `risk=null` 只允许出现在 `is_stale=true` 或尚未完成精排的记录；前端显示“待重算”，不能把 null 当成有效风险。
+- `risk=null` 只允许出现在 `is_stale=true` 或尚未完成精排的记录。前端必须区分两种状态：`is_stale=true` 显示“待重算”，仅尚未完成精排显示“待精排/评估”；不能把 null 当成有效风险。
 
 #### `evidence` 结构
 

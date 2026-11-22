@@ -15,6 +15,8 @@
 
 ## 2. 运行顺序
 
+下面命令都从仓库根目录执行，不依赖仓库外部的文件夹命名。如果只是启动前端演示，直接用仓库里的 fixtures 就行，不用重跑数据采集。
+
 ```bash
 # 可选：提高 OpenAlex 配额
 export OPENALEX_MAILTO="your-team@example.com"

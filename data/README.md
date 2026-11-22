@@ -36,6 +36,8 @@ data/
 
 ## 3. 快速开始
 
+以下命令都在 `Academia-Industry-Match` 仓库根目录运行。只启动前端演示的话，不需要重跑采集或下载全量交接数据。
+
 ```bash
 # 1) 抓取 OpenAlex 原始快照（默认 relevance + recent 两个视角）
 python scripts/data/fetch_openalex.py --run-id thin-20261117 --per-page 100
@@ -83,7 +85,21 @@ export OPENALEX_API_KEY="..."   # 免费申请：https://openalex.org/settings/a
 
 每条匹配结果绑定 `dataset_version + taxonomy_version + embedding_model_version`。原始快照不可变；清洗/标注结果可由 `raw/` + 脚本重建。每次运行在 `manifests/` 留清单（数量、来源、hash、错误）。
 
+### 私有交接数据与需求核验
+
+全量交接包不在 Git 里，需要复核时找数据负责人拿对应版本，解压到任意目录即可。解压根目录保持如下结构：
+
+```text
+<private-data-root>/
+└── data/
+    └── processed/
+        ├── demands_v0.1.jsonl
+        └── enterprises_v0.1.jsonl
+```
+
+如果要重建前端样例，另需 `data/processed/achievements_clean_v0.1.jsonl`，操作见[前端 README](../frontend/README.md)。所有脚本都通过参数传路径，不要求交接包和仓库放在同级目录。
+
 ## 7. 相关文档
 
-- `docs/03-项目计划/数据口径更正记录_v0.1.md`：BGE-M3 维度、数据源与模拟数据口径
-- `docs/README.md`：项目文档总索引
+- [数据口径更正记录](../docs/03-项目计划/数据口径更正记录_v0.1.md)：BGE-M3 维度、数据源与模拟数据口径
+- [项目文档索引](../docs/README.md)：项目文档总索引
