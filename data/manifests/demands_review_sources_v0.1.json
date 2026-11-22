@@ -1,0 +1,136 @@
+{
+  "sprint": "2026-11-22",
+  "dataset_version": "v0.1",
+  "sources": [
+    {
+      "source_code": "S01",
+      "url": "https://www.sm.gov.cn/zw/gsgg/qt_5599/202609/t20260914_2319949.htm",
+      "ids": [
+        "dem_021"
+      ],
+      "checked_at": "2026-11-22T06:38:43.520150+00:00",
+      "http_status": 200,
+      "source_sha256": "f4ed063b2df33a6db967b2c97b69e3d03a4b67d4a8982100a3dc983f52bc1ee9",
+      "manual_review": "Direction support and document location are described in the review report."
+    },
+    {
+      "source_code": "S02",
+      "url": "https://hykzsxny.jstec.com.cn/news/202515825673315521",
+      "ids": [
+        "dem_022",
+        "dem_023"
+      ],
+      "checked_at": "2026-11-22T06:38:43.521150+00:00",
+      "http_status": 200,
+      "source_sha256": "2a2295e25264d863e159deb40b764aeede7a1a7f41059aad642047824175a61d",
+      "manual_review": "Direction support and document location are described in the review report."
+    },
+    {
+      "source_code": "S03",
+      "url": "https://static.cninfo.com.cn/finalpage/2026-04-23/1225148267.PDF",
+      "ids": [
+        "dem_024",
+        "dem_025",
+        "dem_026",
+        "dem_027"
+      ],
+      "checked_at": "2026-11-22T06:38:43.521150+00:00",
+      "http_status": 200,
+      "source_sha256": "99206da4fa5fe3aea264af0e17b41dc69a2cdaa1292ecd6f1d61927eb347f685",
+      "pages": 212,
+      "manual_review": "Direction support and document location are described in the review report."
+    },
+    {
+      "source_code": "S04",
+      "url": "https://kjj.nc.gov.cn/nckjj/tztg/202507/424356ef9d4b4309a285c644ba9a2276/files/%E9%99%84%E4%BB%B6%EF%BC%9A%E6%B1%9F%E8%A5%BF%E7%9C%81%E7%A7%91%E5%AD%A6%E6%8A%80%E6%9C%AF%E5%8E%85%E5%85%B3%E4%BA%8E%E5%8F%91%E5%B8%832026%E5%B9%B4%E5%BA%A6%E9%87%8D%E7%82%B9%E7%A0%94%E5%8F%91%E8%AE%A1%E5%88%92%E9%A1%B9%E7%9B%AE%E7%94%B3%E6%8A%A5%E6%8C%87%E5%8D%97%E7%9A%84%E9%80%9A%E7%9F%A5-20250718142731812.pdf",
+      "ids": [
+        "dem_028"
+      ],
+      "checked_at": "2026-11-22T06:38:43.522151+00:00",
+      "fetch_outcome": "HTTP 403",
+      "manual_review": "Chrome confirmed a 134-page guide and its title; hard-carbon project not located.",
+      "source_review_status": "pending",
+      "content_verdict": "passed"
+    },
+    {
+      "source_code": "S05",
+      "url": "https://jyt.guizhou.gov.cn/xwzx/tzgg/202305/P020230506385174482093.pdf",
+      "ids": [
+        "dem_029"
+      ],
+      "checked_at": "2026-11-22T06:38:43.522151+00:00",
+      "fetch_outcome": "HTTP 404",
+      "manual_review": "Chrome also returned HTTP 404; content unverified.",
+      "source_review_status": "pending",
+      "content_verdict": "passed"
+    },
+    {
+      "source_code": "S06",
+      "url": "https://www.nsfc.gov.cn/p1/3381/2824/136209.html",
+      "ids": [
+        "dem_030",
+        "dem_031",
+        "dem_032"
+      ],
+      "checked_at": "2026-11-22T06:38:43.723953+00:00",
+      "http_status": 200,
+      "source_sha256": "3104c78b0ea1b8f997cbda50ec837d1bc68d58d6a3ba69a7af8549eb8f23baf8",
+      "manual_review": "Direction support and document location are described in the review report."
+    },
+    {
+      "source_code": "S07",
+      "url": "https://static.cninfo.com.cn/finalpage/2026-07-24/1225442062.PDF",
+      "ids": [
+        "dem_033",
+        "dem_034"
+      ],
+      "checked_at": "2026-11-22T06:38:43.786316+00:00",
+      "http_status": 200,
+      "source_sha256": "aa40daf911df40f56900dc506d7debe05a4fea43cd533474039a408e3b5aabcc",
+      "pages": 183,
+      "manual_review": "Direction support and document location are described in the review report."
+    },
+    {
+      "source_code": "S08",
+      "url": "https://static.cninfo.com.cn/finalpage/2026-04-24/1225197191.PDF",
+      "ids": [
+        "dem_035",
+        "dem_036"
+      ],
+      "checked_at": "2026-11-22T06:38:43.887206+00:00",
+      "http_status": 200,
+      "source_sha256": "9abc44469474682a7273fff9ce1e882be9953fd9ea101970df1ff600927ded75",
+      "pages": 67,
+      "manual_review": "Direction support and document location are described in the review report."
+    },
+    {
+      "source_code": "S09",
+      "url": "https://gxt.hunan.gov.cn/gxt/xxgk_71033/tzgg/202305/t20230508_29332216.html",
+      "ids": [
+        "dem_037",
+        "dem_038"
+      ],
+      "checked_at": "2026-11-22T06:38:43.975565+00:00",
+      "fetch_outcome": "SSL compatibility error",
+      "manual_review": "Chrome successfully verified section IV, items 4 and 5; product-direction support only."
+    },
+    {
+      "source_code": "S10",
+      "url": "https://www.cmc.gov.cn/cms_files/filemanager/1558491259/attach/202411/886758b0319d4993ab0894f948314e05.pdf",
+      "ids": [
+        "dem_039",
+        "dem_040"
+      ],
+      "checked_at": "2026-11-22T06:38:44.074853+00:00",
+      "http_status": 200,
+      "source_sha256": "2df64bbdd9b26bda70f5c8fc4e71638df8bef4e488784e022330f0f9080c2646",
+      "pages": 18,
+      "manual_review": "Rendered PDF pages 10-11 and 15 verified direction codes 1401 and 2501; industry-direction support only."
+    }
+  ],
+  "source_review_policy": "Web access failures and unlocated source passages are recorded as pending source checks and do not cause a non-pass content verdict.",
+  "source_pending_ids": [
+    "dem_028",
+    "dem_029"
+  ]
+}

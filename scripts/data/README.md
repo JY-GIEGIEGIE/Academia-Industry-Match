@@ -1,8 +1,8 @@
 # scripts/data
 
-数据采集、清洗、种子与评测模板脚本。设计目标是**无第三方依赖、可重跑、每步留痕**，v0.1 薄切片与全量均已支持。
+本目录包含数据采集、清洗、种子生成、抽取、导入和核验脚本，支持 v0.1 薄切片与全量数据。运行参数与依赖见各节说明。
 
-## 1. 脚本
+## 1. 脚本一览
 
 | 脚本 | 作用 | 主要输出 |
 | --- | --- | --- |
@@ -12,6 +12,7 @@
 | `make_seed_data.py` | 生成薄切片种子，或与组内补充种子合并生成全量 | `data/samples/*_seed_v0.1.*` 或 `data/processed/{enterprises,demands}_v0.1.jsonl` |
 | `make_eval_templates.py` | 生成 20 条检索 query + 50 对 pair 模板 | `data/eval/retrieval_queries_*.csv/.jsonl`、`data/eval/pair_labels_*.csv/.jsonl` |
 | `validate_thin_slice.py` | 校验数量、字段、重复、模拟标记和全量来源追溯 | 终端报告 |
+| `review_demands.py` | 只读核验指定私有交接目录的需求与企业 | 通过 `--output` 指定的统计 JSON；不修改输入 |
 
 ## 2. 运行顺序
 
@@ -29,20 +30,28 @@ python scripts/data/make_eval_templates.py --version v0.1-thin
 python scripts/data/validate_thin_slice.py --version v0.1-thin
 ```
 
+要核验组内 S-02 v0.1 全量需求时，运行：
+
+```bash
+python scripts/data/review_demands.py --data-root "/path/to/private-handoff" --output data/manifests/demands_review_checks_v0.1.json
+```
+
+`/path/to/private-handoff` 填自己解压交接包的路径，目录结构要求见[数据说明](../../data/README.md#私有交接数据与需求核验)。脚本只跑字段和统计检查，不能替代[报告](../../data/manifests/demands_review_v0.1.md)里的人工业务核验和来源核对。
+
 ## 3. 抓取参数
 
-- **主查询**：每个子方向 1—4 条（薄切片阶段，正极/负极多几条以覆盖材料体系）；`relevance` + `recent` 两个视角，各 100 条候选。
-- **过滤**：`publication_year:2020-2026`、`has_abstract:true`、`type:article|review`。
-- **礼貌**：请求间隔 0.6 秒；429/5xx 退避重试；`mailto` 加入 User-Agent。
-- **请求量**：薄切片约 42 次请求；无 key 时注意共享日预算。
-- **可重跑**：已有 raw 文件默认跳过；`--force` 重抓。注意重跑会覆盖同名 fetch manifest，原始运行统计需另存。
+- **主查询**：每个子方向 1—4 条（薄切片阶段正极/负极多设几条以覆盖材料体系）；分 `relevance` 和 `recent` 两个视角，各取 100 条候选。
+- **过滤条件**：`publication_year:2020-2026`、`has_abstract:true`、`type:article|review`。
+- **请求控制**：间隔 0.6 秒；遇 429/5xx 退避重试；User-Agent 带上 `mailto`。
+- **请求量**：薄切片大约 42 次请求；没配 key 时留意公共日配额。
+- **重跑行为**：已存在的 raw 文件默认跳过，加 `--force` 才会重抓。重抓会覆盖同名 fetch manifest，要留旧统计需提前备份。
 
 ## 4. 清洗与抽样
 
-- 从 OpenAlex `abstract_inverted_index` 重建摘要；
-- 规范化标题/DOI/空白/HTML/Unicode；
+- 用 OpenAlex `abstract_inverted_index` 还原摘要；
+- 规范化标题、DOI、空白字符、HTML 标签和 Unicode；
 - 按 DOI、OpenAlex ID、归一化标题去重；
-- 用“上下文词 + 主题词 + 排除词”过滤领域相关；
+- 用“上下文词 + 主题词 + 排除词”筛选领域相关论文；
 - 按子方向配额抽样：6 个主方向 × 15 + 液流/超级电容 × 5 = 100；
 - 每年最多 4 条，避免年份偏斜；
 - 全量清洗集写 `data/processed/`（不入 git）；20 条截断样例写 `data/samples/`（入 git）。
@@ -52,10 +61,10 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 
 ## 5. 数据政策
 
-- 不抓 CNKI/万方；不绕过 CNIPA 反爬；arXiv 请求间隔 ≥3 秒。
-- OpenAlex 元数据 CC0，摘要版权可能属于出版商；公开仓库只放正文 ≤600 字符的样例（截断时加省略号）。
-- 需求/企业均为模拟数据，`is_simulated=true`；企业使用化名。
-- 完整数据、API key、`.env` 不入公开仓库。
+- 不抓 CNKI/万方，不绕过 CNIPA 反爬；arXiv 请求间隔 ≥3 秒。
+- OpenAlex 元数据是 CC0，摘要版权可能归出版商；公开仓库只存正文 ≤600 字符的截断样例（末尾加省略号）。
+- 需求与企业都是模拟数据，`is_simulated=true`，企业用化名。
+- 完整数据、API key 和 `.env` 不进公开仓库。
 
 ## 6. 数据侧脚本
 
@@ -66,7 +75,7 @@ python scripts/data/validate_thin_slice.py --version v0.1-thin
 
 ## 7. 共享 API 客户端
 
-`extract_labels.py` / `embed.py` / `evaluate.py` 统一使用 `scripts/common/llm_client.py`，不要各自写 HTTP：
+`extract_labels.py`、`embed.py` 和 `evaluate.py` 统一调 `scripts/common/llm_client.py`，不要各自手写 HTTP 请求：
 
 ```python
 from scripts.common.llm_client import chat_json, embed_texts, rerank

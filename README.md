@@ -13,10 +13,12 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173/` once the server starts. Demo fixtures ship inside the repository; you only need the private full dataset if you rebuild those fixtures. See the [frontend README](frontend/README.md) and [private data instructions](data/README.md).
+Open `http://127.0.0.1:5173/` once the server starts. Demo fixtures ship inside the repository; you only need the private full dataset if you rebuild those fixtures or rerun the full demand checks. See the [frontend README](frontend/README.md) and [private data instructions](data/README.md).
 
 ## Review and handoff documents
 
+- [Demand review v0.1](data/manifests/demands_review_v0.1.md): 30 reviewed demands, issues, and seven suggested patches to existing IDs.
+- [Demand check evidence](data/manifests/demands_review_checks_v0.1.json): counts, IDs, hashes, and similarity candidates; no full demand text or source snapshots.
 - [Frontend delivery and validation](frontend/docs/交付与验收记录.md): local checks and repository-contained screenshots.
 - [Frontend design notes](frontend/DESIGN.md): layout, colours, and interaction rules.
 - [Frontend path compatibility](frontend/HANDOFF.md): repo-relative startup with in-repo fixtures, optional sample rebuilds, and checks on a renamed checkout.

@@ -1,0 +1,617 @@
+{
+  "sprint": "2026-11-22",
+  "dataset_version": "v0.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "method": "stdlib_read_only; SequenceMatcher title_or_pain >= 0.50; no model or source fetch",
+  "input_files": [
+    "data/processed/demands_v0.1.jsonl",
+    "data/processed/enterprises_v0.1.jsonl"
+  ],
+  "input_sha256": {
+    "demands_v0.1.jsonl": "cf3035f4d4a2357bcc749b39f3b5be482bb194799c380152a12d8573809b0117",
+    "enterprises_v0.1.jsonl": "74d50bfed7d892df3f54e6842c1f91c3a2667655cb5b2be5bb57db3ac6630c07"
+  },
+  "counts": {
+    "demands": 100,
+    "enterprises": 25,
+    "public_seed_rewrites": 20,
+    "team_constructed": 80
+  },
+  "public_ids": [
+    "dem_021",
+    "dem_022",
+    "dem_023",
+    "dem_024",
+    "dem_025",
+    "dem_026",
+    "dem_027",
+    "dem_028",
+    "dem_029",
+    "dem_030",
+    "dem_031",
+    "dem_032",
+    "dem_033",
+    "dem_034",
+    "dem_035",
+    "dem_036",
+    "dem_037",
+    "dem_038",
+    "dem_039",
+    "dem_040"
+  ],
+  "demand_field_errors": [],
+  "enterprise_field_errors": [],
+  "datetime_issues": [
+    [
+      "dem_001",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_001",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_002",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_002",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_003",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_003",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_004",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_004",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_005",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_005",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_006",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_006",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_007",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_007",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_008",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_008",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_009",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_009",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_010",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_010",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_011",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_011",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_012",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_012",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_013",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_013",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_014",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_014",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_015",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_015",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_016",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_016",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_017",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_017",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_018",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_018",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_019",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_019",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "dem_020",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "dem_020",
+      "updated_at",
+      "date_only"
+    ],
+    [
+      "ent_001",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_002",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_003",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_004",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_005",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_006",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_007",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_008",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_009",
+      "created_at",
+      "date_only"
+    ],
+    [
+      "ent_010",
+      "created_at",
+      "date_only"
+    ]
+  ],
+  "region_difference_ids": [],
+  "content_hash_matches": 100,
+  "field_distribution": {
+    "cathode_material": 16,
+    "anode_material": 14,
+    "electrolyte": 14,
+    "separator": 15,
+    "cell_system": 10,
+    "recycling": 14,
+    "flow_battery": 9,
+    "supercapacitor": 9
+  },
+  "blank_unit_ids": [
+    "dem_001",
+    "dem_006",
+    "dem_008",
+    "dem_010",
+    "dem_011",
+    "dem_013",
+    "dem_015",
+    "dem_018",
+    "dem_020",
+    "dem_021",
+    "dem_022",
+    "dem_023",
+    "dem_024",
+    "dem_025",
+    "dem_026",
+    "dem_027",
+    "dem_028",
+    "dem_029",
+    "dem_030",
+    "dem_031",
+    "dem_032",
+    "dem_033",
+    "dem_034",
+    "dem_035",
+    "dem_036",
+    "dem_037",
+    "dem_038",
+    "dem_039",
+    "dem_040",
+    "dem_041",
+    "dem_042",
+    "dem_043",
+    "dem_044",
+    "dem_045",
+    "dem_046",
+    "dem_047",
+    "dem_048",
+    "dem_049",
+    "dem_050",
+    "dem_051",
+    "dem_052",
+    "dem_053",
+    "dem_054",
+    "dem_055",
+    "dem_056",
+    "dem_057",
+    "dem_058",
+    "dem_059",
+    "dem_060",
+    "dem_061",
+    "dem_062",
+    "dem_063",
+    "dem_064",
+    "dem_065",
+    "dem_066",
+    "dem_067",
+    "dem_068",
+    "dem_069",
+    "dem_070",
+    "dem_071",
+    "dem_072",
+    "dem_073",
+    "dem_074",
+    "dem_075",
+    "dem_076",
+    "dem_077",
+    "dem_078",
+    "dem_079",
+    "dem_080",
+    "dem_081",
+    "dem_082",
+    "dem_083",
+    "dem_084",
+    "dem_085",
+    "dem_086",
+    "dem_087",
+    "dem_088",
+    "dem_089",
+    "dem_090",
+    "dem_091",
+    "dem_092",
+    "dem_093",
+    "dem_094",
+    "dem_095",
+    "dem_096",
+    "dem_097",
+    "dem_098",
+    "dem_099",
+    "dem_100"
+  ],
+  "instruction_metric_ids": [
+    "dem_021",
+    "dem_022",
+    "dem_023",
+    "dem_024",
+    "dem_025",
+    "dem_026",
+    "dem_027",
+    "dem_028",
+    "dem_029",
+    "dem_030",
+    "dem_031",
+    "dem_032",
+    "dem_033",
+    "dem_034",
+    "dem_035",
+    "dem_036",
+    "dem_037",
+    "dem_038",
+    "dem_039",
+    "dem_040",
+    "dem_041",
+    "dem_042",
+    "dem_043",
+    "dem_044",
+    "dem_045",
+    "dem_046",
+    "dem_047",
+    "dem_048",
+    "dem_049",
+    "dem_050",
+    "dem_051",
+    "dem_052",
+    "dem_053",
+    "dem_054",
+    "dem_055",
+    "dem_056",
+    "dem_057",
+    "dem_058",
+    "dem_059",
+    "dem_060",
+    "dem_061",
+    "dem_062",
+    "dem_063",
+    "dem_064",
+    "dem_065",
+    "dem_066",
+    "dem_067",
+    "dem_068",
+    "dem_069",
+    "dem_070",
+    "dem_071",
+    "dem_072",
+    "dem_073",
+    "dem_074",
+    "dem_075",
+    "dem_076",
+    "dem_077",
+    "dem_078",
+    "dem_079",
+    "dem_080",
+    "dem_081",
+    "dem_082",
+    "dem_083",
+    "dem_084",
+    "dem_085",
+    "dem_086",
+    "dem_087",
+    "dem_088",
+    "dem_089",
+    "dem_090",
+    "dem_091",
+    "dem_092",
+    "dem_093",
+    "dem_094",
+    "dem_095",
+    "dem_096",
+    "dem_097",
+    "dem_098",
+    "dem_099",
+    "dem_100"
+  ],
+  "exact_duplicates": {
+    "title": [],
+    "pain_point": [],
+    "content_hash": []
+  },
+  "candidate_pairs": [
+    {
+      "ids": [
+        "dem_049",
+        "dem_060"
+      ],
+      "title_ratio": 0.1739,
+      "pain_ratio": 0.7619
+    },
+    {
+      "ids": [
+        "dem_006",
+        "dem_060"
+      ],
+      "title_ratio": 0.64,
+      "pain_ratio": 0.125
+    },
+    {
+      "ids": [
+        "dem_022",
+        "dem_060"
+      ],
+      "title_ratio": 0.64,
+      "pain_ratio": 0.125
+    },
+    {
+      "ids": [
+        "dem_016",
+        "dem_040"
+      ],
+      "title_ratio": 0.6364,
+      "pain_ratio": 0.0345
+    },
+    {
+      "ids": [
+        "dem_005",
+        "dem_006"
+      ],
+      "title_ratio": 0.56,
+      "pain_ratio": 0.274
+    },
+    {
+      "ids": [
+        "dem_004",
+        "dem_038"
+      ],
+      "title_ratio": 0.5556,
+      "pain_ratio": 0.0889
+    },
+    {
+      "ids": [
+        "dem_092",
+        "dem_094"
+      ],
+      "title_ratio": 0.5455,
+      "pain_ratio": 0.0741
+    },
+    {
+      "ids": [
+        "dem_006",
+        "dem_022"
+      ],
+      "title_ratio": 0.5385,
+      "pain_ratio": 0.1786
+    },
+    {
+      "ids": [
+        "dem_030",
+        "dem_069"
+      ],
+      "title_ratio": 0.2105,
+      "pain_ratio": 0.5143
+    },
+    {
+      "ids": [
+        "dem_005",
+        "dem_060"
+      ],
+      "title_ratio": 0.5,
+      "pain_ratio": 0.1224
+    },
+    {
+      "ids": [
+        "dem_008",
+        "dem_069"
+      ],
+      "title_ratio": 0.5,
+      "pain_ratio": 0.1429
+    },
+    {
+      "ids": [
+        "dem_009",
+        "dem_076"
+      ],
+      "title_ratio": 0.5,
+      "pain_ratio": 0.0816
+    },
+    {
+      "ids": [
+        "dem_019",
+        "dem_037"
+      ],
+      "title_ratio": 0.5,
+      "pain_ratio": 0.1852
+    },
+    {
+      "ids": [
+        "dem_024",
+        "dem_038"
+      ],
+      "title_ratio": 0.5,
+      "pain_ratio": 0.0476
+    },
+    {
+      "ids": [
+        "dem_060",
+        "dem_062"
+      ],
+      "title_ratio": 0.5,
+      "pain_ratio": 0.0
+    }
+  ],
+  "contact_pattern_hits": [],
+  "nonempty_legal_name_ids": [],
+  "limits": [
+    "Datetime issues are listed separately from base field errors.",
+    "Free-text metrics and empty units are not automatically invalid.",
+    "Candidates are not confirmed semantic duplicates.",
+    "Source content and business consistency require manual review."
+  ]
+}

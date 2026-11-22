@@ -1,6 +1,6 @@
 # 数据目录
 
-本目录是「技术转化智能匹配与产学研对接系统」的数据工作区。目标是以 **OpenAlex 为主源**，先完成 100 条清洗薄切片（含评测模板），再扩展到 300—400 条成果、100 条需求、25 家企业画像。
+本目录存放「技术转化智能匹配与产学研对接系统」的数据、契约和样例。主源使用 **OpenAlex**，先跑通 100 条清洗薄切片和评测模板，再扩展到 300—400 条成果、100 条需求和 25 家企业画像。
 
 ## 1. 目录结构
 
@@ -16,7 +16,7 @@ data/
 └── processed/                # 全量清洗/标注数据（不入库，本地保留）
 ```
 
-**入库原则**：`spec/`、`samples/`、`eval/`、`manifests/` 入库；`raw/`、`interim/`、`processed/` 不入库。原因是原始摘要可能涉及出版商版权，且数据量会增长。完整数据放本地、网盘或私有对象存储。
+**入库规则**：`spec/`、`samples/`、`eval/`、`manifests/` 进 Git；`raw/`、`interim/`、`processed/` 不进 Git，避免带入出版商受版权保护的完整摘要或大体积数据。完整数据放本地、网盘或私有存储。
 
 例外：`manifests/import_*.json`、`manifests/load_report_*.md` 是每次导入覆盖的运行产物，不入库（见 `.gitignore`）；验收快照记录在 `docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`。
 
@@ -29,7 +29,7 @@ data/
 - 薄切片摘要：`manifests/summary_v0.1-thin.md`（数量、质量、已知限制）
 - 需求种子：`samples/demands_seed_v0.1.jsonl`，20 条模拟需求
 - 企业画像：`samples/enterprises_seed_v0.1.jsonl`，10 家化名企业
-- 评测模板：v0.1-thin 的 `eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）；v0.1 的 `eval/retrieval_queries_v0.1.*`（20 条 query）、`eval/pair_labels_v0.1.*`（50 对 pair）。v0.1 已由 S-09 完成人工首标、独立双标与裁决并冻结（20/20 query、50/50 pair）；v0.1-thin 仍为空模板。
+- 评测模板：v0.1-thin 的 `eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）；v0.1 的 `eval/retrieval_queries_v0.1.*`（20 条 query）、`eval/pair_labels_v0.1.*`（50 对 pair）；标注字段为空，待人工标注。
 - 全量 `v0.1`：300 条 OpenAlex 成果、100 条模拟需求、25 家化名企业。三个 JSONL 位于 `data/processed/`，通过组内交接包分发。详见 [全量质量报告](manifests/summary_v0.1.md) 和 [数据清单](manifests/dataset_v0.1.json)。
 
 > 说明：`manifests/build_thin_slice_v0.1.json` 中的 `processed_csv` / `sample_csv` / `sample_jsonl` 是构建脚本声明的输出；本次 v0.1 交接包只带 `data/processed/*.jsonl`，当前 JSONL 流程不使用这些 CSV/sample，如需 CSV 可用脚本重跑生成。
@@ -76,16 +76,18 @@ export OPENALEX_API_KEY="..."   # 免费申请：https://openalex.org/settings/a
 
 ## 5. 版权与公开仓库
 
-- OpenAlex 元数据为 CC0，但摘要版权可能属于出版商；**公开仓库不提交完整摘要**。`samples/` 中的摘要为截断预览。
-- 需求与企业画像为团队构造的模拟数据，`is_simulated=true`，不对应任何真实企业。
+- OpenAlex 元数据是 CC0，但摘要版权可能归出版商，**公开仓库不放完整摘要**，`samples/` 里只放截断预览。
+- 需求和企业画像都是团队构造的模拟数据，`is_simulated=true`，不对应真实企业。
 - 真实企业敏感信息、联系人、未公开需求一律不入库。
-- 当前仓库为公开状态；完整数据只放本地或私有存储，公开仓库只保留截断样例。
+- 当前仓库公开可见，完整数据只放本地或私有存储。
 
 ## 6. 版本与可复现
 
-每条匹配结果绑定 `dataset_version + taxonomy_version + embedding_model_version`。原始快照不可变；清洗/标注结果可由 `raw/` + 脚本重建。每次运行在 `manifests/` 留清单（数量、来源、hash、错误）。
+每条匹配结果都绑定 `dataset_version + taxonomy_version + embedding_model_version`。原始快照保持只读；清洗和标注结果可从 `raw/` 加脚本重跑得到。每次运行都会在 `manifests/` 生成清单（数量、来源、hash、错误）。
 
 ### 私有交接数据与需求核验
+
+需求核验针对 S-02 v0.1 交接的 100 条需求和 25 家模拟企业。详细结论见[需求核验报告](manifests/demands_review_v0.1.md)，可公开的统计证据见[检查清单](manifests/demands_review_checks_v0.1.json)。这两份文件都在仓库内，不依赖原提交者的课程文件夹。
 
 全量交接包不在 Git 里，需要复核时找数据负责人拿对应版本，解压到任意目录即可。解压根目录保持如下结构：
 
@@ -96,6 +98,14 @@ export OPENALEX_API_KEY="..."   # 免费申请：https://openalex.org/settings/a
         ├── demands_v0.1.jsonl
         └── enterprises_v0.1.jsonl
 ```
+
+在仓库根目录执行下面这条只读检查命令，把占位路径换成自己的解压目录：
+
+```bash
+python scripts/data/review_demands.py --data-root "/path/to/private-handoff" --output data/manifests/demands_review_checks_v0.1.json
+```
+
+脚本只读输入、不改原始记录，也不会自动写回报告里的建议补丁。它会重算基础字段、模拟标记、来源归类、内容哈希、精确重复和文本相似候选；业务合理性与公开来源正文仍需人工核对。手头没有私有交接包时，直接看报告和清单文件即可，不要把仓库里 20 条需求样例当成 100 条全量数据。
 
 如果要重建前端样例，另需 `data/processed/achievements_clean_v0.1.jsonl`，操作见[前端 README](../frontend/README.md)。所有脚本都通过参数传路径，不要求交接包和仓库放在同级目录。
 
