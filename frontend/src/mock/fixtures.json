@@ -1,0 +1,2151 @@
+{
+  "achievements": [
+    {
+      "achievement_id": "ach_openalex_W7127158161",
+      "title_original": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
+      "abstract_preview": "With the growing demand for energy storage and the growing concern for environmental protection, solid-state lithium-ion batteries have become a promising technology. Solid electrolyte applications in solid- state lithium-ion batteries are the main topic of this review, which also covers the types,…",
+      "capability_profile_zh": "这篇论文讨论固态电解质在固态锂离子电池中的应用。可用于了解相关技术路线；是否具备中试能力、是否满足企业的具体指标，仍需阅读原文与进一步验证。",
+      "publication_year": 2025,
+      "type": "article",
+      "source": "openalex",
+      "source_url": "https://www.matec-conferences.org/10.1051/matecconf/202541001001/pdf",
+      "language": "en",
+      "trl": null,
+      "tech_fields": [
+        {
+          "code": "electrolyte",
+          "is_primary": true
+        }
+      ],
+      "application_scenarios": [],
+      "is_simulated": false,
+      "dataset_version": "v0.1",
+      "doi": "10.1051/matecconf/202541001001/pdf",
+      "abstract_original": "With the growing demand for energy storage and the growing concern for environmental protection, solid-state lithium-ion batteries have become a promising technology. Solid electrolyte applications in solid- state lithium-ion batteries are the main topic of this review, which also covers the types, benefits, and drawbacks of these materials. Oxide solid electrolytes have significant advantages such as thermal stability, wide electrochemical window, and high mechanical strength. However, its shortcomings such as low ionic conductivity, poor interface contact and difficult processing also limit…",
+      "venue": "Springer Link (Chiba Institute of Technology)",
+      "keywords": [
+        "air stability",
+        "battery safety",
+        "composite solid electrolytes",
+        "cycle life",
+        "electrode-electrolyte interface",
+        "energy density",
+        "halide electrolytes",
+        "ionic conductivity",
+        "oxide electrolytes",
+        "polymer electrolytes",
+        "solid electrolytes",
+        "solid-state lithium-ion batteries",
+        "sulfide solid electrolytes"
+      ],
+      "topics": [
+        "Advanced Battery Materials and Technologies",
+        "Advancements in Battery Materials",
+        "Thermal Expansion and Ionic Conductivity"
+      ],
+      "clean_status": "cleaned",
+      "review_status": "pending",
+      "trl_evidence": null,
+      "key_metrics": [],
+      "material_system": null,
+      "process": [],
+      "ip_status": "unknown"
+    },
+    {
+      "achievement_id": "ach_openalex_W4200428349",
+      "title_original": "Lithium Argyrodite Sulfide Electrolytes with High Ionic Conductivity and Air Stability for All-Solid-State Li-Ion Batteries",
+      "abstract_preview": "Solid electrolytes (SEs) are promising candidates for enhancing the energy density and safety of conventional lithium-ion batteries. Recently, lithium thioantimonate iodide argyrodites have been regarded as promising SEs because of their high ionic conductivities and air-stability. In this study, w…",
+      "capability_profile_zh": "这篇论文研究锂银锗矿型硫化物电解质，关注离子电导率与空气稳定性。这些主题与部分固态电解质需求相关；本文演示没有提取或确认具体性能数值。",
+      "publication_year": 2021,
+      "type": "article",
+      "source": "openalex",
+      "source_url": "https://doi.org/10.1021/acsenergylett.1c02428",
+      "language": "en",
+      "trl": null,
+      "tech_fields": [
+        {
+          "code": "electrolyte",
+          "is_primary": true
+        }
+      ],
+      "application_scenarios": [],
+      "is_simulated": false,
+      "dataset_version": "v0.1",
+      "doi": "10.1021/acsenergylett.1c02428",
+      "abstract_original": "Solid electrolytes (SEs) are promising candidates for enhancing the energy density and safety of conventional lithium-ion batteries. Recently, lithium thioantimonate iodide argyrodites have been regarded as promising SEs because of their high ionic conductivities and air-stability. In this study, we utilized high-energy ball milling to synthesize Ge-substituted thioantimonate argyrodites and achieved an ionic conductivity of 16.1 mS cm –1 for Li 6.5 Sb 0.5 Ge 0.5 S 5 I, which is the highest value among the reported cold-pressed SE pellets. First-principles calculations reveal that concerted L…",
+      "venue": "ACS Energy Letters",
+      "keywords": [
+        "Ge substitution",
+        "Li3YCl6",
+        "LiNi0.5Co0.2Mn0.3O2 cathode",
+        "air stability",
+        "all-solid-state lithium batteries",
+        "high-energy ball milling",
+        "ionic conductivity",
+        "solid electrolytes",
+        "sulfide solid electrolytes"
+      ],
+      "topics": [
+        "Advanced Battery Materials and Technologies",
+        "Advancements in Battery Materials",
+        "Thermal Expansion and Ionic Conductivity"
+      ],
+      "clean_status": "cleaned",
+      "review_status": "pending",
+      "trl_evidence": null,
+      "key_metrics": [],
+      "material_system": null,
+      "process": [],
+      "ip_status": "unknown"
+    },
+    {
+      "achievement_id": "ach_openalex_W4413607194",
+      "title_original": "Elucidating and Optimizing I Occupation in Lithium Argyrodite Solid Electrolytes for Advanced All‐Solid‐State Li Metal Batteries",
+      "abstract_preview": "ABSTRACT Although iodine (I) doped Li 6 PS 5 Cl argyrodite sulfide electrolytes have attracted significant attention, a comprehensive understanding of how I − occupancy influences ionic conductivity is still lacking. Herein, through ab initio molecular dynamics theoretical calculations, it was reve…",
+      "capability_profile_zh": "这篇论文关注锂银锗矿固态电解质中的碘占位及其优化，面向全固态锂金属电池。这里展示研究主题，不将论文直接视为可交付的产业方案。",
+      "publication_year": 2025,
+      "type": "article",
+      "source": "openalex",
+      "source_url": "https://doi.org/10.1002/exp.20240050",
+      "language": "en",
+      "trl": null,
+      "tech_fields": [
+        {
+          "code": "electrolyte",
+          "is_primary": true
+        }
+      ],
+      "application_scenarios": [],
+      "is_simulated": false,
+      "dataset_version": "v0.1",
+      "doi": "10.1002/exp.20240050",
+      "abstract_original": "ABSTRACT Although iodine (I) doped Li 6 PS 5 Cl argyrodite sulfide electrolytes have attracted significant attention, a comprehensive understanding of how I − occupancy influences ionic conductivity is still lacking. Herein, through ab initio molecular dynamics theoretical calculations, it was revealed that the incorporation of excess halogen at the sulfur site (4d) significantly accelerates the inter‐cage jumps of Li + with a low migration energy barrier of 0.28 eV, enhancing the ionic diffusion kinetics. Subsequently, iodine‐rich Li 6− x PS 5− x ClI x (0 ≤ x ≤ 0.2) electrolytes are successf…",
+      "venue": "Exploration",
+      "keywords": [
+        "Li6PS5Cl",
+        "all-solid-state lithium metal batteries",
+        "cycling stability",
+        "iodine doping",
+        "ionic conductivity",
+        "lithium dendrite suppression",
+        "lithium ion migration",
+        "solid electrolytes",
+        "structure-property relationships",
+        "temperature stability"
+      ],
+      "topics": [
+        "Advanced Battery Materials and Technologies",
+        "Advancements in Battery Materials",
+        "Thermal Expansion and Ionic Conductivity"
+      ],
+      "clean_status": "cleaned",
+      "review_status": "pending",
+      "trl_evidence": null,
+      "key_metrics": [],
+      "material_system": null,
+      "process": [],
+      "ip_status": "unknown"
+    },
+    {
+      "achievement_id": "ach_openalex_W4293238043",
+      "title_original": "Ionic conductivity and ion transport mechanisms of solid‐state lithium‐ion battery electrolytes: A review",
+      "abstract_preview": "Abstract This review article deals with the ionic conductivity of solid‐state electrolytes for lithium batteries. It has discussed the mechanisms of ion conduction in ceramics, polymers, and ceramic‐polymer composite electrolytes. In ceramic electrolytes, ion transport is accomplished with mobile p…",
+      "capability_profile_zh": "这篇综述讨论固态锂离子电池电解质的离子电导率与离子传输机制，适合用于比较技术路线。综述不能单独证明某一成果具有中试或量产能力。",
+      "publication_year": 2022,
+      "type": "article",
+      "source": "openalex",
+      "source_url": "https://doi.org/10.1002/ese3.1163",
+      "language": "en",
+      "trl": null,
+      "tech_fields": [
+        {
+          "code": "electrolyte",
+          "is_primary": true
+        }
+      ],
+      "application_scenarios": [],
+      "is_simulated": false,
+      "dataset_version": "v0.1",
+      "doi": "10.1002/ese3.1163",
+      "abstract_original": "Abstract This review article deals with the ionic conductivity of solid‐state electrolytes for lithium batteries. It has discussed the mechanisms of ion conduction in ceramics, polymers, and ceramic‐polymer composite electrolytes. In ceramic electrolytes, ion transport is accomplished with mobile point defects in a crystal. Li + ions migrate mainly via the vacancy mechanism, interstitial mechanism, or interstitial‐substitutional exchange mechanism. In solid polymer electrolytes, Li + ions are transported mainly via the segment motion, ion hopping (Grotthuss mechanism), or vehicle mechanism (m…",
+      "venue": "Energy Science & Engineering",
+      "keywords": [
+        "Grotthuss mechanism",
+        "NASICON",
+        "ceramic electrolytes",
+        "covalent organic frameworks",
+        "defect engineering",
+        "doping",
+        "garnet oxides",
+        "halide electrolytes",
+        "interface modification",
+        "interstitial mechanism",
+        "ion transport mechanism",
+        "ionic conductivity",
+        "lithium-ion batteries",
+        "metal-organic frameworks",
+        "microstructure tailoring",
+        "perovskite oxides",
+        "polymer electrolytes",
+        "solid electrolytes",
+        "sulfide solid electrolytes",
+        "vacancy mechanism"
+      ],
+      "topics": [
+        "Advanced Battery Materials and Technologies",
+        "Advancements in Battery Materials",
+        "Thermal Expansion and Ionic Conductivity"
+      ],
+      "clean_status": "cleaned",
+      "review_status": "pending",
+      "trl_evidence": null,
+      "key_metrics": [],
+      "material_system": null,
+      "process": [],
+      "ip_status": "unknown"
+    }
+  ],
+  "demands": [
+    {
+      "demand_id": "dem_005",
+      "enterprise_id": "ent_006",
+      "title": "硫化物固态电解质中试放大",
+      "pain_point": "硫化物电解质离子电导率已达实验室水平，但空气稳定性差、合成成本高、难以卷对卷成膜。",
+      "expected_solution": "开发水/空气稳定型硫化物或卤化物复合电解质，离子电导率≥10 mS/cm，适配干法/湿法成膜，完成公斤级中试。",
+      "technical_metrics": [
+        {
+          "name": "室温离子电导率",
+          "value": ">=10",
+          "unit": "mS/cm"
+        },
+        {
+          "name": "空气稳定性",
+          "value": "暴露 24h 后电导率保持 >=80",
+          "unit": "%"
+        },
+        {
+          "name": "膜厚",
+          "value": "<=50",
+          "unit": "μm"
+        },
+        {
+          "name": "成本",
+          "value": "<=2000",
+          "unit": "元/kg"
+        }
+      ],
+      "budget_range": "1000—2000 万元",
+      "timeline": "24 个月",
+      "cooperation_modes": [
+        "joint_rd",
+        "joint_lab"
+      ],
+      "required_trl": 5,
+      "tech_fields": [
+        "electrolyte"
+      ],
+      "application_scenarios": [
+        "ev_power"
+      ],
+      "ip_requirement": "联合研发/共建实验室；可接受专利许可",
+      "region": "pearl_river_delta",
+      "status": "active",
+      "valid_until": "2027-12-31",
+      "is_simulated": true,
+      "source_note": "团队构造的演示种子数据，基于公开行业常识改写，不对应任何真实企业或真实需求。",
+      "dataset_version": "v0.1",
+      "enterprise": {
+        "display_name": "某珠三角固态电解质初创",
+        "industry": "material_manufacturing",
+        "size": "small"
+      }
+    },
+    {
+      "demand_id": "dem_006",
+      "enterprise_id": "ent_006",
+      "title": "氧化物/聚合物复合固态电解质",
+      "pain_point": "氧化物陶瓷电解质脆性大、界面阻抗高；聚合物室温电导率低，难以兼顾薄化和枝晶抑制。",
+      "expected_solution": "复合电解质膜，厚度≤30 μm，室温电导率≥1 mS/cm，兼容高镍正极和锂金属负极。",
+      "technical_metrics": [
+        {
+          "name": "厚度",
+          "value": "<=30",
+          "unit": "μm"
+        },
+        {
+          "name": "室温离子电导率",
+          "value": ">=1",
+          "unit": "mS/cm"
+        },
+        {
+          "name": "电化学窗口",
+          "value": ">=4.5",
+          "unit": "V"
+        },
+        {
+          "name": "锂枝晶抑制",
+          "value": "通过对称电池测试",
+          "unit": ""
+        }
+      ],
+      "budget_range": "500—1000 万元",
+      "timeline": "18 个月",
+      "cooperation_modes": [
+        "joint_rd"
+      ],
+      "required_trl": 4,
+      "tech_fields": [
+        "electrolyte"
+      ],
+      "application_scenarios": [
+        "ev_power"
+      ],
+      "ip_requirement": "联合研发，优先可许可的复合电解质专利",
+      "region": "pearl_river_delta",
+      "status": "active",
+      "valid_until": "2027-06-30",
+      "is_simulated": true,
+      "source_note": "团队构造的演示种子数据，基于公开行业常识改写，不对应任何真实企业或真实需求。",
+      "dataset_version": "v0.1",
+      "enterprise": {
+        "display_name": "某珠三角固态电解质初创",
+        "industry": "material_manufacturing",
+        "size": "small"
+      }
+    },
+    {
+      "demand_id": "dem_018",
+      "enterprise_id": "ent_001",
+      "title": "固态电池低压力界面工程",
+      "pain_point": "硫化物固态电池需高堆叠压力（>30 MPa）维持界面接触，制约实际应用。",
+      "expected_solution": "界面修饰/缓冲层/复合负极，堆叠压力≤5 MPa，兼容锂金属，循环≥500 次。",
+      "technical_metrics": [
+        {
+          "name": "堆叠压力",
+          "value": "<=5",
+          "unit": "MPa"
+        },
+        {
+          "name": "500 次循环容量保持",
+          "value": ">=80",
+          "unit": "%"
+        },
+        {
+          "name": "面容量",
+          "value": ">=3",
+          "unit": "mAh/cm²"
+        },
+        {
+          "name": "锂枝晶抑制",
+          "value": "通过",
+          "unit": ""
+        }
+      ],
+      "budget_range": "1000—2000 万元",
+      "timeline": "24 个月",
+      "cooperation_modes": [
+        "joint_rd"
+      ],
+      "required_trl": 5,
+      "tech_fields": [
+        "electrolyte"
+      ],
+      "application_scenarios": [
+        "ev_power"
+      ],
+      "ip_requirement": "联合研发；优先已有软包/叠片验证数据的团队",
+      "region": "yangtze_delta",
+      "status": "active",
+      "valid_until": "2027-12-31",
+      "is_simulated": true,
+      "source_note": "团队构造的演示种子数据，基于公开行业常识改写，不对应任何真实企业或真实需求。",
+      "dataset_version": "v0.1",
+      "enterprise": {
+        "display_name": "某长三角动力电池企业",
+        "industry": "battery_manufacturing",
+        "size": "large"
+      }
+    },
+    {
+      "demand_id": "dem_022",
+      "enterprise_id": "ent_015",
+      "title": "低空动力电芯复合固态电解质",
+      "pain_point": "复合膜开裂及界面阻抗影响低空电源宽温输出",
+      "expected_solution": "制备有机与无机复合薄膜并在电芯上验证界面稳定性",
+      "technical_metrics": [
+        {
+          "name": "温度与阻抗曲线",
+          "value": "覆盖低温常温和高温",
+          "unit": ""
+        }
+      ],
+      "budget_range": null,
+      "timeline": null,
+      "cooperation_modes": [
+        "joint_rd"
+      ],
+      "required_trl": 4,
+      "tech_fields": [
+        "electrolyte"
+      ],
+      "application_scenarios": [
+        "special"
+      ],
+      "ip_requirement": null,
+      "region": "other",
+      "status": "active",
+      "valid_until": "2027-12-31",
+      "is_simulated": true,
+      "source_note": "参考公开材料「江苏技术产权交易市场发布的产学研项目指南」改写。团队构造的演示数据，不对应真实企业或真实需求。 验收条件为模拟设定。",
+      "dataset_version": "v0.1",
+      "enterprise": {
+        "display_name": "某闽南固态膜材料厂",
+        "industry": "material_manufacturing",
+        "size": "medium"
+      }
+    },
+    {
+      "demand_id": "dem_032",
+      "enterprise_id": "ent_015",
+      "title": "高导锂应力缓冲聚合物粘结剂",
+      "pain_point": "固态极片应力累积及接触丢失限制电荷输运",
+      "expected_solution": "试制可导锂柔性粘结剂并比较充放电后的界面演化",
+      "technical_metrics": [
+        {
+          "name": "离子阻抗与循环粘附",
+          "value": "设置常规粘结剂对照",
+          "unit": ""
+        }
+      ],
+      "budget_range": null,
+      "timeline": null,
+      "cooperation_modes": [
+        "joint_rd"
+      ],
+      "required_trl": 4,
+      "tech_fields": [
+        "electrolyte"
+      ],
+      "application_scenarios": [
+        "ev_power"
+      ],
+      "ip_requirement": null,
+      "region": "other",
+      "status": "active",
+      "valid_until": "2027-12-31",
+      "is_simulated": true,
+      "source_note": "参考公开材料「自然科学基金宁德时代联合基金 2026 年项目指南」改写。团队构造的演示数据，不对应真实企业或真实需求。 验收条件为模拟设定。",
+      "dataset_version": "v0.1",
+      "enterprise": {
+        "display_name": "某闽南固态膜材料厂",
+        "industry": "material_manufacturing",
+        "size": "medium"
+      }
+    }
+  ],
+  "matches": [
+    {
+      "match_id": "mock_match_001",
+      "achievement_id": "ach_openalex_W7127158161",
+      "demand_id": "dem_005",
+      "total_score": 92,
+      "tag_score": 80,
+      "semantic_score": 85,
+      "llm_score": 87,
+      "risk_overall_score": 3,
+      "reason": "演示推荐：可从“技术路线概览”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 3,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物电解质离子电导率已达实验室水平，但空气稳定性差、合成成本高、难以卷对卷成膜。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=10",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "空气稳定性",
+            "required_value": "暴露 24h 后电导率保持 >=80",
+            "unit": "%"
+          },
+          {
+            "name": "膜厚",
+            "required_value": "<=50",
+            "unit": "μm"
+          },
+          {
+            "name": "成本",
+            "required_value": "<=2000",
+            "unit": "元/kg"
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_002",
+      "achievement_id": "ach_openalex_W4200428349",
+      "demand_id": "dem_005",
+      "total_score": 86,
+      "tag_score": 76,
+      "semantic_score": 84,
+      "llm_score": 81,
+      "risk_overall_score": 4,
+      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 4,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Lithium Argyrodite Sulfide Electrolytes with High Ionic Conductivity and Air Stability for All-Solid-State Li-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物电解质离子电导率已达实验室水平，但空气稳定性差、合成成本高、难以卷对卷成膜。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=10",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "空气稳定性",
+            "required_value": "暴露 24h 后电导率保持 >=80",
+            "unit": "%"
+          },
+          {
+            "name": "膜厚",
+            "required_value": "<=50",
+            "unit": "μm"
+          },
+          {
+            "name": "成本",
+            "required_value": "<=2000",
+            "unit": "元/kg"
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_003",
+      "achievement_id": "ach_openalex_W4413607194",
+      "demand_id": "dem_005",
+      "total_score": 77,
+      "tag_score": 72,
+      "semantic_score": 83,
+      "llm_score": 72,
+      "risk_overall_score": 2,
+      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 2,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Elucidating and Optimizing I Occupation in Lithium Argyrodite Solid Electrolytes for Advanced All‐Solid‐State Li Metal Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物电解质离子电导率已达实验室水平，但空气稳定性差、合成成本高、难以卷对卷成膜。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=10",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "空气稳定性",
+            "required_value": "暴露 24h 后电导率保持 >=80",
+            "unit": "%"
+          },
+          {
+            "name": "膜厚",
+            "required_value": "<=50",
+            "unit": "μm"
+          },
+          {
+            "name": "成本",
+            "required_value": "<=2000",
+            "unit": "元/kg"
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_004",
+      "achievement_id": "ach_openalex_W4293238043",
+      "demand_id": "dem_005",
+      "total_score": 65,
+      "tag_score": 68,
+      "semantic_score": 82,
+      "llm_score": null,
+      "risk_overall_score": null,
+      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": null,
+      "evidence": null,
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_005",
+      "achievement_id": "ach_openalex_W7127158161",
+      "demand_id": "dem_006",
+      "total_score": 90,
+      "tag_score": 80,
+      "semantic_score": 82,
+      "llm_score": 87,
+      "risk_overall_score": 4,
+      "reason": "演示推荐：可从“技术路线概览”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 4,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "氧化物陶瓷电解质脆性大、界面阻抗高；聚合物室温电导率低，难以兼顾薄化和枝晶抑制。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "厚度",
+            "required_value": "<=30",
+            "unit": "μm"
+          },
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=1",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "电化学窗口",
+            "required_value": ">=4.5",
+            "unit": "V"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过对称电池测试",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_006",
+      "achievement_id": "ach_openalex_W4200428349",
+      "demand_id": "dem_006",
+      "total_score": 84,
+      "tag_score": 76,
+      "semantic_score": 81,
+      "llm_score": 81,
+      "risk_overall_score": 2,
+      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 2,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Lithium Argyrodite Sulfide Electrolytes with High Ionic Conductivity and Air Stability for All-Solid-State Li-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "氧化物陶瓷电解质脆性大、界面阻抗高；聚合物室温电导率低，难以兼顾薄化和枝晶抑制。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "厚度",
+            "required_value": "<=30",
+            "unit": "μm"
+          },
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=1",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "电化学窗口",
+            "required_value": ">=4.5",
+            "unit": "V"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过对称电池测试",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_007",
+      "achievement_id": "ach_openalex_W4413607194",
+      "demand_id": "dem_006",
+      "total_score": 75,
+      "tag_score": 72,
+      "semantic_score": 80,
+      "llm_score": 72,
+      "risk_overall_score": 5,
+      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 5,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Elucidating and Optimizing I Occupation in Lithium Argyrodite Solid Electrolytes for Advanced All‐Solid‐State Li Metal Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "氧化物陶瓷电解质脆性大、界面阻抗高；聚合物室温电导率低，难以兼顾薄化和枝晶抑制。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "厚度",
+            "required_value": "<=30",
+            "unit": "μm"
+          },
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=1",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "电化学窗口",
+            "required_value": ">=4.5",
+            "unit": "V"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过对称电池测试",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_008",
+      "achievement_id": "ach_openalex_W4293238043",
+      "demand_id": "dem_006",
+      "total_score": 63,
+      "tag_score": 68,
+      "semantic_score": 79,
+      "llm_score": 60,
+      "risk_overall_score": 3,
+      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 3,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Ionic conductivity and ion transport mechanisms of solid‐state lithium‐ion battery electrolytes: A review",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "氧化物陶瓷电解质脆性大、界面阻抗高；聚合物室温电导率低，难以兼顾薄化和枝晶抑制。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "厚度",
+            "required_value": "<=30",
+            "unit": "μm"
+          },
+          {
+            "name": "室温离子电导率",
+            "required_value": ">=1",
+            "unit": "mS/cm"
+          },
+          {
+            "name": "电化学窗口",
+            "required_value": ">=4.5",
+            "unit": "V"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过对称电池测试",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_009",
+      "achievement_id": "ach_openalex_W7127158161",
+      "demand_id": "dem_018",
+      "total_score": 88,
+      "tag_score": 80,
+      "semantic_score": 79,
+      "llm_score": 87,
+      "risk_overall_score": 2,
+      "reason": "演示推荐：可从“技术路线概览”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 2,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物固态电池需高堆叠压力（>30 MPa）维持界面接触，制约实际应用。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "堆叠压力",
+            "required_value": "<=5",
+            "unit": "MPa"
+          },
+          {
+            "name": "500 次循环容量保持",
+            "required_value": ">=80",
+            "unit": "%"
+          },
+          {
+            "name": "面容量",
+            "required_value": ">=3",
+            "unit": "mAh/cm²"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_010",
+      "achievement_id": "ach_openalex_W4200428349",
+      "demand_id": "dem_018",
+      "total_score": 82,
+      "tag_score": 76,
+      "semantic_score": 78,
+      "llm_score": 81,
+      "risk_overall_score": 5,
+      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 5,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Lithium Argyrodite Sulfide Electrolytes with High Ionic Conductivity and Air Stability for All-Solid-State Li-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物固态电池需高堆叠压力（>30 MPa）维持界面接触，制约实际应用。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "堆叠压力",
+            "required_value": "<=5",
+            "unit": "MPa"
+          },
+          {
+            "name": "500 次循环容量保持",
+            "required_value": ">=80",
+            "unit": "%"
+          },
+          {
+            "name": "面容量",
+            "required_value": ">=3",
+            "unit": "mAh/cm²"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_011",
+      "achievement_id": "ach_openalex_W4413607194",
+      "demand_id": "dem_018",
+      "total_score": 73,
+      "tag_score": 72,
+      "semantic_score": 77,
+      "llm_score": 72,
+      "risk_overall_score": 3,
+      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 3,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Elucidating and Optimizing I Occupation in Lithium Argyrodite Solid Electrolytes for Advanced All‐Solid‐State Li Metal Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物固态电池需高堆叠压力（>30 MPa）维持界面接触，制约实际应用。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "堆叠压力",
+            "required_value": "<=5",
+            "unit": "MPa"
+          },
+          {
+            "name": "500 次循环容量保持",
+            "required_value": ">=80",
+            "unit": "%"
+          },
+          {
+            "name": "面容量",
+            "required_value": ">=3",
+            "unit": "mAh/cm²"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_012",
+      "achievement_id": "ach_openalex_W4293238043",
+      "demand_id": "dem_018",
+      "total_score": 61,
+      "tag_score": 68,
+      "semantic_score": 76,
+      "llm_score": 60,
+      "risk_overall_score": 4,
+      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 4,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Ionic conductivity and ion transport mechanisms of solid‐state lithium‐ion battery electrolytes: A review",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "硫化物固态电池需高堆叠压力（>30 MPa）维持界面接触，制约实际应用。",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "堆叠压力",
+            "required_value": "<=5",
+            "unit": "MPa"
+          },
+          {
+            "name": "500 次循环容量保持",
+            "required_value": ">=80",
+            "unit": "%"
+          },
+          {
+            "name": "面容量",
+            "required_value": ">=3",
+            "unit": "mAh/cm²"
+          },
+          {
+            "name": "锂枝晶抑制",
+            "required_value": "通过",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_013",
+      "achievement_id": "ach_openalex_W7127158161",
+      "demand_id": "dem_022",
+      "total_score": 86,
+      "tag_score": 80,
+      "semantic_score": 76,
+      "llm_score": 87,
+      "risk_overall_score": 5,
+      "reason": "演示推荐：可从“技术路线概览”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 5,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "复合膜开裂及界面阻抗影响低空电源宽温输出",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "温度与阻抗曲线",
+            "required_value": "覆盖低温常温和高温",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_014",
+      "achievement_id": "ach_openalex_W4200428349",
+      "demand_id": "dem_022",
+      "total_score": 80,
+      "tag_score": 76,
+      "semantic_score": 75,
+      "llm_score": 81,
+      "risk_overall_score": 3,
+      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 3,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Lithium Argyrodite Sulfide Electrolytes with High Ionic Conductivity and Air Stability for All-Solid-State Li-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "复合膜开裂及界面阻抗影响低空电源宽温输出",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "温度与阻抗曲线",
+            "required_value": "覆盖低温常温和高温",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_015",
+      "achievement_id": "ach_openalex_W4413607194",
+      "demand_id": "dem_022",
+      "total_score": 71,
+      "tag_score": 72,
+      "semantic_score": 74,
+      "llm_score": 72,
+      "risk_overall_score": 4,
+      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 4,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Elucidating and Optimizing I Occupation in Lithium Argyrodite Solid Electrolytes for Advanced All‐Solid‐State Li Metal Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "复合膜开裂及界面阻抗影响低空电源宽温输出",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "温度与阻抗曲线",
+            "required_value": "覆盖低温常温和高温",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_016",
+      "achievement_id": "ach_openalex_W4293238043",
+      "demand_id": "dem_022",
+      "total_score": 59,
+      "tag_score": 68,
+      "semantic_score": 73,
+      "llm_score": 60,
+      "risk_overall_score": 2,
+      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 3,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 2,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Ionic conductivity and ion transport mechanisms of solid‐state lithium‐ion battery electrolytes: A review",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "复合膜开裂及界面阻抗影响低空电源宽温输出",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "温度与阻抗曲线",
+            "required_value": "覆盖低温常温和高温",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_017",
+      "achievement_id": "ach_openalex_W7127158161",
+      "demand_id": "dem_032",
+      "total_score": 84,
+      "tag_score": 80,
+      "semantic_score": 73,
+      "llm_score": 87,
+      "risk_overall_score": 3,
+      "reason": "演示推荐：可从“技术路线概览”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": false,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": {
+        "technical": {
+          "score": 4,
+          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+        },
+        "market": {
+          "score": 2,
+          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+        },
+        "ip": {
+          "score": 3,
+          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+        },
+        "collaboration": {
+          "score": 3,
+          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+        },
+        "overall": {
+          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "mitigation": [
+            "对照原文核查关键指标及实验条件",
+            "核实技术成熟度与放大验证资料",
+            "确认知识产权、合作边界和投入条件"
+          ]
+        }
+      },
+      "evidence": {
+        "tag_matches": [],
+        "snippets": [
+          {
+            "side": "achievement",
+            "field": "title_original",
+            "text": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
+            "source_ref": "achievement.title_original"
+          },
+          {
+            "side": "demand",
+            "field": "pain_point",
+            "text": "固态极片应力累积及接触丢失限制电荷输运",
+            "source_ref": "demand.pain_point"
+          }
+        ],
+        "metric_matches": [
+          {
+            "name": "离子阻抗与循环粘附",
+            "required_value": "设置常规粘结剂对照",
+            "unit": ""
+          }
+        ]
+      },
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_018",
+      "achievement_id": "ach_openalex_W4200428349",
+      "demand_id": "dem_032",
+      "total_score": 78,
+      "tag_score": 76,
+      "semantic_score": 72,
+      "llm_score": null,
+      "risk_overall_score": null,
+      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": true,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": null,
+      "evidence": null,
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_019",
+      "achievement_id": "ach_openalex_W4413607194",
+      "demand_id": "dem_032",
+      "total_score": 69,
+      "tag_score": 72,
+      "semantic_score": 71,
+      "llm_score": null,
+      "risk_overall_score": null,
+      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": true,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": null,
+      "evidence": null,
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    },
+    {
+      "match_id": "mock_match_020",
+      "achievement_id": "ach_openalex_W4293238043",
+      "demand_id": "dem_032",
+      "total_score": 57,
+      "tag_score": 68,
+      "semantic_score": 70,
+      "llm_score": null,
+      "risk_overall_score": null,
+      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "is_stale": true,
+      "created_at": "2026-11-22T02:00:00Z",
+      "risk": null,
+      "evidence": null,
+      "model": "mock-only-no-model-run",
+      "prompt_version": "mock-manual-v1",
+      "dataset_version": "v0.1",
+      "taxonomy_version": "v0.1",
+      "embedding_model_version": "mock-only-no-embedding"
+    }
+  ],
+  "taxonomy": {
+    "taxonomy_version": "v0.1",
+    "dimensions": [
+      {
+        "dimension": "tech_field",
+        "label": "技术领域",
+        "type": "enum",
+        "applies_to": [
+          "achievement",
+          "demand"
+        ],
+        "values": [
+          {
+            "code": "cathode_material",
+            "label": "正极材料"
+          },
+          {
+            "code": "anode_material",
+            "label": "负极材料"
+          },
+          {
+            "code": "electrolyte",
+            "label": "电解质"
+          },
+          {
+            "code": "separator",
+            "label": "隔膜"
+          },
+          {
+            "code": "cell_system",
+            "label": "电芯与系统"
+          },
+          {
+            "code": "recycling",
+            "label": "回收与梯次利用"
+          },
+          {
+            "code": "flow_battery",
+            "label": "液流电池"
+          },
+          {
+            "code": "supercapacitor",
+            "label": "超级电容器"
+          }
+        ]
+      },
+      {
+        "dimension": "application_scenario",
+        "label": "应用场景",
+        "type": "enum",
+        "applies_to": [
+          "achievement",
+          "demand"
+        ],
+        "values": [
+          {
+            "code": "ev_power",
+            "label": "动力电池"
+          },
+          {
+            "code": "grid_storage",
+            "label": "电网储能"
+          },
+          {
+            "code": "cni_storage",
+            "label": "工商业储能"
+          },
+          {
+            "code": "residential_storage",
+            "label": "户用储能"
+          },
+          {
+            "code": "consumer_electronics",
+            "label": "消费电子"
+          },
+          {
+            "code": "e_tool_two_wheeler",
+            "label": "电动工具/两轮车"
+          },
+          {
+            "code": "special",
+            "label": "特种应用"
+          },
+          {
+            "code": "recycling_industry",
+            "label": "回收产业"
+          }
+        ]
+      },
+      {
+        "dimension": "cooperation_mode",
+        "label": "合作模式",
+        "type": "enum",
+        "applies_to": [
+          "achievement",
+          "demand"
+        ],
+        "values": [
+          {
+            "code": "transfer",
+            "label": "技术转让"
+          },
+          {
+            "code": "license",
+            "label": "技术许可"
+          },
+          {
+            "code": "joint_rd",
+            "label": "联合研发"
+          },
+          {
+            "code": "joint_lab",
+            "label": "共建实验室"
+          },
+          {
+            "code": "tech_service",
+            "label": "技术服务/咨询"
+          }
+        ]
+      },
+      {
+        "dimension": "ip_status",
+        "label": "知识产权状态",
+        "type": "enum",
+        "applies_to": [
+          "achievement"
+        ],
+        "values": [
+          {
+            "code": "granted",
+            "label": "已授权"
+          },
+          {
+            "code": "pending",
+            "label": "申请中"
+          },
+          {
+            "code": "published",
+            "label": "已公开"
+          },
+          {
+            "code": "unknown",
+            "label": "未知"
+          }
+        ]
+      },
+      {
+        "dimension": "region",
+        "label": "意向地区",
+        "type": "enum",
+        "applies_to": [
+          "demand",
+          "enterprise"
+        ],
+        "values": [
+          {
+            "code": "yangtze_delta",
+            "label": "长三角"
+          },
+          {
+            "code": "pearl_river_delta",
+            "label": "珠三角"
+          },
+          {
+            "code": "beijing_tianjin_hebei",
+            "label": "京津冀"
+          },
+          {
+            "code": "chengdu_chongqing",
+            "label": "成渝"
+          },
+          {
+            "code": "other",
+            "label": "其他"
+          },
+          {
+            "code": "any",
+            "label": "不限"
+          }
+        ]
+      },
+      {
+        "dimension": "industry",
+        "label": "企业行业",
+        "type": "enum",
+        "applies_to": [
+          "demand",
+          "enterprise"
+        ],
+        "values": [
+          {
+            "code": "battery_manufacturing",
+            "label": "电池制造"
+          },
+          {
+            "code": "material_manufacturing",
+            "label": "材料制造"
+          },
+          {
+            "code": "ev_oem",
+            "label": "整车"
+          },
+          {
+            "code": "ess_integrator",
+            "label": "储能系统"
+          },
+          {
+            "code": "recycling",
+            "label": "回收"
+          },
+          {
+            "code": "other",
+            "label": "其他"
+          }
+        ]
+      },
+      {
+        "dimension": "enterprise_size",
+        "label": "企业规模",
+        "type": "enum",
+        "applies_to": [
+          "enterprise",
+          "demand"
+        ],
+        "values": [
+          {
+            "code": "large",
+            "label": "大型"
+          },
+          {
+            "code": "medium",
+            "label": "中型"
+          },
+          {
+            "code": "small",
+            "label": "小型"
+          }
+        ]
+      },
+      {
+        "dimension": "status",
+        "label": "需求状态",
+        "type": "enum",
+        "applies_to": [
+          "demand"
+        ],
+        "values": [
+          {
+            "code": "draft",
+            "label": "草稿"
+          },
+          {
+            "code": "active",
+            "label": "生效"
+          },
+          {
+            "code": "expired",
+            "label": "已过期"
+          },
+          {
+            "code": "closed",
+            "label": "已关闭"
+          }
+        ]
+      },
+      {
+        "dimension": "language",
+        "label": "语言",
+        "type": "enum",
+        "applies_to": [
+          "achievement"
+        ],
+        "values": [
+          {
+            "code": "en",
+            "label": "英文"
+          },
+          {
+            "code": "zh",
+            "label": "中文"
+          },
+          {
+            "code": "mixed",
+            "label": "中英混合"
+          },
+          {
+            "code": "unknown",
+            "label": "未知"
+          }
+        ]
+      },
+      {
+        "dimension": "type",
+        "label": "成果类型",
+        "type": "enum",
+        "applies_to": [
+          "achievement"
+        ],
+        "values": [
+          {
+            "code": "article",
+            "label": "期刊论文"
+          },
+          {
+            "code": "review",
+            "label": "综述"
+          },
+          {
+            "code": "preprint",
+            "label": "预印本"
+          },
+          {
+            "code": "patent",
+            "label": "专利"
+          },
+          {
+            "code": "other",
+            "label": "其他"
+          }
+        ]
+      },
+      {
+        "dimension": "trl",
+        "label": "技术成熟度",
+        "type": "ordinal",
+        "applies_to": [
+          "achievement",
+          "demand"
+        ],
+        "values": [
+          {
+            "code": "1",
+            "label": "1 基本原理"
+          },
+          {
+            "code": "2",
+            "label": "2 技术概念"
+          },
+          {
+            "code": "3",
+            "label": "3 实验室验证"
+          },
+          {
+            "code": "4",
+            "label": "4 实验室器件"
+          },
+          {
+            "code": "5",
+            "label": "5 相关环境验证/中试"
+          },
+          {
+            "code": "6",
+            "label": "6 原型演示"
+          },
+          {
+            "code": "7",
+            "label": "7 实际环境演示"
+          },
+          {
+            "code": "8",
+            "label": "8 系统定型"
+          },
+          {
+            "code": "9",
+            "label": "9 商业运行"
+          }
+        ]
+      }
+    ]
+  }
+}

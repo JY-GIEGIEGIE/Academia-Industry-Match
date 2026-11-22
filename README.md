@@ -2,6 +2,24 @@
 An agent-driven system that performs bidirectional matching between academic research outputs and published industry needs, utilizing structured publication management, cross-semantic-space mapping, and LLM-based reranking to achieve more effective alignment between academia and industry.
 As MVP, we focus on new energy battery materials, and involve some new types of energy storage technologies.
 
+## Run the frontend demo
+
+Run all commands below from the root of your cloned `Academia-Industry-Match` repository. No fixed drive, parent directory, or sibling handoff folder is required.
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open `http://127.0.0.1:5173/` once the server starts. Demo fixtures ship inside the repository; you only need the private full dataset if you rebuild those fixtures. See the [frontend README](frontend/README.md).
+
+## Review and handoff documents
+
+- [Frontend delivery and validation](frontend/docs/交付与验收记录.md): local checks and repository-contained screenshots.
+- [Frontend design notes](frontend/DESIGN.md): layout, colours, and interaction rules.
+- [Frontend path compatibility](frontend/HANDOFF.md): repo-relative startup with in-repo fixtures, optional sample rebuilds, and checks on a renamed checkout.
+
 ## Data workstream
 
 - `data/spec/` — data contract, taxonomy v0.1, and evaluation spec.

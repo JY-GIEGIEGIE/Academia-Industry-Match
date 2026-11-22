@@ -1,0 +1,26 @@
+{
+  "sprint": "2026-11-22",
+  "dataset_version": "v0.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "mock-only-no-embedding",
+  "source": "S-02 v0.1 processed data (local handoff)",
+  "source_counts": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25
+  },
+  "demo_counts": {
+    "achievements": 4,
+    "demands": 5,
+    "matches": 20
+  },
+  "hash": "741b7efde14fa67dd56c985227c66b275a289f0ef0da447cf3274d2468ad5ca2",
+  "notes": [
+    "Whitelist fields only; no authors, institutions, legal names, contacts or raw snapshots.",
+    "Abstract excerpt <=600 characters; list preview <=300. Full abstracts stay outside this project.",
+    "Electrolyte demo tags manually grounded in titles and collection category; not accepted pipeline labels.",
+    "Chinese profiles prepared by Codex from titles for demo; not formal extraction output.",
+    "Scores, reasons and risks are demo fixtures; no matching, embedding or reranking model was run.",
+    "Four real achievements and five simulated demands form 20 unique pairs. One pending and three stale fixtures included."
+  ]
+}

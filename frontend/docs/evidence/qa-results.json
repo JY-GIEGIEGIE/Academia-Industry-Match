@@ -1,0 +1,54 @@
+{
+  "browser": "Installed Chrome via bundled Playwright",
+  "reason": "Browser plugin not available; bundled Playwright browser absent, using installed Chrome channel",
+  "url": "http://127.0.0.1:5173/",
+  "viewports": ["1440x1000", "375x812", "320x900", "760x900", "1024x900", "1280x900"],
+  "checks": [
+    {
+      "name": "desktop initial render, contract count, descending scores and keyboard entry",
+      "pass": true
+    },
+    {
+      "name": "minimum score and empty result reset update real UI and URL",
+      "pass": true
+    },
+    {
+      "name": "pagination, unfinished risk and detail return preserve context",
+      "pass": true
+    },
+    {
+      "name": "detail comparison, evidence, unknown metrics, radar, source disclosure",
+      "pass": true
+    },
+    {
+      "name": "research perspective, object switch and same pair identity",
+      "pass": true
+    },
+    {
+      "name": "stale filter is exact, and expired results never show risk/evidence conclusions",
+      "pass": true
+    },
+    {
+      "name": "missing record and malformed list parameters recover without blank screen",
+      "pass": true
+    },
+    {
+      "name": "mobile 375px collapse, object selection, cards, detail and internal table scrolling",
+      "pass": true
+    },
+    {
+      "name": "320px and 760px boundaries do not overflow; reduced motion stays readable",
+      "pass": true
+    },
+    {
+      "name": "console health and isolated local data flow",
+      "pass": true
+    },
+    {
+      "name": "Mobile score denominator remains on one line at 320/375/760/1280px after visual repair",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "visual_repair": "Prevented /100 denominator wrapping on narrow detail headers."
+}
