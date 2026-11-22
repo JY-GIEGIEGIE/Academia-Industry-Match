@@ -1,6 +1,6 @@
 # 评测模板
 
-本目录存放 v0.1-thin 与 v0.1 全量的检索 query 与 pair 标注模板。标注口径见 `data/spec/eval_spec_v0.1.md`。
+本目录存放 v0.1-thin 的空白标注模板与 v0.1 的冻结标注。v0.1 已由 S-09 完成人工首标、独立双标与裁决；标注口径见 `data/spec/eval_spec_v0.1.md`。
 
 > v0.1-thin 完整清洗集在本地 `data/processed/achievements_clean_v0.1-thin.jsonl`，仓库内可用 `data/samples/achievements_sample_v0.1-thin.jsonl` 的 20 条样例对照；v0.1 全量清洗集在组内交接包 `data/processed/achievements_clean_v0.1.jsonl`（300 条），不入库。
 
@@ -23,17 +23,17 @@
 
 ### 全量 `v0.1`
 
-来自 S-02 组内交接（2026-11-20），query ID 与 pair ID 与薄切片一致，可复用同一批标注。
+来自 S-02 组内交接（2026-11-20），query ID 与 pair ID 与薄切片一致；v0.1 已由 S-09 另行标注，不能直接把薄切片标注复用到全量候选。
 
 | 文件 | 说明 |
 | --- | --- |
-| `retrieval_queries_v0.1.csv` | 20 条检索 query，20 个候选/条（全量成果） |
-| `retrieval_queries_v0.1.jsonl` | 同上的程序可读版本 |
-| `pair_labels_v0.1.csv` | 50 个（需求,成果）对；40 同领域、10 跨领域 |
+| `retrieval_queries_v0.1.csv` | 20 条检索 query，20 个候选/条（全量成果）；已冻结（20/20） |
+| `retrieval_queries_v0.1.jsonl` | 同上的程序可读版本；`evaluate.py` 实际读这个 |
+| `pair_labels_v0.1.csv` | 50 个（需求,成果）对；40 同领域、10 跨领域；已冻结（50/50） |
 | `pair_labels_v0.1.jsonl` | 同上的程序可读版本 |
 | `eval_templates_manifest_v0.1.json` | 生成清单 |
 
-两个版本的标注字段目前都为空。导入时用 `--dataset-version v0.1` 会自动读取全量模板，用 `v0.1-thin` 读薄切片。
+v0.1-thin 的标注字段仍为空；v0.1 已由 S-09 冻结。导入时用 `--dataset-version v0.1` 会自动读取全量标注，用 `v0.1-thin` 读薄切片。冻结哈希与双标/裁决结果见 `data/manifests/eval_annotation_summary_v0.1.md` 和 `data/manifests/eval_adjudication_v0.1.md`。
 
 ## 标注步骤
 
@@ -41,7 +41,7 @@
 2. 检索 query：再看 `candidate_achievement_ids` 对应的成果标题/摘要（v0.1-thin 见 `data/processed/achievements_clean_v0.1-thin.jsonl`；v0.1 见 `data/processed/achievements_clean_v0.1.jsonl`），把相关 ID 写入 `relevant_achievement_ids`，并在 `relevance_grades` 写 `id:2;id:1`。
 3. pair：读 `demand_title` 与 `achievement_title`，必要时查全文；按 0/1/2 口径填 `relevance_grade` 和 `rationale`。
 4. 20% 双标：第二人另存一份，比较后写 `adjudication`。
-5. 标注完成后运行评测脚本（待实现 `evaluate.py`），输出 Recall@10、Precision@5、nDCG@10。
+5. v0.1 标注已冻结；评测由 S-04 的 `scripts/data/evaluate.py` 读取 JSONL 运行，输出 Recall@10、Precision@5、nDCG@10、MRR。`v0.1-thin` 仍需先完成标注。
 
 ## 注意
 
