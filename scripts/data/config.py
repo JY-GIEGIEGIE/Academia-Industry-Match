@@ -272,6 +272,32 @@ TECH_FIELD_TO_QUERY_TAG = {
     spec["tech_field"]: tag for tag, spec in SUBFIELD_SPECS.items()
 }
 
+FULL_VERSION = "v0.1"
+FULL_TARGET_TOTAL = 300
+FULL_QUERIES = {
+    "cathode": ["single-crystal high-nickel cathode", "sodium-ion layered oxide cathode"],
+    "anode": ["silicon graphite anode", "sodium ion hard carbon anode"],
+    "electrolyte": ["argyrodite sulfide electrolyte", "ceramic polymer composite electrolyte"],
+    "separator": ["thin-film ceramic coated separator", "polyethylene battery separator"],
+    "cell_system": ["lithium ion battery fast charging thermal management", "battery pack thermal propagation"],
+    "recycling": ["lithium ion black mass recycling", "retired battery second life"],
+    "flow": ["vanadium flow battery membrane", "redox flow battery stack"],
+    "supercap": ["supercapacitor activated carbon electrode", "supercapacitor energy storage module"],
+}
+
+
+def subfield_specs(version: str) -> dict:
+    if version != FULL_VERSION:
+        return SUBFIELD_SPECS
+    return {
+        tag: {
+            **spec,
+            "queries": spec["queries"] + FULL_QUERIES[tag],
+            "target": spec["target"] * 3,
+        }
+        for tag, spec in SUBFIELD_SPECS.items()
+    }
+
 # Optional diversity quotas inside a subfield. Without these, "high-nickel"
 # reviews dominate the cathode bucket and "hard carbon" dominates the anode
 # bucket, which weakens the evaluation queries. Rules are (keywords, quota).

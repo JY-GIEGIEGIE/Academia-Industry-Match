@@ -16,6 +16,10 @@ data/raw/
 data/interim/
 data/processed/
 
+# 每次导入都覆盖的运行产物，快照见 docs/09-项目管理/BE2验收记录
+data/manifests/import_*.json
+data/manifests/load_report_*.md
+
 # OS / IDE
 .DS_Store
 Thumbs.db

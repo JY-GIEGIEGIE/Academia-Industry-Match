@@ -10,13 +10,15 @@ data/
 ├── spec/                     # 数据契约、标签体系、评测规范（入库，长期维护）
 ├── samples/                  # 可入库的小样例（20 条成果、20 条需求、10 家企业画像）
 ├── eval/                     # 检索 query 与 pair 标注模板（入库）
-├── manifests/                # 每次抓取/构建的清单与统计（入库）
+├── manifests/                # 抓取/构建清单（入库）；导入运行日志除外
 ├── raw/                      # 原始 JSON 快照（不入库，本地保留）
 ├── interim/                  # 中间结果（不入库）
 └── processed/                # 全量清洗/标注数据（不入库，本地保留）
 ```
 
 **入库原则**：`spec/`、`samples/`、`eval/`、`manifests/` 入库；`raw/`、`interim/`、`processed/` 不入库。原因是原始摘要可能涉及出版商版权，且数据量会增长。完整数据放本地、网盘或私有对象存储。
+
+例外：`manifests/import_*.json`、`manifests/load_report_*.md` 是每次导入覆盖的运行产物，不入库（见 `.gitignore`）；验收快照记录在 `docs/09-项目管理/BE2验收记录_v0.1-thin_2026-11-19.md`。
 
 ## 2. 当前版本
 
@@ -27,7 +29,10 @@ data/
 - 薄切片摘要：`manifests/summary_v0.1-thin.md`（数量、质量、已知限制）
 - 需求种子：`samples/demands_seed_v0.1.jsonl`，20 条模拟需求
 - 企业画像：`samples/enterprises_seed_v0.1.jsonl`，10 家化名企业
-- 评测模板：`eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）
+- 评测模板：v0.1-thin 的 `eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）；v0.1 的 `eval/retrieval_queries_v0.1.*`（20 条 query）、`eval/pair_labels_v0.1.*`（50 对 pair）；标注字段为空，待人工标注。
+- 全量 `v0.1`：300 条 OpenAlex 成果、100 条模拟需求、25 家化名企业。三个 JSONL 位于 `data/processed/`，通过组内交接包分发。详见 [全量质量报告](manifests/summary_v0.1.md) 和 [数据清单](manifests/dataset_v0.1.json)。
+
+> 说明：`manifests/build_thin_slice_v0.1.json` 中的 `processed_csv` / `sample_csv` / `sample_jsonl` 是构建脚本声明的输出；本次 v0.1 交接包只带 `data/processed/*.jsonl`，当前 JSONL 流程不使用这些 CSV/sample，如需 CSV 可用脚本重跑生成。
 
 ## 3. 快速开始
 

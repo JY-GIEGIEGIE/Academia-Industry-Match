@@ -30,14 +30,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from config import (
+    FULL_TARGET_TOTAL,
+    FULL_VERSION,
     MANIFEST_DIR,
     MIN_ABSTRACT_CHARS,
     PROCESSED_DIR,
     RAW_DIR,
     SAMPLE_DIR,
-    SUBFIELD_SPECS,
     SUBTHEME_RULES,
     TARGET_TOTAL,
+    subfield_specs,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -232,7 +234,7 @@ def normalize_work(
         "query_tag": tag,
         "query_tags": [tag],
         "query_lens": lens,
-        "raw_payload_path": str(raw_path.relative_to(PROJECT_ROOT)),
+        "raw_payload_path": raw_path.relative_to(PROJECT_ROOT).as_posix(),
         "selection_score": None,
     }
 
@@ -406,7 +408,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build the v0.1 thin slice.")
     parser.add_argument("--run-id", required=True, help="Raw snapshot run id under data/raw/openalex/.")
     parser.add_argument("--version", default="v0.1-thin", help="Dataset version label.")
-    parser.add_argument("--target-total", type=int, default=TARGET_TOTAL, help="Total records to select.")
+    parser.add_argument("--target-total", type=int, help="Total records to select.")
     parser.add_argument("--sample-size", type=int, default=20, help="Sample records for data/samples/.")
     return parser.parse_args()
 
@@ -417,6 +419,9 @@ def main() -> int:
         sys.stderr.reconfigure(encoding="utf-8")
 
     args = parse_args()
+    specs = subfield_specs(args.version)
+    if args.target_total is None:
+        args.target_total = FULL_TARGET_TOTAL if args.version == FULL_VERSION else TARGET_TOTAL
     raw_run_dir = RAW_DIR / args.run_id
     if not raw_run_dir.exists():
         print(f"Raw run directory not found: {raw_run_dir}", file=sys.stderr)
@@ -436,7 +441,7 @@ def main() -> int:
         parts = path.stem.split("__")
         tag = parts[0]
         lens = parts[1] if len(parts) > 1 else "relevance"
-        if tag not in SUBFIELD_SPECS:
+        if tag not in specs:
             continue
         retrieved_at = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).strftime(
             "%Y-%m-%dT%H:%M:%SZ"
@@ -461,7 +466,7 @@ def main() -> int:
     filtered: list[dict] = []
     excluded = 0
     for record in unique:
-        spec = SUBFIELD_SPECS[record["query_tag"]]
+        spec = specs[record["query_tag"]]
         scored = score_record(record, spec)
         if scored is None:
             excluded += 1
@@ -478,7 +483,7 @@ def main() -> int:
     selected: list[dict] = []
     selected_ids: set[str] = set()
     shortfalls: dict[str, int] = {}
-    for tag, spec in SUBFIELD_SPECS.items():
+    for tag, spec in specs.items():
         chosen = select_for_tag(by_tag.get(tag, []), tag, spec["target"])
         for record in chosen:
             if record["achievement_id"] not in selected_ids:
@@ -531,7 +536,7 @@ def main() -> int:
     # Build a small, balanced sample for the tracked repo. Abstract is truncated.
     sample_records: list[dict] = []
     sample_seen: set[str] = set()
-    for tag in SUBFIELD_SPECS:
+    for tag in specs:
         tag_records = sorted(
             [record for record in selected if record["query_tag"] == tag],
             key=lambda item: (-item["selection_score"], item["title_original"]),
@@ -615,10 +620,10 @@ def main() -> int:
         },
         "parse_errors": parse_errors,
         "outputs": {
-            "processed_jsonl": str(processed_jsonl.relative_to(PROJECT_ROOT)),
-            "processed_csv": str(processed_csv.relative_to(PROJECT_ROOT)),
-            "sample_jsonl": str(sample_jsonl.relative_to(PROJECT_ROOT)),
-            "sample_csv": str(sample_csv.relative_to(PROJECT_ROOT)),
+            "processed_jsonl": processed_jsonl.relative_to(PROJECT_ROOT).as_posix(),
+            "processed_csv": processed_csv.relative_to(PROJECT_ROOT).as_posix(),
+            "sample_jsonl": sample_jsonl.relative_to(PROJECT_ROOT).as_posix(),
+            "sample_csv": sample_csv.relative_to(PROJECT_ROOT).as_posix(),
         },
     }
     manifest_path = MANIFEST_DIR / f"build_thin_slice_{args.version}.json"
