@@ -84,5 +84,5 @@
     "S-03 data quality: 79 rows are needs_review; 74 profiles exceed the 250-character guidance; 58 TRL values are null (all non-null TRLs carry trl_evidence). These are accepted as known limitations and left for S-08 disposition."
   ],
   "created_at": "2026-11-20",
-  "updated_at": "2026-11-22"
+  "updated_at": "2026-11-23"
 }
