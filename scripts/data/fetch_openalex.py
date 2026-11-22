@@ -39,6 +39,7 @@ from config import (
     SUBFIELD_SPECS,
     YEAR_FROM,
     YEAR_TO,
+    subfield_specs,
 )
 
 
@@ -118,6 +119,7 @@ def fetch_json(url: str, mailto: str | None, retries: int = 3, timeout: int = 90
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fetch OpenAlex works for the thin slice.")
+    parser.add_argument("--version", default="v0.1-thin", help="Dataset version label.")
     parser.add_argument(
         "--run-id",
         default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -160,9 +162,11 @@ def main() -> int:
         sys.stderr.reconfigure(encoding="utf-8")
 
     args = parse_args()
+    specs = subfield_specs(args.version)
+    started_at = utc_now()
     tags = [tag.strip() for tag in args.tags.split(",") if tag.strip()]
     lenses = [lens.strip() for lens in args.lenses.split(",") if lens.strip()]
-    unknown_tags = [tag for tag in tags if tag not in SUBFIELD_SPECS]
+    unknown_tags = [tag for tag in tags if tag not in specs]
     if unknown_tags:
         print(f"Unknown tags: {unknown_tags}", file=sys.stderr)
         return 2
@@ -177,7 +181,7 @@ def main() -> int:
     total_cost = 0.0
 
     for tag in tags:
-        spec = SUBFIELD_SPECS[tag]
+        spec = specs[tag]
         for query in spec["queries"]:
             for lens in lenses:
                 filename = f"{tag}__{lens}__{slugify(query)}.json"
@@ -188,7 +192,7 @@ def main() -> int:
                     "tech_field": spec["tech_field"],
                     "query": query,
                     "lens": lens,
-                    "path": str(relative),
+                    "path": relative.as_posix(),
                 }
                 if target.exists() and not args.force:
                     record.update({"status": "skipped", "returned": 0})
@@ -238,10 +242,11 @@ def main() -> int:
     manifest = {
         "run_id": args.run_id,
         "stage": "fetch",
-        "started_at": utc_now(),
+        "started_at": started_at,
         "finished_at": utc_now(),
         "status": "partial" if errors else "success",
         "config": {
+            "dataset_version": args.version,
             "per_page": args.per_page,
             "lenses": lenses,
             "tags": tags,
