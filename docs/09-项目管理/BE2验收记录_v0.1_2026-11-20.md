@@ -168,6 +168,8 @@ demand.dataset_version:      v0.1 × 100
 
 ## 10. 未完成项
 
+> 2026-11-22 更新：本节等待的三份 JSONL 与 20+50 标注均已到位，全量导入与覆盖率复验见 `BE2验收记录_v0.1_全量_2026-11-22.md`；本节保留为当时的待办记录。
+
 | 项 | 等待文件 | 到位后动作 |
 | --- | --- | --- |
 | 向量覆盖率 100% | `embeddings_v0.1.jsonl`（陈镇灏） | `--embeddings` 导入，检查 `rows_embedding` 与 `achievements_without_embedding` |

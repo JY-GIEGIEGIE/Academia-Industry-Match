@@ -4,12 +4,19 @@
   "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
   "sprint": "2026-11-22",
   "package": {
+    "filename": "S-04_v0.1_2026-11-22_修订_corrected_2026-11-23.zip",
+    "version": "v0.1",
+    "bytes": 2500213,
+    "sha256": "a3394bf12cf2168e45214d15a7c2d2deab6b31bdb054fd0ed3d68666cb209af0"
+  },
+  "source_package": {
     "filename": "S-02_v0.1_组内交接.zip",
     "version": "v0.1",
     "bytes": 10469610,
-    "sha256": "154dfe1c092c3540b705231e55219405ae449db2a1466b7b7153d24bf82364a5"
+    "sha256": "154dfe1c092c3540b705231e55219405ae449db2a1466b7b7153d24bf82364a5",
+    "note": "Base achievements/demands/enterprises; identical bytes to the same files in the S-04 corrected package."
   },
-  "source": "WeChat group file (S-02 handover, 2026-11-20); the package itself is not committed to this repository",
+  "source": "WeChat group files: S-02 handover (2026-11-20) for the base set, S-04 corrected handover (2026-11-23) for labels, profiles, vectors and eval inputs. Neither package is committed.",
   "private_root_in_package": "data/processed/",
   "files": [
     {
@@ -32,22 +39,50 @@
       "rows": 25,
       "bytes": 14042,
       "sha256": "74d50bfed7d892df3f54e6842c1f91c3a2667655cb5b2be5bb57db3ac6630c07"
+    },
+    {
+      "path": "data/processed/achievements_labeled_v0.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 1588088,
+      "sha256": "fa1eb22990ec0157e2c8eb98628304160402df671f3d334999af48f700fbf73c"
+    },
+    {
+      "path": "data/processed/capability_profiles_v0.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 318439,
+      "sha256": "b87d25fb6ee0cce830ae4a0a337324d1efe78cdbf8eabc3253508963f4a5629d"
+    },
+    {
+      "path": "data/processed/embeddings_v0.1.jsonl",
+      "format": "jsonl",
+      "rows": 400,
+      "bytes": 8311573,
+      "sha256": "cf28771142c2276b39af6986f47f940619cab636636e85ea09bcfd5af6924459"
     }
   ],
   "counts": {
     "achievements": 300,
     "demands": 100,
     "enterprises": 25,
+    "achievement_tags": 1268,
+    "achievement_extractions": 300,
+    "achievement_texts": 300,
+    "embeddings": 400,
+    "demand_tags": 307,
     "retrieval_queries": 20,
     "pair_labels": 50
   },
   "verification": "Before load_db.py imports, verify the downloaded zip and the extracted files against sha256 in this manifest; abort on mismatch.",
   "notes": [
-    "S-02 handover covers the full v0.1 set: 300 achievements, 100 demands, 25 enterprises.",
-    "The package's own SHA256SUMS.txt matched 88/88 files when this manifest was created.",
-    "data/raw and data/interim stay local; only processed and eval files are listed here.",
-    "Eval templates were frozen by S-09 on 2026-11-22; formal query/pair annotations are in data/eval/*_v0.1.jsonl and freeze hashes are in data/manifests/eval_annotation_summary_v0.1.md. This package hash still covers the original S-02 handoff.",
-    "Only the private processed files are hashed here. The eval templates are tracked in git and normalised to LF by .gitattributes, so their bytes differ from the CRLF files inside the package; the package sha256 above covers them."
+    "The S-04 corrected package supersedes the original S-04 zip and carries the S-02 base set unchanged: 300 achievements, 100 demands, 25 enterprises.",
+    "The S-04 corrected package's own SHA256SUMS.txt matched 25/25 files; its data/eval files and dataset_v0.1.json are byte-identical to main at cba15e7.",
+    "data/raw and data/interim stay local; only processed files are hashed here.",
+    "Eval templates were frozen by S-09 on 2026-11-22; formal query/pair annotations are in data/eval/*_v0.1.jsonl and freeze hashes are in data/manifests/eval_annotation_summary_v0.1.md.",
+    "Only the private processed files are hashed here. The eval templates are tracked in git and normalised to LF by .gitattributes, so their bytes differ from the CRLF files inside the package; the package sha256 above covers them.",
+    "S-03 data quality: 79 rows are needs_review; 74 profiles exceed the 250-character guidance; 58 TRL values are null (all non-null TRLs carry trl_evidence). These are accepted as known limitations and left for S-08 disposition."
   ],
-  "created_at": "2026-11-20"
+  "created_at": "2026-11-20",
+  "updated_at": "2026-11-22"
 }
