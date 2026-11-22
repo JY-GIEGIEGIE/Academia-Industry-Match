@@ -45,7 +45,7 @@ S-02 交接的 v0.1 全量数据（300 成果 / 100 需求 / 25 企业 / 20 quer
 | 需求 → 企业外键缺失 | 0 / 100 |
 | 与薄切片关系 | 薄切片 100 成果、20 需求、10 企业全部是全量子集 |
 
-`data/manifests/private_data_v0.1.json` 记录 zip 与三份私有 processed 文件的哈希。评测模板已入库到 `data/eval/`，由 `.gitattributes` 统一为 LF，字节与包内 CRLF 不同，故清单不再重复列它们——包级 SHA-256 已覆盖。
+`data/manifests/private_data_v0.1.json` 记录 zip 与三份私有 processed 文件的哈希（S-02 口径；2026-11-23 已更新为 S-04 校正包与六个文件，见 `S-05_收尾验收记录_2026-11-23.md`）。评测模板已入库到 `data/eval/`：S-02 包内为 CRLF、仓库由 `.gitattributes` 统一为 LF；S-04 校正包内 eval 已为 LF，与仓库逐字节一致。
 
 ## 4. 验收命令
 
