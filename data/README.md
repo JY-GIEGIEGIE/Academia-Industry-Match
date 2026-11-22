@@ -27,8 +27,10 @@ data/
 - 薄切片摘要：`manifests/summary_v0.1-thin.md`（数量、质量、已知限制）
 - 需求种子：`samples/demands_seed_v0.1.jsonl`，20 条模拟需求
 - 企业画像：`samples/enterprises_seed_v0.1.jsonl`，10 家化名企业
-- 评测模板：`eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）
+- 评测模板：v0.1-thin 的 `eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）；v0.1 的 `eval/retrieval_queries_v0.1.*`（20 条 query）、`eval/pair_labels_v0.1.*`（50 对 pair）；标注字段为空，待人工标注。
 - 全量 `v0.1`：300 条 OpenAlex 成果、100 条模拟需求、25 家化名企业。三个 JSONL 位于 `data/processed/`，通过组内交接包分发。详见 [全量质量报告](manifests/summary_v0.1.md) 和 [数据清单](manifests/dataset_v0.1.json)。
+
+> 说明：`manifests/build_thin_slice_v0.1.json` 中的 `processed_csv` / `sample_csv` / `sample_jsonl` 是构建脚本声明的输出；本次 v0.1 交接包只带 `data/processed/*.jsonl`，当前 JSONL 流程不使用这些 CSV/sample，如需 CSV 可用脚本重跑生成。
 
 ## 3. 快速开始
 
