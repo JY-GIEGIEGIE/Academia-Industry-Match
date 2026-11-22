@@ -384,6 +384,39 @@ class BlankVersionTests(unittest.TestCase):
         self.assertEqual([row["dataset_version"] for row in rows], ["v0.1", "v0.1-thin"])
 
 
+class DemandTagTests(unittest.TestCase):
+    def test_derives_tags_with_one_primary_tech_field(self) -> None:
+        rows = load_db.build_demand_tags([{
+            "demand_id": "dem_1",
+            "tech_fields": ["electrolyte", "separator"],
+            "application_scenarios": ["ev_power"],
+            "cooperation_modes": ["joint_rd"],
+        }], "v0.1")
+        self.assertEqual(len(rows), 4)
+        tech = [row for row in rows if row["dimension"] == "tech_field"]
+        self.assertEqual([row["is_primary"] for row in tech], [True, False])
+        self.assertEqual(tech[0]["tag_id"], "tag_dem_1_tech_field_electrolyte")
+        self.assertEqual(tech[0]["evidence"], "demand.tech_fields")
+        self.assertEqual(tech[0]["method"], "rule")
+        self.assertEqual(tech[0]["review_status"], "pending")
+
+    def test_duplicate_demand_tag_codes_are_rejected(self) -> None:
+        demand = {
+            "demand_id": "dem_1", "enterprise_id": "ent_1", "title": "t",
+            "pain_point": "p", "expected_solution": "e",
+            "technical_metrics": [{"name": "x", "value": 1, "unit": "u"}],
+            "cooperation_modes": ["joint_rd"], "required_trl": 5,
+            "tech_fields": ["electrolyte", "electrolyte"],
+            "application_scenarios": ["ev_power"], "region": "any",
+            "status": "active", "valid_until": "2027-01-01",
+            "is_simulated": True, "source_note": "team", "content_hash": "h",
+            "dataset_version": "v0.1",
+        }
+        v = load_db.Validation()
+        load_db.validate_demands([demand], {"ent_1"}, v)
+        self.assertTrue(any("duplicate codes" in error for error in v.errors))
+
+
 class CSVInputTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()

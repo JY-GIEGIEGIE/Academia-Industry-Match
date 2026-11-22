@@ -165,6 +165,10 @@ TAG_COLUMNS = [
     "tag_id", "achievement_id", "dimension", "code", "is_primary", "confidence",
     "evidence", "method", "model", "prompt_version", "review_status",
 ]
+DEMAND_TAG_COLUMNS = [
+    "tag_id", "demand_id", "dimension", "code", "is_primary", "confidence",
+    "evidence", "method", "model", "prompt_version", "review_status",
+]
 EXTRACTION_COLUMNS = [
     "extraction_id", "achievement_id", "material_system", "key_metrics", "process",
     "trl", "trl_confidence", "trl_evidence", "ip_status", "extraction_run_id",
@@ -550,18 +554,24 @@ def validate_demands(rows: list[dict[str, Any]], enterprise_ids: set[str], v: Va
         for code in tech_fields if isinstance(tech_fields, list) else []:
             if code not in TECH_FIELDS:
                 v.error(f"{where}: unknown tech_field {code!r}")
+        if isinstance(tech_fields, list) and len(set(tech_fields)) != len(tech_fields):
+            v.error(f"{where}: tech_fields contains duplicate codes")
         scenarios = row.get("application_scenarios") or []
         if isinstance(scenarios, list) and not 1 <= len(scenarios) <= 3:
             v.error(f"{where}: application_scenarios must contain 1-3 items")
         for code in scenarios if isinstance(scenarios, list) else []:
             if code not in SCENARIOS:
                 v.error(f"{where}: unknown application_scenario {code!r}")
+        if isinstance(scenarios, list) and len(set(scenarios)) != len(scenarios):
+            v.error(f"{where}: application_scenarios contains duplicate codes")
         modes = row.get("cooperation_modes") or []
         if isinstance(modes, list) and not 1 <= len(modes) <= 3:
             v.error(f"{where}: cooperation_modes must contain 1-3 items")
         for code in modes if isinstance(modes, list) else []:
             if code not in COOPERATION_MODES:
                 v.error(f"{where}: unknown cooperation_mode {code!r}")
+        if isinstance(modes, list) and len(set(modes)) != len(modes):
+            v.error(f"{where}: cooperation_modes contains duplicate codes")
         metrics = row.get("technical_metrics") or []
         if isinstance(metrics, list):
             for metric in metrics:
@@ -1510,6 +1520,13 @@ def consistency_checks(db: Database) -> dict[str, int]:
                WHERE t.achievement_id = a.achievement_id AND t.dimension = 'tech_field' AND t.is_primary
            );"""
     )
+    checks["demands_without_tech_field"] = db.scalar(
+        """SELECT count(*) FROM demand d
+           WHERE NOT EXISTS (
+               SELECT 1 FROM demand_tag t
+               WHERE t.demand_id = d.demand_id AND t.dimension = 'tech_field'
+           );"""
+    )
     checks["achievements_without_profile"] = db.scalar(
         """SELECT count(*) FROM achievement a
            WHERE NOT EXISTS (
@@ -1604,6 +1621,47 @@ def source_files(data: dict[str, list[dict[str, Any]]], args: argparse.Namespace
     return files
 
 
+def build_demand_tags(demands: list[dict[str, Any]], dataset_version: str) -> list[dict[str, Any]]:
+    """Derive demand_tag rows from the curated demand arrays.
+
+    The demand JSONB arrays stay as the API display cache; this table is the
+    normalised index. The first tech_field is treated as primary because the
+    demand schema has no explicit primary flag.
+    """
+    field_map = (
+        ("tech_field", "tech_fields"),
+        ("application_scenario", "application_scenarios"),
+        ("cooperation_mode", "cooperation_modes"),
+    )
+    rows: list[dict[str, Any]] = []
+    for demand in demands:
+        demand_id = demand.get("demand_id")
+        if not isinstance(demand_id, str) or not demand_id:
+            continue
+        for dimension, field in field_map:
+            values = demand.get(field)
+            if not isinstance(values, list):
+                continue
+            for index, code in enumerate(values):
+                if not isinstance(code, str) or not code:
+                    continue
+                rows.append({
+                    "tag_id": f"tag_{demand_id}_{dimension}_{code}",
+                    "demand_id": demand_id,
+                    "dimension": dimension,
+                    "code": code,
+                    "is_primary": dimension == "tech_field" and index == 0,
+                    "confidence": 1.0,
+                    "evidence": f"demand.{field}",
+                    "method": "rule",
+                    "model": None,
+                    "prompt_version": None,
+                    "review_status": "pending",
+                    "dataset_version": dataset_version,
+                })
+    return rows
+
+
 def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argparse.Namespace) -> dict[str, int]:
     counts: dict[str, int] = {}
 
@@ -1645,6 +1703,28 @@ def import_all(db: Database, data: dict[str, list[dict[str, Any]]], args: argpar
     }
     demands = build_rows(data["demands"], DEMAND_COLUMNS, demand_transforms, args.dataset_version)
     counts["demand"] = import_table(db, "demand", DEMAND_COLUMNS, demands, "(demand_id)", ["demand_id"])
+
+    demand_tag_rows = build_demand_tags(data["demands"], args.dataset_version)
+    if demand_tag_rows:
+        replaced = delete_for_demands(db, {row["demand_id"] for row in demand_tag_rows})
+        if replaced:
+            print(f"  replaced {replaced} demand tag rows")
+        prepared_tags = build_rows(
+            demand_tag_rows, DEMAND_TAG_COLUMNS,
+            {
+                "is_primary": bool_value,
+                "evidence": text_value,
+                "model": text_value,
+                "prompt_version": text_value,
+            },
+            args.dataset_version,
+        )
+        counts["demand_tag"] = import_table(
+            db, "demand_tag", DEMAND_TAG_COLUMNS, prepared_tags,
+            "(demand_id, dimension, code)", ["demand_id", "dimension", "code"],
+        )
+    else:
+        counts["demand_tag"] = 0
 
     embedding_transforms = {"vector": vector_value}
     embeddings = build_rows(data["embeddings"], EMBEDDING_COLUMNS, embedding_transforms, args.dataset_version)
@@ -1719,6 +1799,22 @@ def delete_for_achievements(
         )
     return deleted
 
+
+
+def delete_for_demands(db: Database, demand_ids: set[str]) -> int:
+    """Delete child tag rows for these demands before rebuilding them."""
+    ids = sorted(demand_ids)
+    if not ids:
+        return 0
+    deleted = 0
+    for start in range(0, len(ids), 500):
+        chunk = ids[start : start + 500]
+        literals = ", ".join(sql_literal(value) for value in chunk)
+        deleted += db.scalar(
+            "WITH removed AS (DELETE FROM demand_tag WHERE demand_id IN "
+            f"({literals}) RETURNING 1) SELECT count(*) FROM removed;"
+        )
+    return deleted
 
 
 def delete_embeddings_for(db: Database, embeddings: list[dict[str, Any]]) -> int:
@@ -1899,6 +1995,7 @@ def write_report(
         "duplicate_doi", "orphan_embeddings", "vector_dim_mismatch",
         "fk_demand_enterprise", "fk_eval_label_achievement", "fk_eval_label_demand",
         "simulated_demand_false", "simulated_enterprise_false",
+        "demands_without_tech_field",
     }
     info_checks = {
         "achievements_without_primary_tech_field",
@@ -2151,6 +2248,7 @@ def main() -> int:
             "duplicate_doi", "orphan_embeddings", "vector_dim_mismatch",
             "fk_demand_enterprise", "fk_eval_label_achievement", "fk_eval_label_demand",
             "simulated_demand_false", "simulated_enterprise_false",
+            "demands_without_tech_field",
         }
         status = "success" if all(checks.get(name, 0) == 0 for name in hard_zero) else "partial"
         update_pipeline_run_status(db, run_id, status, finished)

@@ -126,9 +126,9 @@ demand.dataset_version:      v0.1 × 100
 
 ## 7. 一致性检查
 
-> 2026-11-22 补充：`load_db --check` 已支持 `--queries` / `--pairs` 直接读取 CSV；标签无 evidence 必须 `needs_review` 且 confidence ≤0.4；`key_metrics` 必须满足 `{name,value,unit,evidence}`。对应测试已加入 `tests/test_load_db.py`。
+> 2026-11-22 补充：`load_db --check` 已支持 `--queries` / `--pairs` 直接读取 CSV；标签无 evidence 必须 `needs_review` 且 confidence ≤0.4；`key_metrics` 必须满足 `{name,value,unit,evidence}`；`demand_tag` 从 `demand` 三个结构化数组派生。对应测试已加入 `tests/test_load_db.py`。
 
-来自 `data/manifests/load_report_v0.1.md`，22 项 OK：
+来自 `data/manifests/load_report_v0.1.md`，2026-11-20 快照为 22 项 OK；2026-11-22 新增 `demands_without_tech_field` 后共 23 项：
 
 | 检查 | 值 | 结果 |
 | --- | ---: | --- |
@@ -140,13 +140,14 @@ demand.dataset_version:      v0.1 × 100
 | `fk_eval_label_demand` | 0 | OK |
 | `simulated_demand_false` | 0 | OK |
 | `simulated_enterprise_false` | 0 | OK |
+| `demands_without_tech_field` | 0 | OK（100 条需求派生 307 条 demand_tag） |
 | `achievements_without_primary_tech_field` | 300 | INFO（标签未产出） |
 | `achievements_without_profile` | 300 | INFO（画像未产出） |
 | `achievements_without_embedding` | 300 | INFO（向量未产出） |
 | `demands_without_embedding` | 100 | INFO（向量未产出） |
 | `embedding_text_hash_mismatch` | 0 | INFO（无向量可比） |
 
-`status` 只反映导入完整性和 8 项硬检查（重复 DOI、孤儿向量、维度、外键、模拟标记），**不包含向量、标签、画像覆盖率**；覆盖率单独列在 INFO 行。
+`status` 只反映导入完整性和 9 项硬检查（重复 DOI、孤儿向量、维度、外键、模拟标记、需求 tech_field 覆盖），**不包含向量、标签、画像覆盖率**；覆盖率单独列在 INFO 行。
 
 ## 8. 幂等与覆盖
 
@@ -199,4 +200,5 @@ demand.dataset_version:      v0.1 × 100
 - `achievement_tag`、`achievement_extraction`、`demand_tag` 的 `review_status` 放开 `needs_review`，由 `migrations/0002_review_status_needs_review.sql` 完成；`needs_review` 记录仍入库。
 - `load_db.py` 接受脚本生成的 `tag_id`、`extraction_id`、`text_id`（要求全局唯一、跨次运行稳定）；缺省时仍按原公式生成。
 - `trl=null`、`key_metrics=[]`、画像缺失均不阻塞导入；覆盖率仍由 INFO 类检查报告，不作为导入失败条件。
-- 单元测试全仓 52 条通过（load_db 44 条；新增 `needs_review`、脚本 ID、空 TRL/空指标、无证据标签、`key_metrics` 字段、CSV eval 输入用例）。
+- 单元测试全仓 54 条通过（load_db 46 条；新增 `needs_review`、脚本 ID、空 TRL/空指标、无证据标签、`key_metrics` 字段、CSV eval 输入、需求标签派生用例）。
+- `demand_tag` 从 `demand` 三个结构化数组派生：100 条需求生成 307 行（101 tech_field / 100 application_scenario / 106 cooperation_mode），100 条 primary tech_field；`demand_tag` 覆盖检查已加入一致性报告。

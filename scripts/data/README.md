@@ -115,6 +115,8 @@ python scripts/data/load_db.py --dsn "$DATABASE_URL" --migrate \
 
 `--dataset-version` 会同时切换成果、标签、画像、向量、需求、企业、评测（query / pair）和哈希清单的默认路径。全量清单 `private_data_v0.1.json` 已就位，不需要再传 `--skip-hash`。`--queries` / `--pairs` 同时接受 JSONL 和 `make_eval_templates.py` 生成的 CSV；CSV 的候选 ID 用分号分隔，pair 的 `relevance_grade` 会转成整数。
 
+`demand_tag` 由 `demand.tech_fields` / `application_scenarios` / `cooperation_modes` 在导入时确定性派生：`method=rule`、`confidence=1.0`、`evidence=demand.<字段>`、`review_status=pending`，第一个 `tech_field` 为 primary；`demand` 三个 JSONB 数组保留为 API 展示缓存。
+
 导入默认拒绝往已有其他 `dataset_version` 的库写入。从薄切片升级到全量时加 `--allow-mixed-versions`；其余情况请用空库或临时库。
 
 输出：`data/manifests/import_v0.1.json`、`data/manifests/load_report_v0.1.md`（运行时生成，每次覆盖，不入库）。连续执行两次导入即可验证幂等（`ON CONFLICT` 更新，不新增重复行）。
