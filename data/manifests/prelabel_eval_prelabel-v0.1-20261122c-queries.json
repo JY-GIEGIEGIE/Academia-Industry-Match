@@ -1,0 +1,75 @@
+{
+  "run_id": "prelabel-v0.1-20261122c-queries",
+  "stage": "eval_prelabel",
+  "sprint": "2026-11-22",
+  "status": "success",
+  "dataset_version": "v0.1",
+  "prompt_version": "prelabel_v0.1",
+  "model": "qwen3.8-flash",
+  "started_at": "2026-11-22T10:04:39.476041+00:00",
+  "finished_at": "2026-11-22T10:08:47.034896+00:00",
+  "input_paths": {
+    "queries": "data\\eval\\retrieval_queries_v0.1.jsonl",
+    "pairs": "data\\eval\\pair_labels_v0.1.jsonl",
+    "achievements": "E:\\SEM-软工管\\_review\\s02_huangxinyue_20261122\\data\\processed\\achievements_clean_v0.1.jsonl",
+    "demands": "E:\\SEM-软工管\\_review\\s02_huangxinyue_20261122\\data\\processed\\demands_v0.1.jsonl",
+    "labeled": null
+  },
+  "output_paths": {
+    "query_prelabel": "data\\interim\\eval_prelabel\\v0.1\\query_prelabel.jsonl",
+    "pair_prelabel": null,
+    "query_review": "data\\interim\\eval_prelabel\\v0.1\\query_candidates_review.csv",
+    "pair_review": null,
+    "summary": "data\\interim\\eval_prelabel\\v0.1\\review_summary.md"
+  },
+  "counts": {
+    "queries": 20,
+    "query_candidates": 400,
+    "pairs": 0,
+    "failures": 0,
+    "retries_used": 2
+  },
+  "grade_distribution": {
+    "queries": {
+      "0": 222,
+      "1": 118,
+      "2": 60
+    },
+    "pairs": {
+      "0": 0,
+      "1": 0,
+      "2": 0
+    }
+  },
+  "failures": [],
+  "config": {
+    "model": "qwen3.8-flash",
+    "prompt_version": "prelabel_v0.1",
+    "only": "queries",
+    "limit_queries": null,
+    "limit_pairs": null,
+    "max_abstract_chars": 1800,
+    "max_retries": 2,
+    "timeout": 90.0
+  },
+  "git_commit": "327d7af",
+  "args": {
+    "version": "v0.1",
+    "queries": null,
+    "pairs": null,
+    "achievements": "E:\\SEM-软工管\\_review\\s02_huangxinyue_20261122\\data\\processed\\achievements_clean_v0.1.jsonl",
+    "demands": "E:\\SEM-软工管\\_review\\s02_huangxinyue_20261122\\data\\processed\\demands_v0.1.jsonl",
+    "labeled": null,
+    "output_dir": "data\\interim\\eval_prelabel\\v0.1",
+    "run_id": "prelabel-v0.1-20261122c-queries",
+    "model": null,
+    "only": "queries",
+    "limit_queries": null,
+    "limit_pairs": null,
+    "max_abstract_chars": 1800,
+    "max_retries": 2,
+    "timeout": 90.0,
+    "resume": true,
+    "dry_run": false
+  }
+}

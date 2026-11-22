@@ -66,6 +66,35 @@ test('taxonomy uses all 11 API dimensions, complete enum sets and string codes',
     response.data.dimensions.every((d) => d.values.every((v) => typeof v.code === 'string')),
   )
 })
+test('achievement and demand lists use the contract pagination shape', async () => {
+  const achievements = await fastApi.getAchievements({ page: 1, page_size: 2 })
+  assert.equal(achievements.data.items.length, 2)
+  assert.deepEqual(achievements.data.pagination, {
+    page: 1,
+    page_size: 2,
+    total: 4,
+    total_pages: 2,
+  })
+  const demands = await fastApi.getDemands({ page: 2, page_size: 2 })
+  assert.equal(demands.data.items.length, 2)
+  assert.deepEqual(demands.data.pagination, {
+    page: 2,
+    page_size: 2,
+    total: 5,
+    total_pages: 3,
+  })
+  const defaultAchievements = await fastApi.getAchievements()
+  assert.equal(defaultAchievements.data.pagination.page_size, 20)
+  assert.equal(defaultAchievements.data.items.length, 4)
+  assert.throws(
+    () => fastApi.getAchievements({ page: 0 }),
+    (e) => e instanceof ApiError && e.code === 40001,
+  )
+  assert.throws(
+    () => fastApi.getDemands({ page_size: 101 }),
+    (e) => e instanceof ApiError && e.code === 40001,
+  )
+})
 test('both perspectives resolve the same pair and summary does not leak detail fields', async () => {
   const pair = fixtures.matches[0]
   const enterprise = await fastApi.getMatches('enterprise', pair.demand_id, { page_size: 20 })
@@ -96,6 +125,8 @@ test('pagination and minimum-score filter report correct counts without duplicat
   const empty = await fastApi.getMatches('enterprise', id, { min_score: 100 })
   assert.equal(empty.data.pagination.total, 0)
   assert.equal(empty.data.pagination.total_pages, 0)
+  const defaultPage = await fastApi.getMatches('enterprise', id)
+  assert.equal(defaultPage.data.pagination.page_size, 20)
 })
 test('stale and unfinished risks stay null instead of becoming low risk', async () => {
   const old = fixtures.matches.find((m) => m.is_stale)!

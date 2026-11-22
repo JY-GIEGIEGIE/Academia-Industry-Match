@@ -254,8 +254,14 @@ watch(() => route.params.id, load, { immediate: true })
       <div v-else class="pending-analysis">
         <Icon name="info" />
         <div>
-          <strong>匹配证据待重算</strong>
-          <p>尚无可用的匹配证据，不将中文说明当作原文依据。</p>
+          <strong>{{ match.is_stale ? '匹配证据待重算' : '匹配证据待精排/评估' }}</strong>
+          <p>
+            {{
+              match.is_stale
+                ? '尚无可用的匹配证据，不将中文说明当作原文依据。'
+                : '当前记录尚未完成精排，暂不提供匹配证据结论。'
+            }}
+          </p>
         </div>
       </div>
     </section>
@@ -278,8 +284,14 @@ watch(() => route.params.id, load, { immediate: true })
       <div v-else class="pending-analysis">
         <Icon name="info" />
         <div>
-          <strong>风险待重算</strong>
-          <p>尚无有效的四维风险数据，不能据此判断风险低。</p>
+          <strong>{{ match.is_stale ? '风险待重算' : '风险待精排/评估' }}</strong>
+          <p>
+            {{
+              match.is_stale
+                ? '尚无有效的四维风险数据，不能据此判断风险低。'
+                : '当前记录尚未完成精排，暂不提供风险结论。'
+            }}
+          </p>
         </div>
       </div>
     </section>
@@ -291,7 +303,13 @@ watch(() => route.params.id, load, { immediate: true })
           <li v-for="item in usableRisk.overall.mitigation" :key="item">{{ item }}</li>
         </ul></template
       >
-      <p v-else>分析待重算。当前无法提供基于该配对的综合风险结论。</p>
+      <p v-else>
+        {{
+          match.is_stale
+            ? '分析待重算。当前无法提供基于该配对的综合风险结论。'
+            : '精排尚未完成，当前无法提供基于该配对的综合风险结论。'
+        }}
+      </p>
     </section>
     <details class="version-disclosure">
       <summary>资料来源与版本</summary>
