@@ -182,6 +182,17 @@ class KeyMetricsTest(unittest.TestCase):
         _, _, review, reasons = el.validate_extraction(raw, "article")
         self.assertNotIn("key_metrics", reasons)
 
+    def test_metric_without_unit_or_evidence_dropped(self):
+        raw = make_raw(key_metrics=[
+            {"name": "capacity", "value": "210", "unit": "", "evidence": "x"},
+            {"name": "voltage", "value": "3.8", "unit": "V", "evidence": ""},
+            {"name": "ok", "value": "1", "unit": "mAh/g", "evidence": "x"},
+        ])
+        norm, _, review, reasons = el.validate_extraction(raw, "article")
+        self.assertEqual([m["name"] for m in norm["key_metrics"]], ["ok"])
+        self.assertTrue(review)
+        self.assertIn("key_metrics", reasons)
+
 
 class ExtractOneTest(unittest.TestCase):
     def test_retry_recovers_after_illegal_code(self):
@@ -213,15 +224,29 @@ class BuildRecordsTest(unittest.TestCase):
         return el.build_records(ACH, norm, raw, model="qwen3.8-flash",
                                 dataset_version="v0.1-thin", run_id="test-run")
 
-    def test_no_ids_in_output(self):
+    def test_ids_are_deterministic(self):
         labeled, profile, _ = self._build(make_raw())
-        # tag_id / extraction_id / text_id 由导入器生成，不得出现在 JSONL 输出里
-        self.assertNotIn("tag_id", labeled)
-        self.assertNotIn("extraction_id", labeled["extraction"])
-        for tag in labeled["tags"]:
-            self.assertNotIn("tag_id", tag)
+        tag = next(t for t in labeled["tags"] if t["dimension"] == "tech_field")
+        self.assertEqual(
+            tag["tag_id"], f"tag_{ACH['achievement_id']}_tech_field_{tag['code']}"
+        )
+        self.assertEqual(
+            labeled["extraction"]["extraction_id"], f"ext_{ACH['achievement_id']}"
+        )
         self.assertIsNotNone(profile)
-        self.assertNotIn("text_id", profile)
+        self.assertEqual(
+            profile["text_id"],
+            f"txt_{ACH['achievement_id']}_capability_profile_zh_zh",
+        )
+
+        labeled2, profile2, _ = self._build(make_raw())
+        tag2 = next(t for t in labeled2["tags"] if t["dimension"] == "tech_field")
+        self.assertEqual(tag["tag_id"], tag2["tag_id"])
+        self.assertEqual(
+            labeled["extraction"]["extraction_id"],
+            labeled2["extraction"]["extraction_id"],
+        )
+        self.assertEqual(profile["text_id"], profile2["text_id"])
 
     def test_tag_review_status_reflects_evidence(self):
         # evidence 空（None 或空串）→ needs_review；有 evidence → pending

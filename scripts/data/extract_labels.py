@@ -31,8 +31,8 @@ review_status 口径（对齐契约四值）：
   - 画像缺失 → capability_profile_zh=null，前端回退 abstract_preview；不阻断该成果的标签/向量链路。
   - review_reasons 分类：missing_evidence / trl / profile / key_metrics / tech_field / retry_exhausted。
 
-ID 归属：tag_id / extraction_id / text_id 不由本脚本生成（由 load_db.py 导入器生成），
-  JSONL 中不包含这些 ID 字段；标签以 achievement_id + dimension + code 交叉引用。
+ID 归属：tag_id / extraction_id / text_id 由本脚本按确定性规则生成并写入 JSONL；
+  load_db 有则用、无则补。
 
 用法：
   # 环境自检（不调用 API）
@@ -334,7 +334,7 @@ def _normalize_trl(
 
 
 def _clean_key_metrics(raw: object) -> tuple[list[dict], bool]:
-    """只接受 {name,value,unit,evidence} 且 name/value 非空；非法项丢弃。
+    """只接受 {name,value,unit,evidence} 且四项均非空；非法项丢弃。
 
     返回 (合法指标列表, 是否有非法项被丢弃)。全部为空不阻断，详情页不渲染指标区。
     """
@@ -350,15 +350,17 @@ def _clean_key_metrics(raw: object) -> tuple[list[dict], bool]:
             continue
         name = str(m.get("name") or "").strip()
         value = str(m.get("value") or "").strip()
-        if not name or not value:
+        unit = str(m.get("unit") or "").strip()
+        evidence = str(m.get("evidence") or "").strip()
+        if not name or not value or not unit or not evidence:
             dropped = True
             continue
         cleaned.append(
             {
                 "name": name,
                 "value": value,
-                "unit": str(m.get("unit") or "").strip(),
-                "evidence": str(m.get("evidence") or "").strip(),
+                "unit": unit,
+                "evidence": evidence,
             }
         )
     return cleaned, dropped
@@ -480,7 +482,7 @@ def build_records(
 
     review_status 口径：achievement_tag 四值，evidence 空（None/空串）→ needs_review，否则 pending；
     顶级记录与 extraction 用 normalized["_needs_review"]（单一来源，避免与 stats 不一致）。
-    tag_id / extraction_id / text_id 由导入器生成，不在此处写入 JSONL。
+    tag_id / extraction_id / text_id 由本脚本按确定性规则生成；load_db 有则用、无则补。
     """
     achievement_id = ach["achievement_id"]
     created_at = _now_utc()
@@ -488,9 +490,9 @@ def build_records(
 
     def _tag(dimension: str, code: str, item: dict, is_primary: bool) -> dict:
         # achievement_tag 允许四值；evidence 为空（None/空串）→ needs_review，否则 pending。
-        # tag_id 由导入器生成，不在此处填写。
         evidence = (item.get("evidence") or "").strip()
         return {
+            "tag_id": f"tag_{achievement_id}_{dimension}_{code}",
             "achievement_id": achievement_id,
             "dimension": dimension,
             "code": code,
@@ -515,6 +517,7 @@ def build_records(
     record_review = "needs_review" if needs_review else "pending"
 
     extraction = {
+        "extraction_id": f"ext_{achievement_id}",
         "achievement_id": achievement_id,
         "material_system": normalized["material_system"],
         "key_metrics": normalized["key_metrics"],
@@ -547,6 +550,7 @@ def build_records(
     profile_record = None
     if profile_text:  # 缺失时 capability_profile_zh=null，不生成画像记录，成果仍保留
         profile_record = {
+            "text_id": f"txt_{achievement_id}_capability_profile_zh_zh",
             "achievement_id": achievement_id,
             "text_type": "capability_profile_zh",
             "language": "zh",
