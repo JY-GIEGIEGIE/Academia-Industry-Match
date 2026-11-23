@@ -32,6 +32,8 @@ data/
 - 评测模板：v0.1-thin 的 `eval/retrieval_queries_v0.1-thin.*`（20 条 query）、`eval/pair_labels_v0.1-thin.*`（50 对 pair）；v0.1 的 `eval/retrieval_queries_v0.1.*`（20 条 query）、`eval/pair_labels_v0.1.*`（50 对 pair）；标注字段为空，待人工标注。
 - 全量 `v0.1`：300 条 OpenAlex 成果、100 条模拟需求、25 家化名企业。三个 JSONL 位于 `data/processed/`，通过组内交接包分发。详见 [全量质量报告](manifests/summary_v0.1.md) 和 [数据清单](manifests/dataset_v0.1.json)。
 - **全量 `v0.1.1`（第一轮数据侧交付，2026-11-23）**：在 v0.1 上应用 S-07 七条需求补丁、50 处 datetime、W440 primary 标签和 TRL 状态规范化；画像 >250 字按业务口径接受。新库 `s08_v011_20261123`，详见 [v0.1.1 质量报告](manifests/summary_v0.1.1.md) 和 [数据清单](manifests/dataset_v0.1.1.json)。
+- **全量 `v0.1.2`（场景标签质量修正，2026-11-23）**：删除 `application_scenario` 置信度 <0.9 的低置信标签；新库 `s08_v012_20261123`。详见 [v0.1.2 质量报告](manifests/summary_v0.1.2.md) 和 [数据清单](manifests/dataset_v0.1.2.json)。
+- **全量 `v0.1.2`（场景标签质量修正）**：删除 `application_scenario` 置信度 <0.9 的低置信标签；新库 `s08_v012_20261123`。详见 [v0.1.2 质量报告](manifests/summary_v0.1.2.md) 和 [数据清单](manifests/dataset_v0.1.2.json)。
 
 > 说明：`manifests/build_thin_slice_v0.1.json` 中的 `processed_csv` / `sample_csv` / `sample_jsonl` 是构建脚本声明的输出；本次 v0.1 交接包只带 `data/processed/*.jsonl`，当前 JSONL 流程不使用这些 CSV/sample，如需 CSV 可用脚本重跑生成。
 

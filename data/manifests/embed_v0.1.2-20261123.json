@@ -1,0 +1,29 @@
+{
+  "run_id": "v0.1.2-20261123",
+  "stage": "embed",
+  "sprint": "2026-11-22",
+  "status": "success",
+  "dataset_version": "v0.1.2",
+  "model": "qwen3.7-text-embedding-flash",
+  "dim": 1024,
+  "profiles_path": "data\\processed\\capability_profiles_v0.1.2.jsonl",
+  "demands_path": "data\\processed\\demands_v0.1.2.jsonl",
+  "output_path": "data\\processed\\embeddings_v0.1.2.jsonl",
+  "started_at": "2026-11-23T07:48:04.547995+00:00",
+  "finished_at": "2026-11-23T07:48:04.745881+00:00",
+  "input_achievements": 300,
+  "input_demands": 100,
+  "expected": 400,
+  "output_count": 400,
+  "profile_missing": 0,
+  "demand_missing": 0,
+  "coverage": 1.0,
+  "git_commit": "017803d",
+  "args": {
+    "version": "v0.1.2",
+    "profiles": null,
+    "demands": null,
+    "output": null,
+    "run_id": null
+  }
+}

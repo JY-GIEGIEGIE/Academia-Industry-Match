@@ -1,0 +1,70 @@
+{
+  "dataset_version": "v0.1.2",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "sprint": "2026-11-22",
+  "source": "v0.1.1 + application_scenario confidence gate 0.9",
+  "private_root_in_package": "data/processed/",
+  "files": [
+    {
+      "path": "data/processed/achievements_clean_v0.1.2.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 949959,
+      "sha256": "8c1d235eda93803a5a2e44867fa6056930c1ae9b604c98e12c73dc4ea929247f"
+    },
+    {
+      "path": "data/processed/demands_v0.1.2.jsonl",
+      "format": "jsonl",
+      "rows": 100,
+      "bytes": 109535,
+      "sha256": "c9481756dccea749f5c07728e3adcf8d14a25bb231a9210a94169bd93edb5aa0"
+    },
+    {
+      "path": "data/processed/enterprises_v0.1.2.jsonl",
+      "format": "jsonl",
+      "rows": 25,
+      "bytes": 14117,
+      "sha256": "159ccb89c8dfbbbeebaee6de8e0a882c370e50ee134986aa8c792a210543b5e3"
+    },
+    {
+      "path": "data/processed/achievements_labeled_v0.1.2.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 1377328,
+      "sha256": "43ad53b4064acaf6c3bb60248a63aa5a9c5de26f7d62d5b4acc26a816b30546f"
+    },
+    {
+      "path": "data/processed/capability_profiles_v0.1.2.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 318739,
+      "sha256": "c4fcff3bff266b3f796982ed8c89af005509b98a97f900e72481d296150b13bf"
+    },
+    {
+      "path": "data/processed/embeddings_v0.1.2.jsonl",
+      "format": "jsonl",
+      "rows": 400,
+      "bytes": 8312699,
+      "sha256": "28333c4632b90031a5b06a13052919cc455b3226df7d7fbe206032fc2c82beea"
+    }
+  ],
+  "counts": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25,
+    "achievement_tags": 811,
+    "achievement_extractions": 300,
+    "achievement_texts": 300,
+    "embeddings": 400,
+    "demand_tags": 308,
+    "retrieval_queries": 20,
+    "pair_labels": 50
+  },
+  "notes": [
+    "Only low-confidence application_scenario tags were removed.",
+    "Profiles/achievement embeddings/demands unchanged.",
+    "TRL=null and needs_review unchanged."
+  ],
+  "created_at": "2026-11-23"
+}
