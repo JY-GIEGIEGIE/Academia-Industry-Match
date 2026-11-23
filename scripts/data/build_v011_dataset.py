@@ -58,7 +58,7 @@ S07_PATCHES: dict[str, dict] = {
         "title": "干法正极极片用 PTFE 粘结剂一致性验证",
         "tech_fields": ["cell_system"],
         "pain_point": "现用 PTFE 在厚正极极片中形成的纤维网络不均匀，批次差异会放大面密度和剥离力波动，影响客户对极片稳定性的验证。",
-        "expected_solution": "希望联合研发方提供可重复制样的候选 PTFE 粘结剂，在我方正极粉体和固定制片工艺下与现用品比较，交付批次检测记录、极片样件及工艺适配建议；本需求不要求我方自行建设 PTFE 聚合产线。",
+        "expected_solution": "希望联合研发方提供可重复制样的候选 PTFE 粘结剂，以我方正极粉体为对照，由研发方完成极片制片和批次检测，交付极片样件、批次记录及工艺适配建议；本需求不要求我方自行建设 PTFE 聚合产线。",
         "technical_metrics": [
             {
                 "name": "极片面密度偏差",
@@ -77,7 +77,7 @@ S07_PATCHES: dict[str, dict] = {
         "title": "固态复合极片导锂粘结剂适配验证",
         "tech_fields": ["cell_system"],
         "pain_point": "现有固态复合极片循环后容易失去颗粒接触，阻抗上升，粘结强度也随之下降；仅提高粘结力难以同时维持离子传输。",
-        "expected_solution": "希望研发方提供可重复制样的柔性导锂粘结剂，在我方复合膜与极片试制条件下和常规粘结剂比较，交付极片样件、循环前后阻抗与粘附记录及适配建议；交付对象是粘结剂和复合极片。",
+        "expected_solution": "希望研发方提供可重复制样的柔性导锂粘结剂，在我方复合膜与阻抗测试条件下比较，极片试制与循环测试由研发方提供或联合完成，交付极片样件、循环前后阻抗与粘附记录及适配建议；交付对象是粘结剂和复合极片。",
         "technical_metrics": [
             {
                 "name": "复合极片面阻抗",
@@ -120,7 +120,7 @@ S07_PATCHES: dict[str, dict] = {
         "title": "快充石墨负极析锂边界验证",
         "application_scenarios": ["ev_power"],
         "pain_point": "动力电芯客户需要确定石墨负极在不同温度和充电倍率下的析锂边界，现有材料评估不足以支持快充工况选型。",
-        "expected_solution": "联合研发方在固定电芯配方、面载量及测试程序下，对候选石墨和现用品进行倍率、温度交叉验证，并用拆解结果核验析锂，交付安全充电工况建议与材料筛选记录；本条不交付在线 BMS 预警算法。",
+        "expected_solution": "联合研发方在固定电芯配方、面载量及测试程序下，对候选石墨和现用品进行倍率、温度交叉验证；电芯装配与拆解由研发方提供或联合完成，我方提供极片、辊压与循环测试平台，交付安全充电工况建议与材料筛选记录；本条不交付在线 BMS 预警算法。",
         "technical_metrics": [
             {
                 "name": "未检出析锂的充电倍率边界",
@@ -130,8 +130,9 @@ S07_PATCHES: dict[str, dict] = {
         ],
     },
     "dem_066": {
+        "title": "水系钠电封装电芯静置析气",
         "pain_point": "水系钠电封装电芯在待机静置时可能产气并引起内压变化，影响储能设备的长期待机可靠性；电解液储存稳定性与电芯静置产气需要分别测试。",
-        "expected_solution": "由研发方筛选低析气配方，在同容量、同封装、同SOC的水系钠电试制电芯上进行静置对照，记录产气、内压与开路电压；配液储存另设试验，不以储罐压力代替电芯结果。",
+        "expected_solution": "由研发方提供水系钠电试制电芯并筛选低析气配方，我方提供配液、水分控制与静置测试条件，在同容量、同封装、同SOC条件下对照，记录产气、内压与开路电压；配液储存另设试验，不以储罐压力代替电芯结果。",
         "technical_metrics": [
             {
                 "name": "静置单位容量产气量",
@@ -272,6 +273,7 @@ def build_demands(demands: list[dict], version: str) -> Counter:
             row["updated_at"] = CORRECTION_TIME
             row["content_hash"] = content_hash(row)
             counts["patched"] += 1
+            counts["hash_recomputed"] += 1
         # Ensure all demand hashes still follow the documented concatenation.
         if row.get("content_hash") != content_hash(row):
             row["content_hash"] = content_hash(row)

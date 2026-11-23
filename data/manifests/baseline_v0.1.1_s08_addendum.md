@@ -1,10 +1,10 @@
 # S-08 v0.1.1 评测补充报告
 
-- 生成时间：2026-11-23T07:01:39.880032+00:00
+- 生成时间：2026-11-23T07:05:45.916670+00:00
 - 性质：**只读补充分析**，不替代 S-04 的正式 baseline，不改数据库、不改 `data/processed/`。
 - 输入 query：`data/eval/retrieval_queries_v0.1.1.jsonl` sha256 `0d221d3589164b153106bc5540a8b7319414c19456a8a9290930f627b9788b58`
 - 输入 labels：`data/processed/achievements_labeled_v0.1.1.jsonl` sha256 `2946f8baaeef6eb6863e57cc10dd345c0f0757d1fd15c0ae2a3226e4eb2c4204`
-- 输入 embeddings：`data/processed/embeddings_v0.1.1.jsonl` sha256 `4bc8e7c4a63bf2879185ac76022cd88f3a7035acd8925fbb8739fb2a6b36147e`
+- 输入 embeddings：`data/processed/embeddings_v0.1.1.jsonl` sha256 `54577769000b9bd02f899aa64fb0f189941becc4281f08305f2dd38dbb774153`
 - 冻结 query 向量：`data/interim/s04_eval_query_vectors_v0.1.jsonl` sha256 `46fba2517f449bcc27f80fb69aae34b34363c362cac2453358f83eae1d9e258b`
 
 ## 指标（同一套 20 query、同一冻结 query 向量）

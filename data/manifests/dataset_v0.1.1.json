@@ -23,7 +23,7 @@
     },
     "demands": {
       "path": "data/processed/demands_v0.1.1.jsonl",
-      "sha256": "23ecd1f5f6e7325724c1eabc6796c36199a9ebf22fd5334db22a6bf893836575"
+      "sha256": "1c45e9cbd9b411bbedb1164c7fffa25c495e3be53ef8428d6004b7ac5a76c073"
     },
     "enterprises": {
       "path": "data/processed/enterprises_v0.1.1.jsonl",
@@ -47,7 +47,7 @@
     },
     "embeddings": {
       "path": "data/processed/embeddings_v0.1.1.jsonl",
-      "sha256": "4bc8e7c4a63bf2879185ac76022cd88f3a7035acd8925fbb8739fb2a6b36147e"
+      "sha256": "54577769000b9bd02f899aa64fb0f189941becc4281f08305f2dd38dbb774153"
     }
   },
   "quality": {
@@ -61,7 +61,7 @@
     "queries": 20,
     "pairs": 50,
     "demand_patches": 7,
-    "demand_hashes_recomputed": 0,
+    "demand_hashes_recomputed": 7,
     "enterprise_datetimes_fixed": 10,
     "profile_policy": "150-250 recommended; >250 accepted",
     "demand_tags": 308

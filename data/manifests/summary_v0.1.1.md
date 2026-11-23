@@ -25,7 +25,7 @@
 
 ## 2. v0.1.1 修正
 
-- S-07 的 7 条 P1 需求按 `demands_review_v0.1.md` 的 R1—R7 补丁写入，并重算 `content_hash`。
+- S-07 的 7 条 P1 需求按 `demands_review_v0.1.md` 的 R1—R7 补丁写入，并重算 `content_hash`；R1/R2/R5/R6 的期望交付范围按企业画像微调，避免声称企业不具备的试制能力；R6 标题归一为“水系钠电封装电芯静置析气”。
 - 50 处只写日期的 datetime 统一补成 `T00:00:00Z`（20 条需求 × created/updated + 10 家企业 × created）。
 - `ach_openalex_W4401101842` 补 `tech_field=electrolyte`（primary），primary 覆盖从 299/300 变为 300/300。
 - 所有 `TRL=null` 统一为 `needs_review`，共 58 条；不编造 TRL。

@@ -1,7 +1,7 @@
 # 基线评测报告（v0.1.1）
 
-- 生成时间：2026-11-23T06:59:39.942583+00:00
-- git commit：ea434bb
+- 生成时间：2026-11-23T07:05:45.283808+00:00
+- git commit：c0fd26e
 - sprint：2026-11-22
 - embedding_model：qwen3.7-text-embedding-flash；dim：1024
 - taxonomy_version：v0.1；eval set：v0.1.1
