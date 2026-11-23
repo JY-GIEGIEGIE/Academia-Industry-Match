@@ -71,7 +71,7 @@ python scripts/data/review_demands.py --data-root "/path/to/private-handoff" --o
 - `extract_labels.py`：Qwen 标签/TRL/指标抽取，JSON schema + 证据 + confidence；
 - `embed.py`：Qwen `qwen3.7-text-embedding-flash` 1024 维向量化，`text_hash` 缓存；
 - `load_db.py`：已提供（见第 8 节），已在 PostgreSQL 16.16 + pgvector 0.8.7 上验证 300 条全量导入与重复导入；
-- `evaluate.py`：Recall@10、Precision@5、nDCG@10、MRR；B0—B2 三组基线（BM25 / 纯向量 / 标签+向量），B2 使用任一 `tech_field` 命中，另输出 `B2-primary` 仅主标签消融；B3（LLM 精排）待匹配引擎就绪后补。默认写 `baseline_<version>_top10.csv` 和 `data/interim/eval_query_vectors_<version>.jsonl`，冻结 query 向量以保证复现。
+- `evaluate.py`：Recall@10、Precision@5、nDCG@10；本冲刺先做 B0—B2 三组基线（BM25 / 纯向量 / 标签+向量），B3（LLM 精排）待匹配引擎就绪后补。
 
 ## 7. 共享 API 客户端
 

@@ -66,8 +66,7 @@ def embed_args(**kw) -> argparse.Namespace:
 
 def eval_args(**kw) -> argparse.Namespace:
     d = dict(queries=None, embeddings=None, labels=None, achievements=None,
-             output=None, version="v0.1-thin", query_vectors=None,
-             top_k=10, details_out=None)
+             output=None, version="v0.1-thin")
     d.update(kw)
     return argparse.Namespace(**d)
 
@@ -195,64 +194,6 @@ class EvalParseTest(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # evaluate.py：无标注退出码
 # ---------------------------------------------------------------------------
-class EmbedExpectedCountTest(unittest.TestCase):
-    def test_expected_count_mismatch_returns_nonzero(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            profiles = tmp_path / "profiles.jsonl"
-            demands = tmp_path / "demands.jsonl"
-            write_jsonl(profiles, [{"achievement_id": "ach_1", "text": "画像"}])
-            write_jsonl(demands, [{"demand_id": "dem_1", "title": "t"}])
-            rc = embed_mod.run(embed_args(profiles=str(profiles), demands=str(demands),
-                                          output=str(tmp_path / "emb.jsonl"),
-                                          expected_achievements=2, expected_demands=1))
-            self.assertNotEqual(rc, 0)
-
-
-class EvalB2AnyTagTest(unittest.TestCase):
-    def test_secondary_tech_field_is_eligible_for_b2(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            queries = tmp_path / "queries.jsonl"
-            embeddings = tmp_path / "embeddings.jsonl"
-            labels = tmp_path / "labels.jsonl"
-            achievements = tmp_path / "achievements.jsonl"
-            write_jsonl(queries, [{
-                "query_id": "q1", "query_text": "液流电池膜", "target_tech_field": "flow_battery",
-                "candidate_achievement_ids": ["ach_1"], "relevant_achievement_ids": ["ach_1"],
-                "relevance_grades": {"ach_1": 1},
-            }])
-            write_jsonl(embeddings, [{
-                "object_type": "achievement", "object_id": "ach_1",
-                "text_type": "capability_profile", "dim": 1024,
-                "vector": make_vec(), "model": EMB_MODEL,
-            }])
-            write_jsonl(labels, [{
-                "achievement_id": "ach_1",
-                "tags": [
-                    {"dimension": "tech_field", "code": "separator", "is_primary": True},
-                    {"dimension": "tech_field", "code": "flow_battery", "is_primary": False},
-                ],
-                "extraction": {"trl": 3},
-            }])
-            write_jsonl(achievements, [{
-                "achievement_id": "ach_1", "title_original": "flow battery membrane",
-                "abstract_original": "membrane",
-            }])
-            client = FakeEvalClient()
-            with mock.patch.object(eval_mod, "DashScopeClient", return_value=client):
-                rc = eval_mod.run(eval_args(
-                    queries=str(queries), embeddings=str(embeddings), labels=str(labels),
-                    achievements=str(achievements), output=str(tmp_path / "baseline.md"),
-                    query_vectors=str(tmp_path / "qv.jsonl"),
-                    details_out=str(tmp_path / "top10.csv"),
-                ))
-            self.assertEqual(rc, 0)
-            rows = (tmp_path / "top10.csv").read_text(encoding="utf-8").splitlines()
-            self.assertTrue(any("B2,1,ach_1" in line for line in rows))
-            self.assertFalse(any("B2-primary,1,ach_1" in line for line in rows))
-
-
 class EvalRunTest(unittest.TestCase):
     def _setup_files(self, tmp_path: Path, annotated: bool):
         queries = tmp_path / "queries.jsonl"
@@ -290,9 +231,7 @@ class EvalRunTest(unittest.TestCase):
             with mock.patch.object(eval_mod, "DashScopeClient", return_value=client):
                 rc = eval_mod.run(eval_args(queries=str(queries), embeddings=str(embeddings),
                                             labels=str(labels), achievements=str(achievements),
-                                            output=str(tmp_path / "baseline.md"),
-                                            query_vectors=str(tmp_path / "qv.jsonl"),
-                                            details_out=str(tmp_path / "top10.csv")))
+                                            output=str(tmp_path / "baseline.md")))
             self.assertNotEqual(rc, 0)
 
     def test_annotated_returns_zero(self):
@@ -303,12 +242,8 @@ class EvalRunTest(unittest.TestCase):
             with mock.patch.object(eval_mod, "DashScopeClient", return_value=client):
                 rc = eval_mod.run(eval_args(queries=str(queries), embeddings=str(embeddings),
                                             labels=str(labels), achievements=str(achievements),
-                                            output=str(tmp_path / "baseline.md"),
-                                            query_vectors=str(tmp_path / "qv.jsonl"),
-                                            details_out=str(tmp_path / "top10.csv")))
+                                            output=str(tmp_path / "baseline.md")))
             self.assertEqual(rc, 0)
-            detail_rows = (tmp_path / "top10.csv").read_text(encoding="utf-8").splitlines()
-            self.assertEqual(len(detail_rows), 5)  # header + 4 baselines × 1 candidate
 
 
 if __name__ == "__main__":

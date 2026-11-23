@@ -39,7 +39,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -56,16 +55,10 @@ from scripts.common.llm_client import DashScopeClient, LlmClientError, text_hash
 
 SPRINT = "2026-11-22"
 EMBEDDING_DIM = 1024
-DEFAULT_EMBEDDING_MODEL_VERSION = "qwen3.7-text-embedding-flash-1024-v1"
-DEFAULT_EXPECTED_COUNTS = {"v0.1": (300, 100), "v0.1-thin": (30, 20)}
 
 
 def _now_utc() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-def _embedding_model_version() -> str:
-    return os.getenv("EMBEDDING_MODEL_VERSION", DEFAULT_EMBEDDING_MODEL_VERSION)
 
 
 def _git_commit() -> str | None:
@@ -179,36 +172,15 @@ def run(args: argparse.Namespace) -> int:
             print("       全量需求应位于 data/processed/demands_<version>.jsonl，或用 --demands 显式指定。", file=sys.stderr)
         return 2
 
-    profiles = _load_jsonl(profiles_path)
-    demands = _load_jsonl(demands_path)
-
-    expected_achievements = getattr(args, "expected_achievements", None)
-    expected_demands = getattr(args, "expected_demands", None)
-    if expected_achievements is None and not args.profiles:
-        expected_achievements = DEFAULT_EXPECTED_COUNTS.get(args.version, (None, None))[0]
-    if expected_demands is None and not args.demands:
-        expected_demands = DEFAULT_EXPECTED_COUNTS.get(args.version, (None, None))[1]
-    if expected_achievements is not None and len(profiles) != expected_achievements:
-        print(
-            f"[错误] 成果画像条数 {len(profiles)} != 预期 {expected_achievements}；"
-            "请检查输入是否完整，或显式传 --expected-achievements。",
-            file=sys.stderr,
-        )
-        return 2
-    if expected_demands is not None and len(demands) != expected_demands:
-        print(
-            f"[错误] 需求条数 {len(demands)} != 预期 {expected_demands}；"
-            "请检查输入是否完整，或显式传 --expected-demands。",
-            file=sys.stderr,
-        )
-        return 2
-
     try:
         client = DashScopeClient()
     except LlmClientError as exc:
         print(f"[错误] 初始化共享客户端失败：{exc}", file=sys.stderr)
         print("       请先 `python scripts/common/llm_client.py --check` 核对 .env。", file=sys.stderr)
         return 2
+
+    profiles = _load_jsonl(profiles_path)
+    demands = _load_jsonl(demands_path)
 
     # 组装任务并统计缺失（空画像/空需求不计入任务，但计入覆盖率分母）。
     ach_tasks: list[tuple[str, str, str | None]] = []  # (object_id, text, src_hash)
@@ -232,9 +204,7 @@ def run(args: argparse.Namespace) -> int:
             continue
         demand_tasks.append((d.get("demand_id", "?"), text, None))
 
-    expected_achievements = expected_achievements if expected_achievements is not None else len(profiles)
-    expected_demands = expected_demands if expected_demands is not None else len(demands)
-    expected = expected_achievements + expected_demands
+    expected = len(profiles) + len(demands)
     if expected == 0:
         print("[错误] 没有可向量化的输入（画像与需求均为空）。", file=sys.stderr)
         return 2
@@ -295,7 +265,6 @@ def run(args: argparse.Namespace) -> int:
         "status": status,
         "dataset_version": args.version,
         "model": model,
-        "embedding_model_version": _embedding_model_version(),
         "dim": dim,
         "profiles_path": _relpath(profiles_path),
         "demands_path": _relpath(demands_path),
@@ -304,8 +273,6 @@ def run(args: argparse.Namespace) -> int:
         "finished_at": _now_utc(),
         "input_achievements": len(profiles),
         "input_demands": len(demands),
-        "expected_achievements": expected_achievements,
-        "expected_demands": expected_demands,
         "expected": expected,
         "output_count": written,
         "profile_missing": profile_missing,
@@ -338,8 +305,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--demands", default=None, help="需求 jsonl（薄切片默认 samples/demands_seed_v0.1.jsonl；全量默认 data/processed/demands_<version>.jsonl）")
     parser.add_argument("--output", default=None, help="输出路径（默认 data/processed/embeddings_<version>.jsonl）")
     parser.add_argument("--run-id", default=None, help="运行 ID（默认 <version>-<日期>）")
-    parser.add_argument("--expected-achievements", type=int, default=None, help="预期成果画像条数；默认路径 v0.1=300、v0.1-thin=30")
-    parser.add_argument("--expected-demands", type=int, default=None, help="预期需求条数；默认路径 v0.1=100、v0.1-thin=20")
     args = parser.parse_args(argv)
     return run(args)
 
