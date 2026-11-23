@@ -1122,8 +1122,8 @@ def validate_profiles(
             v.error(f"{where}: empty text")
             continue
         length = len(text)
-        if not 150 <= length <= 250:
-            v.warn(f"{where}: length {length} outside the 150-250 guidance")
+        if length < 150:
+            v.warn(f"{where}: length {length} below the 150-character guidance")
         computed = compute_text_hash(text)
         given = row.get("text_hash")
         if given and given != computed:

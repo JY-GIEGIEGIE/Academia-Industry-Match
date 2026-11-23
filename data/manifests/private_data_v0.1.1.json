@@ -1,0 +1,71 @@
+{
+  "dataset_version": "v0.1.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "sprint": "2026-11-22",
+  "source": "v0.1 accepted S-05 snapshot + S-07 review patches + PM profile-length policy",
+  "private_root_in_package": "data/processed/",
+  "files": [
+    {
+      "path": "data/processed/achievements_clean_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 949959,
+      "sha256": "6e08052216864570865a36af850d62158e64787a959a78eab43a10a572ad8164"
+    },
+    {
+      "path": "data/processed/demands_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 100,
+      "bytes": 109535,
+      "sha256": "1c45e9cbd9b411bbedb1164c7fffa25c495e3be53ef8428d6004b7ac5a76c073"
+    },
+    {
+      "path": "data/processed/enterprises_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 25,
+      "bytes": 14117,
+      "sha256": "159ccb89c8dfbbbeebaee6de8e0a882c370e50ee134986aa8c792a210543b5e3"
+    },
+    {
+      "path": "data/processed/achievements_labeled_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 1589311,
+      "sha256": "2946f8baaeef6eb6863e57cc10dd345c0f0757d1fd15c0ae2a3226e4eb2c4204"
+    },
+    {
+      "path": "data/processed/capability_profiles_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 318739,
+      "sha256": "c19c829e7a9670ba71f1e44821a306dd70d57ac3e081e1e3654dc50db7d5ba60"
+    },
+    {
+      "path": "data/processed/embeddings_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 400,
+      "bytes": 8312699,
+      "sha256": "54577769000b9bd02f899aa64fb0f189941becc4281f08305f2dd38dbb774153"
+    }
+  ],
+  "counts": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25,
+    "achievement_tags": 1269,
+    "achievement_extractions": 300,
+    "achievement_texts": 300,
+    "embeddings": 400,
+    "demand_tags": 308,
+    "retrieval_queries": 20,
+    "pair_labels": 50
+  },
+  "notes": [
+    "Profile length >250 accepted; only missing/<150 flagged.",
+    "TRL=null kept and marked needs_review.",
+    "S-07 demand patches include capability-alignment wording for R1/R2/R5/R6; R6 title normalized.",
+    "v0.1 remains accepted; v0.1.1 uses a fresh database."
+  ],
+  "created_at": "2026-11-23"
+}

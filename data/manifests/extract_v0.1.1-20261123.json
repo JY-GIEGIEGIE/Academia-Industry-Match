@@ -1,0 +1,33 @@
+{
+  "run_id": "v0.1.1-20261123",
+  "stage": "extract",
+  "sprint": "2026-11-22",
+  "status": "success",
+  "dataset_version": "v0.1.1",
+  "taxonomy_version": "v0.1",
+  "prompt_version": "v0.1",
+  "model": "qwen3.8-flash",
+  "input_path": "data/processed/achievements_clean_v0.1.1.jsonl",
+  "labeled_path": "data/processed/achievements_labeled_v0.1.1.jsonl",
+  "profile_path": "data/processed/capability_profiles_v0.1.1.jsonl",
+  "input_count": 300,
+  "processed_count": 300,
+  "output_count": 300,
+  "pending": 239,
+  "needs_review": 61,
+  "failed": 0,
+  "profiles_written": 300,
+  "profile_missing": 0,
+  "review_reasons": {
+    "trl": 58,
+    "llm_or_retry_flag": 3
+  },
+  "profile_policy": "150-250 recommended; >250 accepted",
+  "corrections": [
+    "S-07 7 demand patches",
+    "50 datetime fixes",
+    "W440 electrolyte primary tag",
+    "version v0.1.1"
+  ],
+  "labeled_sha256": "2946f8baaeef6eb6863e57cc10dd345c0f0757d1fd15c0ae2a3226e4eb2c4204"
+}

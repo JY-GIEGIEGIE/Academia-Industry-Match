@@ -315,7 +315,7 @@ def run(args: argparse.Namespace) -> int:
     n = len(queries)
     addendum = "\n".join(
         [
-            f"# S-08 v0.1 评测补充报告（{version}）",
+            f"# S-08 {version} 评测补充报告",
             "",
             f"- 生成时间：{_now_utc()}",
             "- 性质：**只读补充分析**，不替代 S-04 的正式 baseline，不改数据库、不改 `data/processed/`。",
@@ -343,7 +343,7 @@ def run(args: argparse.Namespace) -> int:
             "## 明细",
             "",
             f"- Top-{args.top_k}：`{_rel(out_dir / f'baseline_{version}_top10.csv')}`",
-            f"- 错误分析：`{_rel(out_dir / 'error_analysis_v0.1.md')}` / `.csv`",
+            f"- 错误分析：`{_rel(out_dir / f'error_analysis_{version}.md')}` / `.csv`",
             "",
             "## 边界",
             "",
@@ -369,7 +369,7 @@ def run(args: argparse.Namespace) -> int:
         "type", "query_id", "achievement_id", "title", "grade", "rank", "score",
         "reason", "suggestion",
     ]
-    with (out_dir / "error_analysis_v0.1.csv").open("w", encoding="utf-8", newline="\n") as fh:
+    with (out_dir / f"error_analysis_{version}.csv").open("w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=error_fields)
         writer.writeheader()
         writer.writerows(error_rows)
@@ -393,7 +393,7 @@ def run(args: argparse.Namespace) -> int:
             "应重新生成正式错误分析并保留本文件为敏感性分析。",
         ]
     )
-    (out_dir / "error_analysis_v0.1.md").write_text(error_md, encoding="utf-8", newline="\n")
+    (out_dir / f"error_analysis_{version}.md").write_text(error_md, encoding="utf-8", newline="\n")
 
     profile_len = {
         p.get("achievement_id"): len(p.get("text", "")) for p in profiles if p.get("achievement_id")
@@ -442,7 +442,7 @@ def run(args: argparse.Namespace) -> int:
         "achievement_id", "review_status", "profile_len", "trl", "tech_fields",
         "reasons", "decision", "action", "reembed_required",
     ]
-    with (out_dir / "needs_review_disposition_v0.1.csv").open("w", encoding="utf-8", newline="\n") as fh:
+    with (out_dir / f"needs_review_disposition_{version}.csv").open("w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=ledger_fields)
         writer.writeheader()
         writer.writerows(ledger_rows)
@@ -464,6 +464,12 @@ def run(args: argparse.Namespace) -> int:
             )
     for rec in labels:
         if rec.get("achievement_id") == "ach_openalex_W4401101842":
+            has_el = any(
+                t.get("dimension") == "tech_field" and t.get("code") == "electrolyte"
+                for t in (rec.get("tags") or [])
+            )
+            if has_el:
+                break
             proposed.append(
                 {
                     "achievement_id": "ach_openalex_W4401101842",
@@ -477,7 +483,7 @@ def run(args: argparse.Namespace) -> int:
             break
     proposed.sort(key=lambda r: (r["proposal"], r["achievement_id"]))
     proposed_fields = ["achievement_id", "proposal", "reason", "applied", "requires_versioning", "note"]
-    with (out_dir / "proposed_data_corrections_v0.1.csv").open("w", encoding="utf-8", newline="\n") as fh:
+    with (out_dir / f"proposed_data_corrections_{version}.csv").open("w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=proposed_fields)
         writer.writeheader()
         writer.writerows(proposed)
@@ -511,7 +517,7 @@ def run(args: argparse.Namespace) -> int:
             "achievements": _sha256(achievements_path),
         },
     }
-    (out_dir / "s08_analysis_summary_v0.1.json").write_text(
+    (out_dir / f"s08_analysis_summary_{version}.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))

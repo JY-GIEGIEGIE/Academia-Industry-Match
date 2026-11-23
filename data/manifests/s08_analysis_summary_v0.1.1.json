@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-11-23T07:05:45.935676+00:00",
+  "dataset_version": "v0.1.1",
+  "read_only": true,
+  "db_writes": 0,
+  "queries": 20,
+  "achievement_vectors": 300,
+  "metrics": {
+    "B0": {
+      "recall10": 0.861135,
+      "precision5": 0.61,
+      "ndcg10": 0.757409,
+      "mrr": 0.758333
+    },
+    "B1": {
+      "recall10": 0.896513,
+      "precision5": 0.75,
+      "ndcg10": 0.851375,
+      "mrr": 0.9125
+    },
+    "B2": {
+      "recall10": 0.91068,
+      "precision5": 0.76,
+      "ndcg10": 0.860486,
+      "mrr": 0.9125
+    },
+    "B2-primary": {
+      "recall10": 0.891849,
+      "precision5": 0.73,
+      "ndcg10": 0.835146,
+      "mrr": 0.9125
+    }
+  },
+  "top_rows": 800,
+  "error_cases": {
+    "fp": 5,
+    "fn": 5
+  },
+  "needs_review_rows": 61,
+  "proposed_corrections": 0,
+  "query_vectors_sha256": "46fba2517f449bcc27f80fb69aae34b34363c362cac2453358f83eae1d9e258b",
+  "inputs": {
+    "queries": "0d221d3589164b153106bc5540a8b7319414c19456a8a9290930f627b9788b58",
+    "labels": "2946f8baaeef6eb6863e57cc10dd345c0f0757d1fd15c0ae2a3226e4eb2c4204",
+    "embeddings": "54577769000b9bd02f899aa64fb0f189941becc4281f08305f2dd38dbb774153",
+    "profiles": "c19c829e7a9670ba71f1e44821a306dd70d57ac3e081e1e3654dc50db7d5ba60",
+    "achievements": "6e08052216864570865a36af850d62158e64787a959a78eab43a10a572ad8164"
+  }
+}

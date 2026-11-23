@@ -310,7 +310,7 @@ class ValidateProfilesTests(unittest.TestCase):
     def test_short_text_warns_but_passes(self) -> None:
         _rows, v = self.check([{"achievement_id": "ach_1", "language": "zh", "text": "太短"}])
         self.assertEqual(v.errors, [])
-        self.assertTrue(any("outside the 150-250" in warning for warning in v.warnings))
+        self.assertTrue(any("below the 150-character" in warning for warning in v.warnings))
 
     def test_keeps_script_generated_text_id(self) -> None:
         rows, v = self.check([{
