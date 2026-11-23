@@ -159,10 +159,11 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(norm["capability_profile_zh"], PROFILE_SHORT)
         self.assertIn("profile", reasons)
 
-    def test_long_profile_flags(self):
+    def test_long_profile_allowed(self):
         raw = make_raw(capability_profile_zh=PROFILE_LONG)
         _, _, review, reasons = el.validate_extraction(raw, "article")
-        self.assertIn("profile", reasons)
+        self.assertFalse(review)
+        self.assertNotIn("profile", reasons)
 
 
 class KeyMetricsTest(unittest.TestCase):

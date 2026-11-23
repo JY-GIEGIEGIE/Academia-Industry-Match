@@ -133,7 +133,7 @@ pipeline_run 1 ── * dataset_manifest
 | `text_hash` | string | 是 | 归一化文本 sha256；用于 embedding 缓存 |
 | `created_at` | datetime | 是 | |
 
-**规则**：`capability_profile_zh` 不是逐字翻译，而是面向产业语言的技术能力摘要（150—250 字）；必须保留 `abstract_original` 用于证据。演示/答辩时明确说明“机器生成画像，原文为准”。
+**规则**：`capability_profile_zh` 不是逐字翻译，而是面向产业语言的技术能力摘要（建议 150—250 字，内容完整时可长于 250 字）；必须保留 `abstract_original` 用于证据。演示/答辩时明确说明“机器生成画像，原文为准”。
 
 ### 4.4 `achievement_tag`（成果标签）
 
@@ -383,7 +383,7 @@ pipeline_run 1 ── * dataset_manifest
 - `review_status` 统一四种值：`pending`（默认待审核）、`approved`（人工确认）、`rejected`（不采用）、`needs_review`（已产出但有缺证据、越界或格式问题，需复核）。`needs_review` 不是失败，不得因此丢弃成果或让接口返回 404。
 - 标签无 `evidence`：保留标签，`confidence ≤0.4`，`review_status=needs_review`；前端显示“证据不足/待复核”，不隐藏结果。
 - TRL 无 `trl_evidence`：`trl=null`、`review_status=needs_review`。论文/预印本没有明确中试/放大证据时，TRL 5—6 降为 `null`；没有明确 `field test` / `vehicle demo` / `mass production` / `装车` / `量产` / `认证` / `定型` 证据时，TRL 7—9 降为 `null`；不得保留无依据的高 TRL。匹配时 `trl=null` 视为未知，不做硬过滤，前端显示“TRL 待确认”。
-- 能力画像目标 150—250 字；缺失或超界时 `review_status=needs_review`。缺失画像不丢弃成果：`capability_profile_zh=null`，前端回退到 `abstract_preview`；画像有但超界时保留原文并加“待复核”标记。
+- 能力画像建议 150—250 字；低于 150 字或缺失时 `review_status=needs_review`。缺失画像不丢弃成果：`capability_profile_zh=null`，前端回退到 `abstract_preview`。**超过 250 字不单独触发 `needs_review`**：业务上完整的技术能力描述可以长于 250 字，保留原文并作为正常画像使用。
 - `key_metrics` 只接受 `{name,value,unit,evidence}`：`name`、`value`、`unit` 非空，`evidence` 非空；非法项丢弃并标 `needs_review`，其余有效指标保留。全部为空时不渲染指标区，不阻断详情页；前端显示“部分指标待复核”或省略该区。
 - `pending` / `needs_review` 的记录仍参与匹配和展示；列表/详情显示“待复核”标识，人工确认后改为 `approved`；`rejected` 不进入推荐和展示。严格校验的目标是“不编造、可追溯”，不是让页面无数据。
 

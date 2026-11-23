@@ -1,0 +1,71 @@
+{
+  "dataset_version": "v0.1.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "sprint": "2026-11-22",
+  "source": "v0.1 accepted S-05 snapshot + S-07 review patches + PM profile-length policy",
+  "private_root_in_package": "data/processed/",
+  "files": [
+    {
+      "path": "data/processed/achievements_clean_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 949959,
+      "sha256": "6e08052216864570865a36af850d62158e64787a959a78eab43a10a572ad8164"
+    },
+    {
+      "path": "data/processed/demands_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 100,
+      "bytes": 109346,
+      "sha256": "23ecd1f5f6e7325724c1eabc6796c36199a9ebf22fd5334db22a6bf893836575"
+    },
+    {
+      "path": "data/processed/enterprises_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 25,
+      "bytes": 14117,
+      "sha256": "159ccb89c8dfbbbeebaee6de8e0a882c370e50ee134986aa8c792a210543b5e3"
+    },
+    {
+      "path": "data/processed/achievements_labeled_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 1589311,
+      "sha256": "2946f8baaeef6eb6863e57cc10dd345c0f0757d1fd15c0ae2a3226e4eb2c4204"
+    },
+    {
+      "path": "data/processed/capability_profiles_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 300,
+      "bytes": 318739,
+      "sha256": "c19c829e7a9670ba71f1e44821a306dd70d57ac3e081e1e3654dc50db7d5ba60"
+    },
+    {
+      "path": "data/processed/embeddings_v0.1.1.jsonl",
+      "format": "jsonl",
+      "rows": 400,
+      "bytes": 8312819,
+      "sha256": "4bc8e7c4a63bf2879185ac76022cd88f3a7035acd8925fbb8739fb2a6b36147e"
+    }
+  ],
+  "counts": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25,
+    "achievement_tags": 1269,
+    "achievement_extractions": 300,
+    "achievement_texts": 300,
+    "embeddings": 400,
+    "retrieval_queries": 20,
+    "pair_labels": 50,
+    "demand_tags": 308
+  },
+  "notes": [
+    "Profile length >250 is accepted by PM; only missing/<150 chars is flagged.",
+    "TRL=null is kept and marked needs_review; no TRL is fabricated.",
+    "S-07 demand patches and 50 datetime fixes are applied.",
+    "v0.1 remains the accepted S-05 database; v0.1.1 is a new dataset/database."
+  ],
+  "created_at": "2026-11-23"
+}

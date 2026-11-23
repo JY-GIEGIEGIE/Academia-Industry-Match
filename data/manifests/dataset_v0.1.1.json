@@ -1,0 +1,74 @@
+{
+  "sprint": "2026-11-22",
+  "task": "S-08",
+  "dataset_version": "v0.1.1",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "base_dataset_version": "v0.1",
+  "base_commit": "bcb6025",
+  "run_id": "v0.1.1-20261123",
+  "source": "v0.1 accepted S-05 snapshot + S-07 review patches",
+  "corrections": [
+    "S-07 seven P1 demand patches",
+    "50 date-only datetimes normalized to 00:00:00Z",
+    "W4401101842 electrolyte primary tag added",
+    "TRL=null normalized to needs_review",
+    "profile length >250 accepted; no length-only needs_review",
+    "version fields bumped to v0.1.1"
+  ],
+  "files": {
+    "achievements_clean": {
+      "path": "data/processed/achievements_clean_v0.1.1.jsonl",
+      "sha256": "6e08052216864570865a36af850d62158e64787a959a78eab43a10a572ad8164"
+    },
+    "demands": {
+      "path": "data/processed/demands_v0.1.1.jsonl",
+      "sha256": "23ecd1f5f6e7325724c1eabc6796c36199a9ebf22fd5334db22a6bf893836575"
+    },
+    "enterprises": {
+      "path": "data/processed/enterprises_v0.1.1.jsonl",
+      "sha256": "159ccb89c8dfbbbeebaee6de8e0a882c370e50ee134986aa8c792a210543b5e3"
+    },
+    "labeled": {
+      "path": "data/processed/achievements_labeled_v0.1.1.jsonl",
+      "sha256": "2946f8baaeef6eb6863e57cc10dd345c0f0757d1fd15c0ae2a3226e4eb2c4204"
+    },
+    "profiles": {
+      "path": "data/processed/capability_profiles_v0.1.1.jsonl",
+      "sha256": "c19c829e7a9670ba71f1e44821a306dd70d57ac3e081e1e3654dc50db7d5ba60"
+    },
+    "queries": {
+      "path": "data/eval/retrieval_queries_v0.1.1.jsonl",
+      "sha256": "0d221d3589164b153106bc5540a8b7319414c19456a8a9290930f627b9788b58"
+    },
+    "pairs": {
+      "path": "data/eval/pair_labels_v0.1.1.jsonl",
+      "sha256": "c1e7836c183916b9d92a113dd514c423b67d993f1cb4e1665694de6b5c83c84e"
+    },
+    "embeddings": {
+      "path": "data/processed/embeddings_v0.1.1.jsonl",
+      "sha256": "4bc8e7c4a63bf2879185ac76022cd88f3a7035acd8925fbb8739fb2a6b36147e"
+    }
+  },
+  "quality": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25,
+    "achievement_tags": 1269,
+    "achievement_primary_tech_field": 300,
+    "needs_review": 61,
+    "trl_null": 58,
+    "queries": 20,
+    "pairs": 50,
+    "demand_patches": 7,
+    "demand_hashes_recomputed": 0,
+    "enterprise_datetimes_fixed": 10,
+    "profile_policy": "150-250 recommended; >250 accepted",
+    "demand_tags": 308
+  },
+  "evaluation": {
+    "retrieval_queries": 20,
+    "pairs": 50,
+    "annotation_status": "frozen"
+  }
+}

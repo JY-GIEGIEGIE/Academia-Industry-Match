@@ -78,18 +78,17 @@ from scripts.common.llm_client import DashScopeClient, LlmClientError, text_hash
 PROMPT_VERSION = "v0.1"
 TAXONOMY_VERSION = "v0.1"
 MAX_ABSTRACT_CHARS = 4000  # 控制单条输入长度，避免超长摘要撑爆 token
-DEFAULT_MAX_TOKENS = 2048   # 抽取 JSON + 150—250 字中文画像，1024 可能不够
+DEFAULT_MAX_TOKENS = 2048   # 抽取 JSON + 建议 150—250 字中文画像，1024 可能不够
 SPRINT = "2026-11-22"       # 第一次冲刺
 
-# 能力画像目标长度（契约 §4.3：150—250 字）
+# 能力画像建议长度（契约 §4.3：150—250 字；超过不单独触发 needs_review）
 PROFILE_MIN_CHARS = 150
-PROFILE_MAX_CHARS = 250
 
 # needs_review 原因分类（manifest 与抽检报告据此归类，不报单一总数）
 REVIEW_REASONS = (
     "missing_evidence",   # 标签缺 evidence（confidence 封顶 0.4）
     "trl",                # TRL 无证据 / 非法值 / 论文越级被降为 null
-    "profile",            # 能力画像缺失或长度超界
+    "profile",            # 能力画像缺失或低于建议下限
     "key_metrics",        # 非法 key_metrics 项被丢弃
     "tech_field",         # 无合法 tech_field（标签覆盖不足）
     "retry_exhausted",    # 非法 code 重试耗尽，已剔除非法项
@@ -196,7 +195,7 @@ def build_system_prompt() -> str:
 1. 将成果映射到给定的**枚举标签**（只能使用枚举中的 code，不得自创）；
 2. 判断技术成熟度 TRL（1—9）；
 3. 抽取材料体系、关键性能指标、工艺路线；
-4. 生成一段面向产业语言的中文能力画像（150—250 字）。
+4. 生成一段面向产业语言的中文能力画像（建议 150—250 字，内容完整可超过 250 字）。
 
 ## 枚举定义
 
@@ -223,7 +222,7 @@ def build_system_prompt() -> str:
 4. `trl` 必须给出 `trl_evidence`；无证据则输出 null。
 5. 论文默认 TRL 最多到 4；无中试/放大证据不得标 5，无装车/现场/量产证据不得标 7—9。
 6. 不确定的字段写 `unknown`，禁止编造 IP 状态、合作模式、性能指标。
-7. `capability_profile_zh` 不是逐字翻译，而是面向产业语言的技术能力摘要（150—250 字），保留关键性能指标与适用场景；机器生成、原文为准。
+7. `capability_profile_zh` 不是逐字翻译，而是面向产业语言的技术能力摘要（建议 150—250 字，内容完整可超过 250 字），保留关键性能指标与适用场景；机器生成、原文为准。
 
 ## 输出 JSON schema（只输出 JSON，不要 markdown 代码块）
 
@@ -238,7 +237,7 @@ def build_system_prompt() -> str:
   "process": ["ball milling", "cold sintering"],
   "cooperation_modes": [{{"code": "joint_rd", "confidence": 0.4, "evidence": "潜在依据"}}],
   "ip_status": "unknown",
-  "capability_profile_zh": "150—250 字中文能力画像"
+  "capability_profile_zh": "建议 150—250 字中文能力画像（可长于 250）"
 }}"""
 
 
@@ -374,7 +373,7 @@ def validate_extraction(
 
     返回 (normalized, illegal_errors, needs_review, review_reasons)。
     - illegal_errors：非空表示存在非法枚举 code（调用方据此重试）。
-    - needs_review：存在缺证据 / TRL 降级 / 画像缺失或超界 / key_metrics 非法等问题。
+    - needs_review：存在缺证据 / TRL 降级 / 画像缺失或过短 / key_metrics 非法等问题。
     - review_reasons：needs_review 的原因分类，取值见 REVIEW_REASONS。
     """
     if not isinstance(raw, dict):
@@ -439,12 +438,12 @@ def validate_extraction(
     if km_dropped:
         _flag("key_metrics")
 
-    # capability_profile_zh：目标 150—250 字；缺失 → null，超界 → 保留但标 review
+    # capability_profile_zh：建议 150—250 字；缺失/过短标 review；超过 250 字保留且不标 review。
     profile_text = (raw.get("capability_profile_zh") or "").strip()
     if not profile_text:
         profile_text = None
         _flag("profile")
-    elif len(profile_text) < PROFILE_MIN_CHARS or len(profile_text) > PROFILE_MAX_CHARS:
+    elif len(profile_text) < PROFILE_MIN_CHARS:
         _flag("profile")
 
     normalized = {

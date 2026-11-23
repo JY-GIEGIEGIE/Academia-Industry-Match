@@ -35,6 +35,10 @@
 
 v0.1-thin 的标注字段仍为空；v0.1 已由 S-09 冻结。导入时用 `--dataset-version v0.1` 会自动读取全量标注，用 `v0.1-thin` 读薄切片。冻结哈希与双标/裁决结果见 `data/manifests/eval_annotation_summary_v0.1.md` 和 `data/manifests/eval_adjudication_v0.1.md`。
 
+### 数据交付 `v0.1.1`
+
+`retrieval_queries_v0.1.1.*` 与 `pair_labels_v0.1.1.*` 是 v0.1 冻结标注的版本化副本，只把 `dataset_version` 元数据改为 `v0.1.1`；标注内容和候选集不变。用于 v0.1.1 新库和 baseline，不重新标注。
+
 ## 标注步骤
 
 1. 打开 CSV（Excel 可直接读，UTF-8 BOM）。
