@@ -1,0 +1,129 @@
+achievement_id,review_status_before,review_status_target,profile_len,trl,tech_fields,reasons,decision,action,reembed_required,reviewer,note
+ach_openalex_W7117317957,needs_review,needs_review,291,4,anode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4406686305,needs_review,needs_review,259,3,anode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4410762494,pending,needs_review,205,,anode_material,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4386379592,pending,needs_review,215,,anode_material;electrolyte,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4396773854,pending,needs_review,184,,anode_material,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4416407888,needs_review,needs_review,252,3,anode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4411875006,needs_review,needs_review,251,3,anode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3136409027,needs_review,needs_review,292,3,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7203954370,needs_review,needs_review,258,4,anode_material;cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4387936181,pending,needs_review,238,,anode_material,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4362602256,needs_review,needs_review,278,3,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3012674055,needs_review,needs_review,256,3,anode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4390726237,needs_review,needs_review,256,4,cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4406100977,needs_review,needs_review,280,3,cathode_material;cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4404316617,needs_review,needs_review,256,3,cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4210844117,needs_review,needs_review,271,4,cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4413014274,needs_review,needs_review,261,,cathode_material;recycling,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4402919088,needs_review,needs_review,290,3,cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7160662535,pending,needs_review,216,,cathode_material;recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7223720797,needs_review,needs_review,302,3,cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4407275632,needs_review,needs_review,265,4,cathode_material;cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4402581919,pending,needs_review,244,,cathode_material;recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4401241085,needs_review,needs_review,251,3,cathode_material;cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7215028800,needs_review,needs_review,256,4,cathode_material;recycling,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7204476574,needs_review,needs_review,261,3,cathode_material;cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7213442247,needs_review,needs_review,255,3,cathode_material,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4410966060,pending,needs_review,226,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4399795944,needs_review,needs_review,259,,cell_system,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4403586242,pending,needs_review,224,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4311923691,pending,needs_review,249,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4312230144,needs_review,needs_review,265,3,cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4381617803,pending,needs_review,217,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7212630351,needs_review,needs_review,273,4,cell_system;supercapacitor,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7146945464,pending,needs_review,225,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4283010262,needs_review,needs_review,253,3,cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4412454685,needs_review,needs_review,260,3,cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4390292180,needs_review,needs_review,265,,cell_system,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3093470760,pending,needs_review,214,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3112161586,pending,needs_review,220,,cell_system,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3183176757,needs_review,needs_review,267,2,cell_system,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4200428349,needs_review,needs_review,254,3,cathode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4413607194,needs_review,needs_review,277,4,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4403341708,needs_review,needs_review,254,4,cell_system;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7204767311,needs_review,needs_review,259,4,cell_system;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3114493777,needs_review,needs_review,276,3,electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4415380266,needs_review,needs_review,251,2,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4416332007,needs_review,needs_review,266,3,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4392013241,needs_review,needs_review,265,,electrolyte,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W2999393849,needs_review,needs_review,299,3,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4409366487,needs_review,needs_review,260,,cell_system;electrolyte,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4390535257,needs_review,needs_review,301,3,cathode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4408535191,needs_review,needs_review,268,3,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4401198511,needs_review,needs_review,270,3,electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3214463616,needs_review,needs_review,268,3,cathode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4213213078,needs_review,needs_review,283,4,electrolyte;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4415108675,needs_review,needs_review,260,3,anode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4407807954,needs_review,needs_review,253,4,cell_system;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7123444443,needs_review,needs_review,262,4,cathode_material;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4401101842,needs_review,needs_review,227,4,electrolyte,tech_field_repaired,repair,added_electrolyte_tag,false,贾越（PM）,已补 electrolyte 主标签和证据；review_status 保留 needs_review 待 S-08 签收
+ach_openalex_W7204187037,needs_review,needs_review,261,3,electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4407202389,needs_review,needs_review,271,3,electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4390073393,needs_review,needs_review,271,3,cell_system;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4224991949,needs_review,needs_review,265,3,electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4383815174,needs_review,needs_review,291,3,cell_system;electrolyte,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7214950167,needs_review,needs_review,305,3,flow_battery,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4392302719,needs_review,needs_review,294,3,flow_battery,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3189442067,pending,needs_review,229,,flow_battery,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3138286370,pending,needs_review,231,,flow_battery;separator,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4323817440,pending,needs_review,218,,flow_battery;separator,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4319778200,pending,needs_review,185,,flow_battery,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7225650216,pending,needs_review,228,,cathode_material;recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4294352934,pending,needs_review,210,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4306318715,pending,needs_review,241,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3095493091,pending,needs_review,213,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4366281247,pending,needs_review,227,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4281774550,pending,needs_review,224,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4408901946,pending,needs_review,166,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7222124410,pending,needs_review,224,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4405802757,pending,needs_review,200,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4384346964,pending,needs_review,214,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4412159550,pending,needs_review,234,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4400156036,pending,needs_review,224,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7213561733,needs_review,needs_review,256,2,recycling,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4283397705,pending,needs_review,182,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7225615065,pending,needs_review,237,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7223468809,needs_review,needs_review,269,3,recycling,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3173460218,pending,needs_review,206,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7214325981,pending,needs_review,214,,cathode_material;recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7212063872,needs_review,needs_review,245,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4304692449,pending,needs_review,217,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7235650406,pending,needs_review,239,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4405370600,pending,needs_review,225,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4380085491,pending,needs_review,219,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4387530432,pending,needs_review,220,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4402026342,needs_review,needs_review,258,,recycling,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7214091638,pending,needs_review,240,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4408051328,pending,needs_review,234,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7213286463,pending,needs_review,242,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3036757788,needs_review,needs_review,256,,recycling,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3106982992,pending,needs_review,171,,recycling,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3130700003,needs_review,needs_review,258,4,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4283775787,needs_review,needs_review,272,3,cell_system;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4396666593,needs_review,needs_review,271,3,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7156092025,needs_review,needs_review,212,3,separator,other_review_flag,keep_needs_review,manual_followup,false,贾越（PM）,保留 needs_review，待 S-08 最终签收
+ach_openalex_W4402616307,needs_review,needs_review,251,3,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4395004122,needs_review,needs_review,254,3,cell_system;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4386526176,pending,needs_review,233,,separator,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4212886806,needs_review,needs_review,270,3,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7203638360,needs_review,needs_review,254,4,cell_system;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7166463935,needs_review,needs_review,254,,separator,profile>250;trl=null,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4385613899,needs_review,needs_review,274,3,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7215027384,needs_review,needs_review,270,3,cathode_material;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4200242538,needs_review,needs_review,254,3,cell_system;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4415148719,needs_review,needs_review,272,4,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4310552692,needs_review,needs_review,240,4,cell_system;separator,other_review_flag,keep_needs_review,manual_followup,false,贾越（PM）,保留 needs_review，待 S-08 最终签收
+ach_openalex_W4280518996,needs_review,needs_review,181,2,separator,other_review_flag,keep_needs_review,manual_followup,false,贾越（PM）,保留 needs_review，待 S-08 最终签收
+ach_openalex_W4414922777,needs_review,needs_review,255,3,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4388419151,needs_review,needs_review,267,4,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W7225904132,needs_review,needs_review,270,4,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4414346831,pending,needs_review,211,,separator,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W7171540098,needs_review,needs_review,270,4,separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3000982183,pending,needs_review,214,,electrolyte;separator,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W3009576992,needs_review,needs_review,252,3,electrolyte;separator,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W4408296453,pending,needs_review,197,,cell_system;supercapacitor,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4206220312,pending,needs_review,199,,supercapacitor,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4414475940,needs_review,needs_review,260,3,supercapacitor,profile>250,accept_with_exception,keep_text_no_reembed,false,贾越（PM）,画像 251—305 字；保留原文，质量报告记为长度例外
+ach_openalex_W3164002832,pending,needs_review,224,,supercapacitor,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review
+ach_openalex_W4391450229,pending,needs_review,237,,supercapacitor,trl=null,accept_unknown,keep_trl_null,false,贾越（PM）,无 TRL 证据，不编造；review_status 统一为 needs_review

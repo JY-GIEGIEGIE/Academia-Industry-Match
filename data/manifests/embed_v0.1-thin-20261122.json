@@ -25,5 +25,8 @@
     "demands": null,
     "output": null,
     "run_id": null
-  }
+  },
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "expected_achievements": 30,
+  "expected_demands": 20
 }

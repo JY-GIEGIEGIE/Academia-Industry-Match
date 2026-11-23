@@ -142,10 +142,11 @@
 | --- | --- | --- |
 | B0：BM25/关键词 | 只用文本关键词，不用向量 | 做 |
 | B1：纯向量 | 只用 embedding 相似度 | 做 |
-| B2：标签硬过滤 + 向量 | 当前 Layer 1 + Layer 2 | 做 |
+| B2：标签硬过滤 + 向量 | 当前 Layer 1 + Layer 2；任一 `tech_field` 命中即可 | 做 |
+| B2-primary：主标签消融 | 仅用 primary `tech_field` 过滤，用于诊断 | 做 |
 | B3：标签 + 向量 + LLM 精排 | 完整三层 | 待匹配引擎就绪后补 |
 
-数据侧第一次冲刺先交付 B0—B2；B3 依赖匹配引擎/LLM 精排，不在本次范围。报告每组 Recall@10、Precision@5、nDCG@10、调用开销、时延。答辩时用 B0→B3 的增量证明三层架构的价值。
+数据侧第一次冲刺先交付 B0—B2；B2-primary 作为消融，不计入主结论；B3 依赖匹配引擎/LLM 精排，不在本次范围。报告每组 Recall@10、Precision@5、nDCG@10、调用开销、时延。答辩时用 B0→B3 的增量证明三层架构的价值。
 
 ## 6. 文件与字段
 
@@ -185,10 +186,11 @@
 输出到 `data/manifests/eval_report_v0.1.md`，包含：
 
 - 数据版本、评测集版本、模型版本；
-- 每条 query 的 Top-10 和人工相关标注；
-- 基线指标表（B0—B3；本冲刺先交 B0—B2，B3 后续补）；
+- 每条 query 的 Top-10 和人工相关标注（机器可读明细另存 `baseline_<version>_top10.csv`）；
+- 基线指标表（B0—B3；本冲刺先交 B0—B2 和 B2-primary 消融，B3 后续补）；
 - 错误分析：假阳性/假阴性各 5 例；
 - 结论与下一步。
+- 复现时必须固定 query 向量缓存（`data/interim/eval_query_vectors_<version>.jsonl`）并记录其 SHA-256；不得静默重生成后覆盖旧报告。
 
 ## 7. 验收与冻结
 

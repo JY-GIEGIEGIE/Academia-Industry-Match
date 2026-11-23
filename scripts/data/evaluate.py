@@ -9,7 +9,8 @@
   - B0：BM25 / 关键词（纯文本，自实现 BM25；文本用原始 title_original + abstract_original，
     不依赖抽取阶段的画像）
   - B1：纯向量（query 向量 vs 成果向量余弦相似度）
-  - B2：标签硬过滤 + 向量（先按 tech_field 过滤，再向量排序；过滤为空则返回空结果，不回退全量）
+  - B2：标签硬过滤 + 向量（先按任一 tech_field 过滤，再向量排序；过滤为空则返回空结果，不回退全量）
+  - B2-primary：B2 的消融版本，仅按主 tech_field 过滤
 
 指标：Recall@10、Precision@5、nDCG@10、MRR。
 相关口径：relevance_grade 0/1/2，1 或 2 记为“相关”；nDCG 用 2^g-1 增益。
@@ -22,6 +23,8 @@
 
 输出：
   data/manifests/baseline_<version>.md          （基线指标报告）
+  data/manifests/baseline_<version>_top10.csv   （逐 query / 基线的 Top-K 明细）
+  data/interim/eval_query_vectors_<version>.jsonl（query 向量缓存）
 
 用法：
   python scripts/data/evaluate.py --version v0.1-thin
@@ -30,8 +33,11 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import hashlib
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -45,12 +51,14 @@ for _p in (str(_ROOT), str(_DATA_SCRIPT_DIR)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from config import EVAL_DIR, MANIFEST_DIR, PROCESSED_DIR  # noqa: E402
-from scripts.common.llm_client import DashScopeClient, LlmClientError  # noqa: E402
+from config import EVAL_DIR, INTERIM_DIR, MANIFEST_DIR, PROCESSED_DIR  # noqa: E402
+from scripts.common.llm_client import DashScopeClient, LlmClientError, text_hash  # noqa: E402
 
 SPRINT = "2026-11-22"
 TAXONOMY_VERSION = "v0.1"
 EMBEDDING_DIM = 1024
+DEFAULT_TOP_K = 10
+DEFAULT_EMBEDDING_MODEL_VERSION = "qwen3.7-text-embedding-flash-1024-v1"
 
 # ---------------------------------------------------------------------------
 # 基础工具（纯标准库）
@@ -72,6 +80,13 @@ def _git_commit() -> str | None:
         return None
 
 
+def _relpath(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(_ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
 def _load_jsonl(path: Path) -> list[dict]:
     records: list[dict] = []
     if not path.exists():
@@ -86,6 +101,70 @@ def _load_jsonl(path: Path) -> list[dict]:
             except ValueError:
                 continue
     return records
+
+
+def _embedding_model_version() -> str:
+    return os.getenv("EMBEDDING_MODEL_VERSION", DEFAULT_EMBEDDING_MODEL_VERSION)
+
+
+def _sha256_file(path: Path) -> str | None:
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
+def _query_vectors_path(version: str, explicit: str | None = None) -> Path:
+    return Path(explicit) if explicit else INTERIM_DIR / f"eval_query_vectors_{version}.jsonl"
+
+
+def _load_query_vectors(
+    path: Path, queries: list[dict], model: str, dim: int
+) -> list[list[float]]:
+    rows = {str(r.get("query_id")): r for r in _load_jsonl(path)}
+    vectors: list[list[float]] = []
+    for q in queries:
+        qid = str(q.get("query_id"))
+        row = rows.get(qid)
+        if row is None:
+            raise ValueError(f"query 向量缓存缺少 {qid}")
+        if row.get("model") and row["model"] != model:
+            raise ValueError(f"{qid} 向量模型 {row['model']} != {model}")
+        if int(row.get("dim", dim)) != dim:
+            raise ValueError(f"{qid} 向量维度 {row.get('dim')} != {dim}")
+        expected_hash = text_hash(q.get("query_text", ""))
+        if row.get("text_hash") and row["text_hash"] != expected_hash:
+            raise ValueError(f"{qid} 向量 text_hash 与 query 文本不一致")
+        vec = row.get("vector")
+        if not isinstance(vec, list) or len(vec) != dim:
+            raise ValueError(f"{qid} 向量长度不是 {dim}")
+        vectors.append(vec)
+    return vectors
+
+
+def _write_query_vectors(
+    path: Path,
+    queries: list[dict],
+    vectors: list[list[float]],
+    *,
+    model: str,
+    dim: int,
+    version: str,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as fh:
+        for q, vec in zip(queries, vectors):
+            record = {
+                "query_id": q.get("query_id"),
+                "query_text": q.get("query_text", ""),
+                "text_hash": text_hash(q.get("query_text", "")),
+                "model": model,
+                "dim": dim,
+                "vector": vec,
+                "dataset_version": version,
+                "created_at": _now_utc(),
+            }
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
@@ -293,6 +372,18 @@ def run(args: argparse.Namespace) -> int:
     labels_path = Path(args.labels) if args.labels else PROCESSED_DIR / f"achievements_labeled_{args.version}.jsonl"
     achievements_path = Path(args.achievements) if args.achievements else PROCESSED_DIR / f"achievements_clean_{args.version}.jsonl"
     out_path = Path(args.output) if args.output else MANIFEST_DIR / f"baseline_{args.version}.md"
+    top_k = int(getattr(args, "top_k", DEFAULT_TOP_K))
+    if top_k < 0:
+        print("[错误] --top-k 不能为负数。", file=sys.stderr)
+        return 2
+    details_path = (
+        Path(args.details_out)
+        if getattr(args, "details_out", None)
+        else MANIFEST_DIR / f"baseline_{args.version}_top10.csv"
+    )
+    query_vectors_path = _query_vectors_path(
+        args.version, getattr(args, "query_vectors", None)
+    )
 
     # 缺失输入直接报错，避免静默产出部分基线。
     missing = [
@@ -322,20 +413,38 @@ def run(args: argparse.Namespace) -> int:
         print(f"[错误] {exc}", file=sys.stderr)
         return 2
 
-    # 成果主 tech_field（B2 用）
+    # 成果 tech_field（B2 用：任一标签命中；B2-primary 只用主标签）
     ach_primary: dict[str, str] = {}
+    ach_tech_fields: dict[str, set[str]] = {}
+    label_by_id: dict[str, dict] = {}
     for rec in labels:
         aid = rec.get("achievement_id")
         if not aid:
             continue
+        label_by_id[aid] = rec
         tech_fields = [t for t in rec.get("tags", []) if t.get("dimension") == "tech_field"]
+        codes = {t["code"] for t in tech_fields if t.get("code")}
+        if codes:
+            ach_tech_fields[aid] = codes
         primary = next((t["code"] for t in tech_fields if t.get("is_primary")), None)
         if primary is None and tech_fields:
             primary = tech_fields[0]["code"]
         if primary:
             ach_primary[aid] = primary
 
+    # 标注完整性：无标注 → 不产出基线（在调用 query embedding API 前检查）
+    annotated = sum(1 for q in queries if _relevant_set(_parse_query(q)[2]))
+    if annotated == 0:
+        print("[错误] 评测集未标注，不产出基线（请先完成 20 query + 50 pair 标注）。", file=sys.stderr)
+        return 2
+    rc = 0 if annotated == len(queries) else 1
+    if annotated < len(queries):
+        print(f"[警告] 仅标注 {annotated}/{len(queries)} 条 query，基线指标为部分结果。", file=sys.stderr)
+
     # 成果原始文本（B0 用 title + abstract，不依赖抽取画像）
+    achievements_by_id = {
+        a.get("achievement_id"): a for a in achievements if a.get("achievement_id")
+    }
     ach_texts: dict[str, str] = {}
     for a in achievements:
         aid = a.get("achievement_id")
@@ -354,44 +463,66 @@ def run(args: argparse.Namespace) -> int:
     index_of = {aid: i for i, aid in enumerate(b0_ids)}
     b0_missing = len(all_ids) - len(b0_ids)
 
-    # query 向量（text_type=query），校验 model/dim 与成果向量一致
-    try:
-        client = DashScopeClient()
-    except LlmClientError as exc:
-        print(f"[错误] 初始化共享客户端失败：{exc}", file=sys.stderr)
-        return 2
-    query_model = client.embedding_model
-    dim = int(client.embedding_dim)
-    if dim != EMBEDDING_DIM:
-        print(f"[错误] embedding 维度 {dim} != {EMBEDDING_DIM}，请检查 .env。", file=sys.stderr)
-        return 2
-    if ach_embedding_models and query_model not in ach_embedding_models:
-        print(f"[错误] query 向量模型 {query_model} 与成果向量模型 {sorted(ach_embedding_models)} 不一致。", file=sys.stderr)
-        return 2
-    try:
-        q_vectors = client.embed_texts(
-            [q.get("query_text", "") for q in queries], text_type="query", dimensions=dim
+    # query 向量：优先读冻结缓存；缺失时调用共享客户端生成并写回缓存。
+    dim = EMBEDDING_DIM
+    query_model = next(iter(ach_embedding_models), None)
+    if query_vectors_path.exists():
+        try:
+            cached_rows = _load_jsonl(query_vectors_path)
+            if not cached_rows:
+                raise ValueError(f"query 向量缓存为空：{query_vectors_path}")
+            query_model = query_model or str(cached_rows[0].get("model") or "")
+            if not query_model:
+                raise ValueError(f"query 向量缓存缺少 model：{query_vectors_path}")
+            if ach_embedding_models and query_model not in ach_embedding_models:
+                raise ValueError(
+                    f"query 向量模型 {query_model} 与成果向量模型 {sorted(ach_embedding_models)} 不一致"
+                )
+            q_vectors = _load_query_vectors(query_vectors_path, queries, query_model, dim)
+            query_vectors_source = "cache"
+        except ValueError as exc:
+            print(f"[错误] {exc}", file=sys.stderr)
+            return 2
+    else:
+        try:
+            client = DashScopeClient()
+        except LlmClientError as exc:
+            print(f"[错误] 初始化共享客户端失败：{exc}", file=sys.stderr)
+            print("       也可提供 --query-vectors 指向已冻结的 query 向量缓存。", file=sys.stderr)
+            return 2
+        query_model = client.embedding_model
+        if int(client.embedding_dim) != dim:
+            print(f"[错误] embedding 维度 {client.embedding_dim} != {dim}，请检查 .env。", file=sys.stderr)
+            return 2
+        if ach_embedding_models and query_model not in ach_embedding_models:
+            print(f"[错误] query 向量模型 {query_model} 与成果向量模型 {sorted(ach_embedding_models)} 不一致。", file=sys.stderr)
+            return 2
+        try:
+            q_vectors = client.embed_texts(
+                [q.get("query_text", "") for q in queries], text_type="query", dimensions=dim
+            )
+        except LlmClientError as exc:
+            print(f"[错误] query 向量化失败：{exc}", file=sys.stderr)
+            return 1
+        if len(q_vectors) != len(queries):
+            print(f"[错误] query 向量返回 {len(q_vectors)} 条，期望 {len(queries)} 条。", file=sys.stderr)
+            return 1
+        _write_query_vectors(
+            query_vectors_path, queries, q_vectors,
+            model=query_model, dim=dim, version=args.version,
         )
-    except LlmClientError as exc:
-        print(f"[错误] query 向量化失败：{exc}", file=sys.stderr)
-        return 1
-    if len(q_vectors) != len(queries):
-        print(f"[错误] query 向量返回 {len(q_vectors)} 条，期望 {len(queries)} 条。", file=sys.stderr)
-        return 1
+        query_vectors_source = "generated"
 
-    # 标注完整性：无标注 → 不产出基线
-    annotated = sum(1 for q in queries if _relevant_set(_parse_query(q)[2]))
-    if annotated == 0:
-        print("[错误] 评测集未标注，不产出基线（请先完成 20 query + 50 pair 标注）。", file=sys.stderr)
-        return 2
-    rc = 0 if annotated == len(queries) else 1
-    if annotated < len(queries):
-        print(f"[警告] 仅标注 {annotated}/{len(queries)} 条 query，基线指标为部分结果。", file=sys.stderr)
-
-    baselines = ["B0", "B1", "B2"]
+    baselines = ["B0", "B1", "B2", "B2-primary"]
     agg = {b: {"recall10": 0.0, "prec5": 0.0, "ndcg10": 0.0, "mrr": 0.0, "n": 0} for b in baselines}
     per_query_rows: list[str] = []
+    top10_rows: list[dict] = []
     b2_empty_queries = 0
+    b2_primary_empty_queries = 0
+    candidate_ids_total: set[str] = set()
+    candidate_missing: set[str] = set()
+    candidate_missing_text: set[str] = set()
+    candidate_missing_vector: set[str] = set()
 
     for qi, q in enumerate(queries):
         qid = q.get("query_id", "?")
@@ -400,27 +531,71 @@ def run(args: argparse.Namespace) -> int:
         graded = _restrict_graded(graded, candidates)
         relevant = _relevant_set(graded)
 
+        candidate_ids_total.update(candidates)
+        for aid in candidates:
+            if aid not in all_ids:
+                candidate_missing.add(aid)
+            if aid not in ach_texts:
+                candidate_missing_text.add(aid)
+            if aid not in ach_vectors:
+                candidate_missing_vector.add(aid)
+
         cand_ids = candidates if candidates else all_ids
 
         for baseline in baselines:
             if baseline == "B0":
                 ranked = _rank_b0(cand_ids, bm25, index_of, qtext)
+                score_type = "bm25"
+                filter_status = "text_indexed"
+
+                def score(aid: str) -> float:
+                    return bm25.score(qtext, index_of[aid])
+
             elif baseline == "B1":
                 ranked = sorted(
                     (aid for aid in cand_ids if aid in ach_vectors),
-                    key=lambda aid: _cosine(q_vectors[qi], ach_vectors[aid]),
-                    reverse=True,
+                    key=lambda aid: (-_cosine(q_vectors[qi], ach_vectors[aid]), aid),
                 )
+                score_type = "cosine"
+                filter_status = "vector_eligible"
+
+                def score(aid: str) -> float:
+                    return _cosine(q_vectors[qi], ach_vectors[aid])
+
             elif baseline == "B2":
-                filtered = [aid for aid in cand_ids if aid in ach_primary and ach_primary[aid] in target_fields]
+                filtered = [
+                    aid for aid in cand_ids
+                    if ach_tech_fields.get(aid, set()) & target_fields
+                ]
                 if not filtered:
                     b2_empty_queries += 1
-                # 硬过滤为空 → 空结果，不回退全量，保持“硬过滤”语义
                 ranked = sorted(
                     (aid for aid in filtered if aid in ach_vectors),
-                    key=lambda aid: _cosine(q_vectors[qi], ach_vectors[aid]),
-                    reverse=True,
+                    key=lambda aid: (-_cosine(q_vectors[qi], ach_vectors[aid]), aid),
                 )
+                score_type = "cosine"
+                filter_status = "eligible"
+
+                def score(aid: str) -> float:
+                    return _cosine(q_vectors[qi], ach_vectors[aid])
+
+            elif baseline == "B2-primary":
+                filtered = [
+                    aid for aid in cand_ids
+                    if ach_primary.get(aid) in target_fields
+                ]
+                if not filtered:
+                    b2_primary_empty_queries += 1
+                ranked = sorted(
+                    (aid for aid in filtered if aid in ach_vectors),
+                    key=lambda aid: (-_cosine(q_vectors[qi], ach_vectors[aid]), aid),
+                )
+                score_type = "cosine"
+                filter_status = "primary_eligible"
+
+                def score(aid: str) -> float:
+                    return _cosine(q_vectors[qi], ach_vectors[aid])
+
             else:
                 continue
 
@@ -441,6 +616,44 @@ def run(args: argparse.Namespace) -> int:
                 f"| {qid} | {baseline} | {r10:.3f} | {p5:.3f} | {n10:.3f} | {m:.3f} |"
             )
 
+            if top_k:
+                for rank, aid in enumerate(ranked[:top_k], 1):
+                    label = label_by_id.get(aid, {})
+                    extraction = label.get("extraction") or {}
+                    top10_rows.append(
+                        {
+                            "query_id": qid,
+                            "query_text": qtext,
+                            "target_tech_field": ";".join(sorted(target_fields)),
+                            "baseline": baseline,
+                            "rank": rank,
+                            "achievement_id": aid,
+                            "title_original": (achievements_by_id.get(aid) or {}).get("title_original", ""),
+                            "score": f"{score(aid):.6f}",
+                            "score_type": score_type,
+                            "relevance_grade": graded.get(aid, 0),
+                            "relevant": str(graded.get(aid, 0) > 0).lower(),
+                            "primary_tech_field": ach_primary.get(aid, ""),
+                            "tech_fields": ";".join(sorted(ach_tech_fields.get(aid, set()))),
+                            "review_status": label.get("review_status", ""),
+                            "trl": "" if extraction.get("trl") is None else extraction.get("trl"),
+                            "filter_status": filter_status,
+                        }
+                    )
+
+    if top_k:
+        details_path.parent.mkdir(parents=True, exist_ok=True)
+        detail_fields = [
+            "query_id", "query_text", "target_tech_field", "baseline", "rank",
+            "achievement_id", "title_original", "score", "score_type",
+            "relevance_grade", "relevant", "primary_tech_field", "tech_fields",
+            "review_status", "trl", "filter_status",
+        ]
+        with details_path.open("w", encoding="utf-8", newline="\n") as fh:
+            writer = csv.DictWriter(fh, fieldnames=detail_fields)
+            writer.writeheader()
+            writer.writerows(top10_rows)
+
     # 汇总
     summary_lines = [
         "| 基线 | Recall@10 | Precision@5 | nDCG@10 | MRR | 有效 query 数 |",
@@ -457,6 +670,13 @@ def run(args: argparse.Namespace) -> int:
         )
 
     embedding_model = next(iter(ach_embedding_models), query_model)
+    input_hashes = {
+        "queries": _sha256_file(queries_path),
+        "embeddings": _sha256_file(embeddings_path),
+        "labels": _sha256_file(labels_path),
+        "achievements": _sha256_file(achievements_path),
+        "query_vectors": _sha256_file(query_vectors_path),
+    }
     report = "\n".join(
         [
             f"# 基线评测报告（{args.version}）",
@@ -464,12 +684,18 @@ def run(args: argparse.Namespace) -> int:
             f"- 生成时间：{_now_utc()}",
             f"- git commit：{_git_commit() or '（未知）'}",
             f"- sprint：{SPRINT}",
-            f"- embedding_model：{embedding_model}；dim：{EMBEDDING_DIM}",
+            f"- embedding_model：{embedding_model}；dim：{EMBEDDING_DIM}；version：{_embedding_model_version()}",
             f"- taxonomy_version：{TAXONOMY_VERSION}；eval set：{args.version}",
             f"- query 数：{len(queries)}；已标注：{annotated}",
-            f"- 成果向量数：{len(ach_vectors)}；B0 文本数：{len(ach_texts)}（缺 {b0_missing}）；主标签数：{len(ach_primary)}",
+            f"- query 向量：{query_vectors_source}，`{_relpath(query_vectors_path)}`，"
+            f"sha256 `{input_hashes['query_vectors']}`",
+            f"- 成果向量数：{len(ach_vectors)}；B0 文本数：{len(ach_texts)}（缺 {b0_missing}）；"
+            f"主标签数：{len(ach_primary)}；任一标签数：{len(ach_tech_fields)}",
+            f"- 候选 ID：{len(candidate_ids_total)}（缺 clean 文本 {len(candidate_missing_text)}，"
+            f"缺向量 {len(candidate_missing_vector)}，缺任一侧 {len(candidate_missing)}）",
+            f"- Top-K 明细：`{_relpath(details_path)}`（K={top_k}）",
             "",
-            "## 指标汇总（B0=BM25，B1=纯向量，B2=标签+向量）",
+            "## 指标汇总（B0=BM25，B1=纯向量，B2=任一标签过滤+向量，B2-primary=仅主标签消融）",
             "",
             *summary_lines,
             "",
@@ -483,10 +709,11 @@ def run(args: argparse.Namespace) -> int:
             "",
             "- B3（标签+向量+LLM 精排）待匹配引擎就绪后补。",
             "- 相关口径：relevance_grade 1/2 记为相关；nDCG 增益 2^g-1。",
+            "- B2 使用任一 tech_field 命中；B2-primary 保留仅主标签消融。",
             "- B2 标签硬过滤为空时返回空结果（不回退全量）；本次空过滤 query 数："
-            f"{b2_empty_queries}。",
+            f"B2={b2_empty_queries}，B2-primary={b2_primary_empty_queries}。",
             f"- B0 用原始标题+摘要；缺文本的成果不计入 B0 排序（缺 {b0_missing} 条）。",
-            "- 错误分析（假阳/假阴各 5 例）在标注完成后人工补充。",
+            "- 错误分析（假阳/假阴各 5 例）见 `data/manifests/error_analysis_v0.1.md`。",
             "",
         ]
     )
@@ -498,6 +725,13 @@ def run(args: argparse.Namespace) -> int:
 
     if b0_missing > 0:
         print(f"[警告] B0 文本覆盖不足：{b0_missing} 条成果缺原始标题/摘要。", file=sys.stderr)
+        rc = 1 if rc == 0 else rc
+    if candidate_missing_text or candidate_missing_vector:
+        print(
+            f"[警告] 候选覆盖不足：缺文本 {len(candidate_missing_text)}，"
+            f"缺向量 {len(candidate_missing_vector)}。",
+            file=sys.stderr,
+        )
         rc = 1 if rc == 0 else rc
     return rc
 
@@ -515,6 +749,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--embeddings", default=None, help="向量 jsonl（默认 data/processed/embeddings_<version>.jsonl）")
     parser.add_argument("--labels", default=None, help="标签 jsonl（默认 data/processed/achievements_labeled_<version>.jsonl）")
     parser.add_argument("--achievements", default=None, help="清洗成果 jsonl（默认 data/processed/achievements_clean_<version>.jsonl，B0 用原始标题+摘要）")
+    parser.add_argument("--query-vectors", default=None, help="冻结的 query 向量 jsonl；默认 data/interim/eval_query_vectors_<version>.jsonl")
+    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="Top-K 明细条数；0 表示不输出")
+    parser.add_argument("--details-out", default=None, help="Top-K 明细 CSV（默认 data/manifests/baseline_<version>_top10.csv）")
     parser.add_argument("--output", default=None, help="报告输出（默认 data/manifests/baseline_<version>.md）")
     args = parser.parse_args(argv)
     return run(args)
