@@ -14,7 +14,6 @@ PROCESSED_DIR = DATA_DIR / "processed"
 SAMPLE_DIR = DATA_DIR / "samples"
 EVAL_DIR = DATA_DIR / "eval"
 SPEC_DIR = DATA_DIR / "spec"
-INTERIM_DIR = DATA_DIR / "interim"
 
 OPENALEX_API = "https://api.openalex.org/works"
 OPENALEX_SELECT = ",".join(

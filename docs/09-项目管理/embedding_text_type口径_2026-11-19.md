@@ -28,10 +28,8 @@ embedding[1] emb_xxx: text_type='document' invalid
 | 数据 | 向量化文本 | `object_type` | 落库 `text_type` | API `text_type` |
 | --- | --- | --- | --- | --- |
 | 成果 | 能力画像 `capability_profile` | `achievement` | `capability_profile` | `document` |
-| 需求 | 需求画像 `need_profile` | `demand` | `need_profile` | `query` |
+| 需求 | 需求画像 `need_profile` | `demand` | `need_profile` | `document` |
 | 检索 query | 查询文本（评测用） | `eval_query` | 见第 4 节 | `query` |
-
-> 需求是被匹配的查询侧，`embed.py` 调用 API 时使用 `query`，落库仍为 `need_profile`；不要写成 `document`。
 
 `title` / `abstract` 在枚举里合法，但本冲刺**不作为覆盖率要求**；如果为了消融实验额外向量化标题，可以入库，`text_type=title`，但不要和画像向量混在同一次覆盖率统计里。
 
