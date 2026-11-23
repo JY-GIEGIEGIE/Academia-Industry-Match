@@ -44,8 +44,8 @@
       "path": "data/processed/achievements_labeled_v0.1.jsonl",
       "format": "jsonl",
       "rows": 300,
-      "bytes": 1588088,
-      "sha256": "fa1eb22990ec0157e2c8eb98628304160402df671f3d334999af48f700fbf73c"
+      "bytes": 1588789,
+      "sha256": "fccbadf88d67872b5f41525d9bd584bea51621bde807b97c279c6f06451e30f8"
     },
     {
       "path": "data/processed/capability_profiles_v0.1.jsonl",
@@ -66,7 +66,7 @@
     "achievements": 300,
     "demands": 100,
     "enterprises": 25,
-    "achievement_tags": 1268,
+    "achievement_tags": 1269,
     "achievement_extractions": 300,
     "achievement_texts": 300,
     "embeddings": 400,
@@ -81,7 +81,7 @@
     "data/raw and data/interim stay local; only processed files are hashed here.",
     "Eval templates were frozen by S-09 on 2026-11-22; formal query/pair annotations are in data/eval/*_v0.1.jsonl and freeze hashes are in data/manifests/eval_annotation_summary_v0.1.md.",
     "Only the private processed files are hashed here. The eval templates are tracked in git and are byte-identical to the S-04 corrected package; the package sha256 above covers the whole handoff.",
-    "S-03 data quality: 79 rows are needs_review; 74 profiles exceed the 250-character guidance; 58 TRL values are null (all non-null TRLs carry trl_evidence). These are accepted as known limitations and left for S-08 disposition."
+    "S-04 final disposition: 128 rows needs_review (79 original + 49 null-TRL normalized); 74 profiles exceed 250 chars (accepted length exception); 58 TRL null (unknown, no invented values); W4401101842 tech_field repaired to electrolyte; no embedding text changed."
   ],
   "created_at": "2026-11-20",
   "updated_at": "2026-11-23"
