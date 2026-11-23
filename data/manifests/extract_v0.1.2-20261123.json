@@ -1,0 +1,24 @@
+{
+  "run_id": "v0.1.2-20261123",
+  "stage": "extract",
+  "sprint": "2026-11-22",
+  "status": "success",
+  "dataset_version": "v0.1.2",
+  "taxonomy_version": "v0.1",
+  "model": "qwen3.8-flash",
+  "prompt_version": "v0.1",
+  "input_count": 300,
+  "processed_count": 300,
+  "output_count": 300,
+  "pending": 239,
+  "needs_review": 61,
+  "failed": 0,
+  "profiles_written": 300,
+  "profile_missing": 0,
+  "review_reasons": {
+    "trl": 58,
+    "llm_or_retry": 3
+  },
+  "scenario_policy": "application_scenario confidence >= 0.9",
+  "labeled_sha256": "43ad53b4064acaf6c3bb60248a63aa5a9c5de26f7d62d5b4acc26a816b30546f"
+}

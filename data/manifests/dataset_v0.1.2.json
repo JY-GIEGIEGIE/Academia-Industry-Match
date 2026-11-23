@@ -1,0 +1,71 @@
+{
+  "sprint": "2026-11-22",
+  "task": "S-08",
+  "dataset_version": "v0.1.2",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "base_dataset_version": "v0.1.1",
+  "base_commit": "2ca420e",
+  "run_id": "v0.1.2-20261123",
+  "source": "v0.1.1 data with low-confidence application_scenario tags removed",
+  "correction": {
+    "rule": "application_scenario confidence >= 0.9 retained",
+    "dropped_application_scenario_tags": 458,
+    "label_eval_reference": "30 human-confirmed samples: exact scenario 9/30 before, 26/30 after"
+  },
+  "files": {
+    "achievements_clean": {
+      "path": "data/processed/achievements_clean_v0.1.2.jsonl",
+      "sha256": "8c1d235eda93803a5a2e44867fa6056930c1ae9b604c98e12c73dc4ea929247f"
+    },
+    "demands": {
+      "path": "data/processed/demands_v0.1.2.jsonl",
+      "sha256": "c9481756dccea749f5c07728e3adcf8d14a25bb231a9210a94169bd93edb5aa0"
+    },
+    "enterprises": {
+      "path": "data/processed/enterprises_v0.1.2.jsonl",
+      "sha256": "159ccb89c8dfbbbeebaee6de8e0a882c370e50ee134986aa8c792a210543b5e3"
+    },
+    "labeled": {
+      "path": "data/processed/achievements_labeled_v0.1.2.jsonl",
+      "sha256": "43ad53b4064acaf6c3bb60248a63aa5a9c5de26f7d62d5b4acc26a816b30546f"
+    },
+    "profiles": {
+      "path": "data/processed/capability_profiles_v0.1.2.jsonl",
+      "sha256": "c4fcff3bff266b3f796982ed8c89af005509b98a97f900e72481d296150b13bf"
+    },
+    "embeddings": {
+      "path": "data/processed/embeddings_v0.1.2.jsonl",
+      "sha256": "28333c4632b90031a5b06a13052919cc455b3226df7d7fbe206032fc2c82beea"
+    },
+    "queries": {
+      "path": "data/eval/retrieval_queries_v0.1.2.jsonl",
+      "sha256": "9115a10dd6d50c2e670c1a3e811c82691e44f12cc0158376f65857a9b70f6e26"
+    },
+    "pairs": {
+      "path": "data/eval/pair_labels_v0.1.2.jsonl",
+      "sha256": "3265ae29af195748661e4cb9a2ae0afe921a3842d735e2d66ebcfc7edab65c64"
+    }
+  },
+  "quality": {
+    "achievements": 300,
+    "demands": 100,
+    "enterprises": 25,
+    "achievement_tags": 811,
+    "tag_dimensions": {
+      "tech_field": 404,
+      "cooperation_mode": 300,
+      "application_scenario": 107
+    },
+    "records_with_application_scenario": 106,
+    "needs_review": 61,
+    "queries": 20,
+    "pairs": 50,
+    "profile_policy": "150-250 recommended; >250 accepted"
+  },
+  "evaluation": {
+    "retrieval_queries": 20,
+    "pairs": 50,
+    "annotation_status": "frozen"
+  }
+}

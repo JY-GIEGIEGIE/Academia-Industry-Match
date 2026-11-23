@@ -37,7 +37,7 @@ v0.1-thin 的标注字段仍为空；v0.1 已由 S-09 冻结。导入时用 `--d
 
 ### 数据交付 `v0.1.1`
 
-`retrieval_queries_v0.1.1.*` 与 `pair_labels_v0.1.1.*` 是 v0.1 冻结标注的版本化副本，只把 `dataset_version` 元数据改为 `v0.1.1`；标注内容和候选集不变。用于 v0.1.1 新库和 baseline，不重新标注。
+`retrieval_queries_v0.1.1.*`、`v0.1.2.*` 与 `pair_labels_v0.1.1.*`、`v0.1.2.*` 是 v0.1 冻结标注的版本化副本，只改 `dataset_version` 元数据；标注内容和候选集不变，不重新标注。
 
 ## 标注步骤
 
