@@ -4,10 +4,10 @@
   "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
   "sprint": "2026-11-22",
   "package": {
-    "filename": "S-04_v0.1_2026-11-22_修订_corrected_2026-11-23.zip",
+    "filename": "S-04_v0.1_handover_2026-11-23/",
     "version": "v0.1",
-    "bytes": 2500213,
-    "sha256": "a3394bf12cf2168e45214d15a7c2d2deab6b31bdb054fd0ed3d68666cb209af0"
+    "format": "directory",
+    "note": "Directory handoff; zip is optional. Use VERSION.json/SHA256SUMS.txt for integrity."
   },
   "source_package": {
     "filename": "S-02_v0.1_组内交接.zip",
@@ -84,5 +84,7 @@
     "S-04 final disposition: 128 rows needs_review (79 original + 49 null-TRL normalized); 74 profiles exceed 250 chars (accepted length exception); 58 TRL null (unknown, no invented values); W4401101842 tech_field repaired to electrolyte; no embedding text changed."
   ],
   "created_at": "2026-11-20",
-  "updated_at": "2026-11-23"
+  "updated_at": "2026-11-23",
+  "handover_directory": "S-04_v0.1_handover_2026-11-23",
+  "handover_version": "2026-11-23"
 }
