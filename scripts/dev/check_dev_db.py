@@ -38,6 +38,8 @@ def main() -> int:
     parser.add_argument("--db-name", default=DEFAULT_DB_NAME)
     parser.add_argument("--dsn", default=None)
     parser.add_argument("--skip-users", action="store_true", help="run before seed_demo.py")
+    parser.add_argument("--require-binding", action="store_true",
+                        help="require one bound achievement and one bound demand")
     args = parser.parse_args()
 
     dsn = args.dsn or dsn_for_db(args.db_name, load_env())
@@ -108,6 +110,52 @@ def main() -> int:
             print(f"  {'intent (informational)':24} {intents:>5}")
         else:
             print(f"  {'intent (informational)':24} {'n/a':>5} (table missing)")
+
+        has_publisher_a = bool(
+            conn.execute(
+                "SELECT count(*) FROM information_schema.columns "
+                "WHERE table_name = 'achievement' AND column_name = 'publisher_user_id'"
+            ).fetchone()[0]
+        )
+        has_publisher_d = bool(
+            conn.execute(
+                "SELECT count(*) FROM information_schema.columns "
+                "WHERE table_name = 'demand' AND column_name = 'publisher_user_id'"
+            ).fetchone()[0]
+        )
+        has_binding = has_users and has_publisher_a and has_publisher_d
+        if has_binding:
+            bound_a = one("SELECT count(*) FROM achievement WHERE publisher_user_id IS NOT NULL")
+            bound_d = one("SELECT count(*) FROM demand WHERE publisher_user_id IS NOT NULL")
+            valid_a = one(
+                "SELECT count(*) FROM achievement a "
+                "JOIN app_user u ON u.user_id = a.publisher_user_id "
+                "WHERE a.published_at IS NOT NULL AND u.role = 'researcher'"
+            )
+            valid_d = one(
+                "SELECT count(*) FROM demand d "
+                "JOIN app_user u ON u.user_id = d.publisher_user_id "
+                "WHERE d.published_at IS NOT NULL AND u.role = 'enterprise'"
+            )
+            print(f"  {'bound achievement':24} {bound_a:>5} / {1:<5} "
+                  f"{'OK' if bound_a == 1 else 'WARN'}")
+            print(f"  {'bound demand':24} {bound_d:>5} / {1:<5} "
+                  f"{'OK' if bound_d == 1 else 'WARN'}")
+            print(f"  {'valid researcher bind':24} {valid_a:>5} / {1:<5} "
+                  f"{'OK' if valid_a == 1 else 'WARN'}")
+            print(f"  {'valid enterprise bind':24} {valid_d:>5} / {1:<5} "
+                  f"{'OK' if valid_d == 1 else 'WARN'}")
+            if args.require_binding and (
+                bound_a != 1 or bound_d != 1 or valid_a != 1 or valid_d != 1
+            ):
+                failures.append(
+                    "demo binding: "
+                    f"achievement={bound_a}/{valid_a}, demand={bound_d}/{valid_d}, expected 1/1"
+                )
+        else:
+            print(f"  {'demo binding':24} {'n/a':>5} (app_user/publisher columns missing)")
+            if args.require_binding:
+                failures.append("demo binding: app_user or publisher columns missing")
 
     if failures:
         print("\nFAILED")

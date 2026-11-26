@@ -99,6 +99,13 @@ def bind_record(
     ).fetchone()
     if row is None:
         raise SystemExit(f"{table}: record not found: {record_id}")
+    # Demo accounts own exactly one record: clear a previous binding first so
+    # rebinding to S-13's final IDs does not leave two demo rows behind.
+    conn.execute(
+        f"UPDATE {table} SET publisher_user_id = NULL, published_at = NULL "
+        f"WHERE publisher_user_id = %s AND {id_column} <> %s",
+        (user_id, record_id),
+    )
     conn.execute(
         f"UPDATE {table} SET publisher_user_id = %s, "
         f"published_at = COALESCE(published_at, %s) WHERE {id_column} = %s",

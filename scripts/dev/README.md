@@ -10,12 +10,16 @@ S-12 开发库与演示种子脚本。完整说明见
 # 2. 两个演示账号（S-13 给出记录 ID 后再加 --achievement-id/--demand-id）
 ./.venv/Scripts/python.exe scripts/dev/seed_demo.py
 
+# 当前临时绑定；S-13 正式 ID 到后用同一命令覆盖（会自动清旧绑定）
+./.venv/Scripts/python.exe scripts/dev/seed_demo.py \
+  --achievement-id ach_openalex_W4200428349 --demand-id dem_005
+
 # 解绑演示记录（只清 publisher_user_id / published_at）
 ./.venv/Scripts/python.exe scripts/dev/seed_demo.py \
   --unbind --achievement-id ach_xxx --demand-id dem_xxx
 
-# 3. 计数检查
-./.venv/Scripts/python.exe scripts/dev/check_dev_db.py
+# 3. 计数检查（要求两个账号、1/1 绑定）
+./.venv/Scripts/python.exe scripts/dev/check_dev_db.py --require-binding
 ```
 
 - 默认从仓库 `.env` 的 `DATABASE_URL` 派生连接，只替换库名。
