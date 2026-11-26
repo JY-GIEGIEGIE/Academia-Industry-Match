@@ -40,6 +40,10 @@ def main() -> int:
     parser.add_argument("--skip-users", action="store_true", help="run before seed_demo.py")
     parser.add_argument("--require-binding", action="store_true",
                         help="require one bound achievement and one bound demand")
+    parser.add_argument("--expect-achievement-id", default=None,
+                        help="also require this achievement to be bound to user_research_demo")
+    parser.add_argument("--expect-demand-id", default=None,
+                        help="also require this demand to be bound to user_enterprise_demo")
     args = parser.parse_args()
 
     dsn = args.dsn or dsn_for_db(args.db_name, load_env())
@@ -145,6 +149,41 @@ def main() -> int:
                   f"{'OK' if valid_a == 1 else 'WARN'}")
             print(f"  {'valid enterprise bind':24} {valid_d:>5} / {1:<5} "
                   f"{'OK' if valid_d == 1 else 'WARN'}")
+            actual_a = conn.execute(
+                "SELECT achievement_id, publisher_user_id FROM achievement "
+                "WHERE publisher_user_id IS NOT NULL ORDER BY 1"
+            ).fetchall()
+            actual_d = conn.execute(
+                "SELECT demand_id, publisher_user_id FROM demand "
+                "WHERE publisher_user_id IS NOT NULL ORDER BY 1"
+            ).fetchall()
+            print(f"  {'bound ids':24} achievement={actual_a} demand={actual_d}")
+            if args.expect_achievement_id:
+                expected_a = one(
+                    "SELECT count(*) FROM achievement "
+                    "WHERE achievement_id = %s AND publisher_user_id = 'user_research_demo' "
+                    "AND published_at IS NOT NULL",
+                    (args.expect_achievement_id,),
+                )
+                print(f"  {'expected achievement':24} {expected_a:>5} / {1:<5} "
+                      f"{'OK' if expected_a == 1 else 'FAIL'}")
+                if expected_a != 1:
+                    failures.append(
+                        f"expected achievement binding missing: {args.expect_achievement_id}"
+                    )
+            if args.expect_demand_id:
+                expected_d = one(
+                    "SELECT count(*) FROM demand "
+                    "WHERE demand_id = %s AND publisher_user_id = 'user_enterprise_demo' "
+                    "AND published_at IS NOT NULL",
+                    (args.expect_demand_id,),
+                )
+                print(f"  {'expected demand':24} {expected_d:>5} / {1:<5} "
+                      f"{'OK' if expected_d == 1 else 'FAIL'}")
+                if expected_d != 1:
+                    failures.append(
+                        f"expected demand binding missing: {args.expect_demand_id}"
+                    )
             if args.require_binding and (
                 bound_a != 1 or bound_d != 1 or valid_a != 1 or valid_d != 1
             ):
@@ -154,7 +193,7 @@ def main() -> int:
                 )
         else:
             print(f"  {'demo binding':24} {'n/a':>5} (app_user/publisher columns missing)")
-            if args.require_binding:
+            if args.require_binding or args.expect_achievement_id or args.expect_demand_id:
                 failures.append("demo binding: app_user or publisher columns missing")
 
     if failures:

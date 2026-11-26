@@ -19,7 +19,8 @@ S-12 开发库与演示种子脚本。完整说明见
   --unbind --achievement-id ach_xxx --demand-id dem_xxx
 
 # 3. 计数检查（要求两个账号、1/1 绑定）
-./.venv/Scripts/python.exe scripts/dev/check_dev_db.py --require-binding
+./.venv/Scripts/python.exe scripts/dev/check_dev_db.py --require-binding \
+  --expect-achievement-id ach_openalex_W4200428349 --expect-demand-id dem_005
 ```
 
 - 默认从仓库 `.env` 的 `DATABASE_URL` 派生连接，只替换库名。
