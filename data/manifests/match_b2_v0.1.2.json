@@ -6,6 +6,8 @@
   "dataset_version": "v0.1.2",
   "taxonomy_version": "v0.1",
   "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "b2_model": "b2",
+  "b2_prompt_version": "b2-rule-v1",
   "match_id_rule": "match_{demand_id}_{achievement_id}",
   "hard_filter": "achievement primary tech_field in demand tech_fields",
   "labels_path": "data\\processed\\achievements_labeled_v0.1.2.jsonl",
@@ -19,7 +21,7 @@
   "achievements_with_vector": 300,
   "demands_without_vector": 0,
   "output_matches": 4052,
-  "git_commit": "af01b75",
+  "git_commit": "0009aad",
   "args": {
     "version": "v0.1.2",
     "labels": null,

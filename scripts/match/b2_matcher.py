@@ -129,21 +129,35 @@ def load_achievement_primary(labels_path: Path) -> dict[str, dict]:
         techs = [t for t in rec.get("tags", []) if t.get("dimension") == "tech_field"]
         if not techs:
             continue
-        main = next((t for t in techs if t.get("is_primary")), None) or techs[0]
+        main = next((t for t in techs if t.get("is_primary")), None)
+        if main is None or not main.get("code"):
+            continue
         primary[aid] = {"code": main.get("code"), "confidence": main.get("confidence")}
     return primary
 
 
-def load_vectors(embeddings_path: Path, object_type: str, text_type: str) -> dict[str, list[float]]:
+def load_vectors(
+    embeddings_path: Path,
+    object_type: str,
+    text_type: str,
+    *,
+    expected_dim: int = 1024,
+    expected_model: str | None = "qwen3.7-text-embedding-flash",
+) -> dict[str, list[float]]:
     vecs: dict[str, list[float]] = {}
     for e in _read_jsonl(embeddings_path):
         if e.get("object_type") != object_type:
             continue
         if e.get("text_type") != text_type:
             continue
+        if expected_model is not None and e.get("model") != expected_model:
+            continue
         vec = e.get("vector")
-        if isinstance(vec, list):
-            vecs[e.get("object_id")] = vec
+        if not isinstance(vec, list) or len(vec) != expected_dim:
+            continue
+        if e.get("dim") is not None and int(e.get("dim")) != expected_dim:
+            continue
+        vecs[e.get("object_id")] = vec
     return vecs
 
 
@@ -270,6 +284,8 @@ def run(args: argparse.Namespace) -> int:
         "dataset_version": args.version,
         "taxonomy_version": TAXONOMY_VERSION,
         "embedding_model_version": EMBEDDING_MODEL_VERSION,
+        "b2_model": B2_MODEL,
+        "b2_prompt_version": B2_PROMPT_VERSION,
         "match_id_rule": "match_{demand_id}_{achievement_id}",
         "hard_filter": "achievement primary tech_field in demand tech_fields",
         "labels_path": _relpath(labels_path),

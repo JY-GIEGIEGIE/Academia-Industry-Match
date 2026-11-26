@@ -16,6 +16,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 # 让 `backend.tasks` 无论从哪个 cwd 导入，都能找到 config / scripts.match / scripts.common。
 _ROOT = Path(__file__).resolve().parents[1]
@@ -27,10 +28,14 @@ for _p in (str(_ROOT), str(_DATA_SCRIPT_DIR)):
 from backend.worker import celery_app  # noqa: E402
 from config import PROCESSED_DIR  # noqa: E402
 from scripts.match import b2_matcher, p1_rerank  # noqa: E402
-from scripts.common.llm_client import DashScopeClient, LlmClientError  # noqa: E402
+from scripts.common.llm_client import DashScopeClient  # noqa: E402
 
 DATASET_VERSION = "v0.1.2"
-DEFAULT_DSN = "postgresql://aim:change-me-local-dev@127.0.0.1:5432/academia_industry_match"
+P1_TOP_K = int(os.getenv("P1_TOP_K", "10"))
+
+
+class MatchObjectNotFound(LookupError):
+    """发布对象不在 v0.1.2 匹配输入中；不能静默 success 0。"""
 
 
 def _now() -> datetime:
@@ -39,7 +44,13 @@ def _now() -> datetime:
 
 def _dsn() -> str:
     # 第二轮演示库：由 S-12 在 docker-compose 里把 DATABASE_URL 指向开发演示库 s2_mvp_20261125。
-    return os.getenv("DATABASE_URL", DEFAULT_DSN)
+    dsn = os.getenv("DATABASE_URL", "").strip()
+    if not dsn:
+        raise RuntimeError("DATABASE_URL 未设置；匹配任务必须显式指向 s2_mvp_* 开发库")
+    database = urlparse(dsn).path.lstrip("/")
+    if not database.startswith("s2_mvp_"):
+        raise RuntimeError(f"DATABASE_URL 必须指向 s2_mvp_* 开发库，当前数据库：{database or '<unknown>'}")
+    return dsn
 
 
 def _connect():
@@ -71,6 +82,7 @@ def _set_status(
     run_id: str,
     status: str,
     *,
+    input_count: int = 0,
     output_count: int = 0,
     finished_at: datetime | None = None,
     config: dict | None = None,
@@ -83,14 +95,24 @@ def _set_status(
             INSERT INTO pipeline_run
                 (run_id, stage, started_at, finished_at, status, input_count, output_count, config, dataset_version)
             VALUES
-                (%s, 'match', %s, %s, %s, 0, %s, %s::jsonb, %s)
+                (%s, 'match', %s, %s, %s, %s, %s, %s::jsonb, %s)
             ON CONFLICT (run_id) DO UPDATE
                 SET status = EXCLUDED.status,
                     finished_at = EXCLUDED.finished_at,
+                    input_count = EXCLUDED.input_count,
                     output_count = EXCLUDED.output_count,
                     config = EXCLUDED.config
             """,
-            (run_id, _now(), finished_at, status, output_count, config_json, DATASET_VERSION),
+            (
+                run_id,
+                _now(),
+                finished_at,
+                status,
+                input_count,
+                output_count,
+                config_json,
+                DATASET_VERSION,
+            ),
         )
 
 
@@ -144,11 +166,18 @@ def _compute_b2_matches(object_type: str, object_id: str, version: str) -> list[
     if object_type == "demand":
         demand = next((d for d in demands if d.get("demand_id") == object_id), None)
         if demand is None:
-            return []
+            raise MatchObjectNotFound(f"需求不存在于 {version} 匹配输入：{object_id}")
+        if object_id not in demand_vectors:
+            raise MatchObjectNotFound(f"需求缺少 {version} 向量：{object_id}")
         return b2_matcher.match_demand(
             demand, list(ach_primary), ach_primary, ach_vectors, ach_trl,
             demand_vectors.get(object_id), dataset_version=version,
         )
+
+    if object_id not in ach_primary:
+        raise MatchObjectNotFound(f"成果不存在于 {version} 匹配输入：{object_id}")
+    if object_id not in ach_vectors:
+        raise MatchObjectNotFound(f"成果缺少 {version} 向量：{object_id}")
 
     # achievement：与全量需求逐一匹配
     matches: list[dict] = []
@@ -162,8 +191,8 @@ def _compute_b2_matches(object_type: str, object_id: str, version: str) -> list[
     return matches
 
 
-def _p1_rerank(matches: list[dict], version: str) -> bool:
-    """in-memory P1 精排；返回是否发生失败（True=有回退 B2）。任何异常都回退，不中断。"""
+def _p1_rerank(matches: list[dict], version: str, top_k: int = P1_TOP_K) -> bool:
+    """仅对新增候选的 Top-K 做 P1；返回是否发生失败（True=有回退 B2）。"""
     if not matches:
         return False
     try:
@@ -177,8 +206,16 @@ def _p1_rerank(matches: list[dict], version: str) -> bool:
         print(f"[P1] 初始化失败，整体回退 B2：{exc}", file=sys.stderr)
         return True
 
+    ranked = sorted(
+        enumerate(matches),
+        key=lambda item: (-float(item[1].get("total_score") or 0), item[1].get("match_id") or ""),
+    )
+    selected_indexes = {index for index, _ in ranked[: max(0, top_k)]}
+
     p1_failed = False
     for i, m in enumerate(matches):
+        if i not in selected_indexes:
+            continue
         demand = demands.get(m.get("demand_id"))
         ach_label = labels.get(m.get("achievement_id"))
         if demand is None or ach_label is None:
@@ -203,23 +240,36 @@ def _run_match(object_type: str, object_id: str, run_id: str | None, version: st
     _set_status(run_id, "running", config={"object_type": object_type, "object_id": object_id, "version": version})
     try:
         matches = _compute_b2_matches(object_type, object_id, version)
-        p1_failed = _p1_rerank(matches, version)
-
         match_ids = [m["match_id"] for m in matches]
-        inserted = skipped = 0
         with _connect() as conn:
             existing = _existing_match_ids(conn, match_ids)
-            for m in matches:
-                if m["match_id"] in existing:
-                    skipped += 1
-                    continue
+        new_matches = [m for m in matches if m["match_id"] not in existing]
+
+        # 先查已有 match_id，再只对新增候选做 P1，避免重复 LLM 调用。
+        p1_failed = _p1_rerank(new_matches, version)
+
+        inserted = 0
+        with _connect() as conn:
+            for m in new_matches:
                 _insert_match(conn, m)
                 inserted += 1
 
         status = "partial" if p1_failed else "success"
-        _set_status(run_id, status, output_count=inserted, finished_at=_now(),
-                    config={"object_type": object_type, "object_id": object_id, "version": version})
-        return {"run_id": run_id, "status": status, "inserted": inserted, "skipped": skipped}
+        _set_status(
+            run_id,
+            status,
+            input_count=len(matches),
+            output_count=inserted,
+            finished_at=_now(),
+            config={"object_type": object_type, "object_id": object_id, "version": version},
+        )
+        return {
+            "run_id": run_id,
+            "status": status,
+            "input": len(matches),
+            "inserted": inserted,
+            "skipped": len(existing),
+        }
     except Exception:
         _set_status(run_id, "failed", finished_at=_now())
         raise

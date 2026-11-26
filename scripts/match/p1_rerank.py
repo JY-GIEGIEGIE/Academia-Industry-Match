@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -48,12 +49,27 @@ from scripts.common.llm_client import DashScopeClient, LlmClientError  # noqa: E
 SPRINT = "2026-11-29"
 TAXONOMY_VERSION = "v0.1"
 PROMPT_VERSION = "v0.1"
-MAX_ABSTRACT_CHARS = 1500
+MAX_ABSTRACT_CHARS = 4000
+MAX_REASON_CHARS = 100
+MAX_SNIPPET_CHARS = 200
+
+# evidence.snippets 只能引用这些真实字段；画像/指标属于派生或结构字段，不作为原文摘录来源。
+SOURCE_FIELDS = {
+    "achievement.title_original": ("achievement", "title_original"),
+    "achievement.abstract_original": ("achievement", "abstract_original"),
+    "demand.title": ("demand", "title"),
+    "demand.pain_point": ("demand", "pain_point"),
+    "demand.expected_solution": ("demand", "expected_solution"),
+}
+SOURCE_REF_ALIASES = {
+    "achievement.title": "achievement.title_original",
+    "achievement.abstract": "achievement.abstract_original",
+}
 
 SYSTEM_PROMPT = """你是产学研技术转化匹配的精排专家。给定一条企业需求与一项技术成果的字段，评估二者匹配的风险、证据与推荐理由。
 
 严格规则：
-1. 只依据给定字段，不得编造字段之外的信息；evidence.snippets 的 text 必须逐字取自给定字段原文。
+1. 只依据给定字段，不得编造字段之外的信息；evidence.snippets 的 text 必须逐字取自给定字段原文，不能改写、截断或加省略号。
 2. 风险四维 score 用 1—5 整数（1=低风险，5=高风险）：
    - technical：成果 TRL 与需求 required_trl 的差距、技术路线兼容性；
    - market：成果应用场景与需求/企业场景的匹配度；
@@ -62,7 +78,15 @@ SYSTEM_PROMPT = """你是产学研技术转化匹配的精排专家。给定一�
    - overall：summary 一句话综合提示 + mitigation 1—3 条可执行建议。
 3. reason：自然语言推荐理由，100 字内，说明匹配依据与主要风险，不夸大。
 4. evidence.tag_matches 的 code 只能是给定字段里出现的 taxonomy code。
-5. 只输出 JSON，不要 markdown 代码块。
+5. evidence.snippets 的 source_ref 只能是以下真实字段：
+   - achievement.title_original
+   - achievement.abstract_original
+   - demand.title
+   - demand.pain_point
+   - demand.expected_solution
+   不得使用 achievement.profile、achievement.abstract、achievement.key_metrics 等别名或派生字段。
+6. capability_profile_zh 是机器生成画像，只供理解，不得作为 evidence.snippets 的来源；key_metrics 只能出现在 metric_matches。
+7. 只输出 JSON，不要 markdown 代码块。
 
 输出 schema（严格按此结构）：
 {
@@ -144,23 +168,25 @@ def _demand_context(demand: dict) -> dict:
 def _achievement_context(ach_label: dict, profile: dict | None, ach_clean: dict | None) -> dict:
     tags = ach_label.get("tags") or []
     techs = [t for t in tags if t.get("dimension") == "tech_field"]
-    primary = next((t for t in techs if t.get("is_primary")), None) or (techs[0] if techs else None)
+    primary = next((t for t in techs if t.get("is_primary")), None)
     scenarios = [t.get("code") for t in tags if t.get("dimension") == "application_scenario"]
     abstract = (ach_clean or {}).get("abstract_original") or ""
     if len(abstract) > MAX_ABSTRACT_CHARS:
-        abstract = abstract[:MAX_ABSTRACT_CHARS] + "…"
+        abstract = abstract[:MAX_ABSTRACT_CHARS]
     ext = ach_label.get("extraction") or {}
     return {
         "achievement_id": ach_label.get("achievement_id"),
-        "title": (ach_clean or {}).get("title_original"),
-        "abstract": abstract,
-        "profile": (profile or {}).get("text"),
+        "title_original": (ach_clean or {}).get("title_original"),
+        "abstract_original": abstract,
+        "capability_profile_zh": (profile or {}).get("text"),
         "primary_tech_field": primary.get("code") if primary else None,
         "application_scenarios": scenarios,
-        "trl": ext.get("trl"),
-        "ip_status": ext.get("ip_status"),
-        "material_system": ext.get("material_system"),
-        "key_metrics": ext.get("key_metrics"),
+        "extraction": {
+            "trl": ext.get("trl"),
+            "ip_status": ext.get("ip_status"),
+            "material_system": ext.get("material_system"),
+            "key_metrics": ext.get("key_metrics"),
+        },
     }
 
 
@@ -172,6 +198,154 @@ def _build_user_message(demand_ctx: dict, ach_ctx: dict) -> str:
         + "\n\n【技术成果】\n"
         + json.dumps(ach_ctx, ensure_ascii=False, indent=2)
     )
+
+
+def _normalize_ws(value: object) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _canonical_source_ref(ref: object) -> str:
+    value = str(ref or "").strip()
+    value = SOURCE_REF_ALIASES.get(value, value)
+    if value not in SOURCE_FIELDS:
+        raise ValueError(f"不允许的 source_ref：{ref!r}")
+    return value
+
+
+def _source_values(demand_ctx: dict, ach_ctx: dict) -> dict[str, str]:
+    return {
+        "achievement.title_original": str(ach_ctx.get("title_original") or ""),
+        "achievement.abstract_original": str(ach_ctx.get("abstract_original") or ""),
+        "demand.title": str(demand_ctx.get("title") or ""),
+        "demand.pain_point": str(demand_ctx.get("pain_point") or ""),
+        "demand.expected_solution": str(demand_ctx.get("expected_solution") or ""),
+    }
+
+
+def _validate_risk(value: object) -> dict:
+    if not isinstance(value, dict):
+        raise ValueError("risk 必须是对象")
+    dimensions = ("technical", "market", "ip", "collaboration")
+    normalized: dict[str, dict] = {}
+    for dimension in dimensions:
+        item = value.get(dimension)
+        if not isinstance(item, dict):
+            raise ValueError(f"risk.{dimension} 缺失或不是对象")
+        score = item.get("score")
+        if isinstance(score, bool) or not isinstance(score, (int, float)) or int(score) != score:
+            raise ValueError(f"risk.{dimension}.score 必须是整数")
+        if not 1 <= int(score) <= 5:
+            raise ValueError(f"risk.{dimension}.score 必须在 1—5")
+        description = str(item.get("description") or "").strip()
+        if not description:
+            raise ValueError(f"risk.{dimension}.description 不能为空")
+        normalized[dimension] = {"score": int(score), "description": description}
+    overall = value.get("overall")
+    if not isinstance(overall, dict):
+        raise ValueError("risk.overall 缺失或不是对象")
+    summary = str(overall.get("summary") or "").strip()
+    mitigation = overall.get("mitigation")
+    if not summary:
+        raise ValueError("risk.overall.summary 不能为空")
+    if not isinstance(mitigation, list) or not 1 <= len(mitigation) <= 3:
+        raise ValueError("risk.overall.mitigation 必须是 1—3 条")
+    actions = [str(item).strip() for item in mitigation if str(item).strip()]
+    if len(actions) != len(mitigation):
+        raise ValueError("risk.overall.mitigation 不能包含空项")
+    normalized["overall"] = {"summary": summary, "mitigation": actions}
+    return normalized
+
+
+def _validate_evidence(value: object, demand_ctx: dict, ach_ctx: dict) -> dict:
+    if not isinstance(value, dict):
+        raise ValueError("evidence 必须是对象")
+    source_values = _source_values(demand_ctx, ach_ctx)
+    allowed_codes = set(demand_ctx.get("tech_fields") or [])
+    allowed_codes |= set(demand_ctx.get("application_scenarios") or [])
+    allowed_codes |= set(demand_ctx.get("cooperation_modes") or [])
+    allowed_codes.add(ach_ctx.get("primary_tech_field"))
+    allowed_codes |= set(ach_ctx.get("application_scenarios") or [])
+    allowed_codes.discard(None)
+
+    tag_matches = value.get("tag_matches") or []
+    if not isinstance(tag_matches, list):
+        raise ValueError("evidence.tag_matches 必须是数组")
+    normalized_tags: list[dict] = []
+    for item in tag_matches:
+        if not isinstance(item, dict):
+            raise ValueError("evidence.tag_matches 元素必须是对象")
+        dimension = str(item.get("dimension") or "").strip()
+        code = str(item.get("code") or "").strip()
+        if dimension not in {"tech_field", "application_scenario", "cooperation_mode"}:
+            raise ValueError(f"evidence.tag_matches.dimension 非法：{dimension!r}")
+        if not code or code not in allowed_codes:
+            raise ValueError(f"evidence.tag_matches.code 不在上下文中：{code!r}")
+        normalized_tags.append(
+            {
+                "dimension": dimension,
+                "code": code,
+                "achievement_confidence": item.get("achievement_confidence"),
+                "demand_confidence": item.get("demand_confidence"),
+            }
+        )
+
+    snippets = value.get("snippets") or []
+    if not isinstance(snippets, list):
+        raise ValueError("evidence.snippets 必须是数组")
+    normalized_snippets: list[dict] = []
+    for item in snippets:
+        if not isinstance(item, dict):
+            raise ValueError("evidence.snippets 元素必须是对象")
+        source_ref = _canonical_source_ref(item.get("source_ref"))
+        text = str(item.get("text") or "").strip()
+        if not text:
+            raise ValueError("evidence.snippets.text 不能为空")
+        if len(text) > MAX_SNIPPET_CHARS:
+            # 保留原文前缀；仍要求它是 source_ref 的逐字子串。
+            text = text[:MAX_SNIPPET_CHARS].rstrip()
+        if "…" in text or "..." in text:
+            raise ValueError("evidence.snippets.text 不得包含省略号")
+        if _normalize_ws(text) not in _normalize_ws(source_values[source_ref]):
+            raise ValueError(f"evidence.snippets.text 不是 {source_ref} 的原文子串")
+        side, field = SOURCE_FIELDS[source_ref]
+        normalized_snippets.append(
+            {"side": side, "field": field, "text": text, "source_ref": source_ref}
+        )
+    if not normalized_snippets:
+        raise ValueError("evidence.snippets 至少需要 1 条可追溯原文")
+
+    metric_matches = value.get("metric_matches") or []
+    if not isinstance(metric_matches, list):
+        raise ValueError("evidence.metric_matches 必须是数组")
+    normalized_metrics: list[dict] = []
+    for item in metric_matches:
+        if not isinstance(item, dict):
+            raise ValueError("evidence.metric_matches 元素必须是对象")
+        name = str(item.get("name") or "").strip()
+        if not name:
+            raise ValueError("evidence.metric_matches.name 不能为空")
+        normalized_metrics.append(item)
+
+    return {
+        "tag_matches": normalized_tags,
+        "snippets": normalized_snippets,
+        "metric_matches": normalized_metrics,
+    }
+
+
+def _validate_llm_output(result: object, demand_ctx: dict, ach_ctx: dict) -> dict:
+    if not isinstance(result, dict):
+        raise ValueError("LLM 输出不是对象")
+    reason = str(result.get("reason") or "").strip()
+    if not reason:
+        raise ValueError("LLM 输出缺少 reason")
+    if len(reason) > MAX_REASON_CHARS:
+        reason = reason[:MAX_REASON_CHARS]
+    return {
+        "reason": reason,
+        "risk": _validate_risk(result.get("risk")),
+        "evidence": _validate_evidence(result.get("evidence"), demand_ctx, ach_ctx),
+    }
 
 
 def rerank_one(
@@ -190,18 +364,39 @@ def rerank_one(
     ]
     try:
         result = client.chat_json(messages, model=model, max_tokens=2048, temperature=0.2)
-        if not isinstance(result, dict) or not result.get("reason"):
-            raise ValueError("LLM 输出缺少 reason")
+        validated = _validate_llm_output(result, demand_ctx, ach_ctx)
         updated = dict(match)
-        updated["reason"] = result.get("reason") or match.get("reason")
-        updated["risk"] = result.get("risk")
-        updated["evidence"] = result.get("evidence")
+        updated["reason"] = validated["reason"] or match.get("reason")
+        updated["risk"] = validated["risk"]
+        updated["evidence"] = validated["evidence"]
         updated["model"] = model
         updated["prompt_version"] = prompt_version
         return updated, True
     except Exception as exc:  # noqa: BLE001 —— API 报错/超时/输出非法一律回退 B2
         print(f"[警告] 精排失败，回退 B2：{match.get('match_id')} — {exc}", file=sys.stderr)
         return match, False
+
+
+def _select_todo(matches: list[dict], args: argparse.Namespace) -> list[dict]:
+    selected = matches
+    if args.match_ids:
+        requested = [item.strip() for item in args.match_ids.split(",") if item.strip()]
+        by_id = {m.get("match_id"): m for m in matches}
+        missing = [match_id for match_id in requested if match_id not in by_id]
+        if missing:
+            raise ValueError(f"--match-ids 找不到：{', '.join(missing)}")
+        selected = [by_id[match_id] for match_id in requested]
+    elif args.per_demand:
+        grouped: dict[str, list[dict]] = {}
+        for match in matches:
+            grouped.setdefault(str(match.get("demand_id")), []).append(match)
+        selected = []
+        for demand_id in sorted(grouped):
+            rows = sorted(grouped[demand_id], key=lambda m: (-float(m.get("total_score") or 0), m.get("match_id") or ""))
+            selected.extend(rows[: args.per_demand])
+    if args.limit is not None:
+        selected = selected[: args.limit]
+    return selected
 
 
 def run(args: argparse.Namespace) -> int:
@@ -232,7 +427,11 @@ def run(args: argparse.Namespace) -> int:
         return 2
 
     model = args.model or client.chat_model
-    todo = matches if args.limit is None else matches[: args.limit]
+    try:
+        todo = _select_todo(matches, args)
+    except ValueError as exc:
+        print(f"[错误] 匹配选择失败：{exc}", file=sys.stderr)
+        return 2
     print(f"待精排：{len(todo)} 条（model={model} prompt_version={PROMPT_VERSION}）")
 
     out: list[dict] = []
@@ -272,6 +471,13 @@ def run(args: argparse.Namespace) -> int:
         "reranked": reranked,
         "fallback_b2": fallback,
         "skipped_missing_context": skipped,
+        "evidence_validation": "source_ref allowlist + exact substring + risk four dimensions",
+        "selection": {
+            "match_ids": args.match_ids,
+            "per_demand": args.per_demand,
+            "limit": args.limit,
+        },
+        "selected_match_ids": [m.get("match_id") for m in todo],
         "git_commit": _git_commit(),
         "args": vars(args),
     }
@@ -301,7 +507,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--achievements", default=None, help="清洗成果 jsonl（默认 data/processed/achievements_clean_<version>.jsonl）")
     parser.add_argument("--output", default=None, help="输出 jsonl（默认 data/processed/matches_p1_<version>.jsonl）")
     parser.add_argument("--model", default=None, help="覆盖精排模型（默认读 .env 的 QWEN_CHAT_MODEL）")
-    parser.add_argument("--limit", type=int, default=None, help="只精排前 N 条（演示用）")
+    parser.add_argument("--limit", type=int, default=None, help="选择后最多精排 N 条（演示用）")
+    parser.add_argument("--per-demand", type=int, default=None, help="每个需求选 Top-N 条进入精排")
+    parser.add_argument("--match-ids", default=None, help="逗号分隔的 match_id 列表；优先于 --per-demand")
     args = parser.parse_args(argv)
     return run(args)
 

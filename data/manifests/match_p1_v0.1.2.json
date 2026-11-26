@@ -14,7 +14,35 @@
   "reranked": 20,
   "fallback_b2": 0,
   "skipped_missing_context": 0,
-  "git_commit": "af01b75",
+  "evidence_validation": "source_ref allowlist + exact substring + risk four dimensions",
+  "selection": {
+    "match_ids": "match_dem_001_ach_openalex_W4210844117,match_dem_002_ach_openalex_W4400777332,match_dem_003_ach_openalex_W4395007587,match_dem_004_ach_openalex_W4393232142,match_dem_006_ach_openalex_W2999393849,match_dem_007_ach_openalex_W4402616307,match_dem_008_ach_openalex_W4396666593,match_dem_009_ach_openalex_W7162403468,match_dem_010_ach_openalex_W7225099796,match_dem_011_ach_openalex_W7225097813,match_dem_012_ach_openalex_W7223468809,match_dem_013_ach_openalex_W7214445809,match_dem_014_ach_openalex_W4323817440,match_dem_015_ach_openalex_W4390871224,match_dem_016_ach_openalex_W3217544085,match_dem_017_ach_openalex_W4408410682,match_dem_018_ach_openalex_W4413607194,match_dem_019_ach_openalex_W4385329965,match_dem_020_ach_openalex_W7223720797,match_dem_005_ach_openalex_W4200428349",
+    "per_demand": null,
+    "limit": null
+  },
+  "selected_match_ids": [
+    "match_dem_001_ach_openalex_W4210844117",
+    "match_dem_002_ach_openalex_W4400777332",
+    "match_dem_003_ach_openalex_W4395007587",
+    "match_dem_004_ach_openalex_W4393232142",
+    "match_dem_006_ach_openalex_W2999393849",
+    "match_dem_007_ach_openalex_W4402616307",
+    "match_dem_008_ach_openalex_W4396666593",
+    "match_dem_009_ach_openalex_W7162403468",
+    "match_dem_010_ach_openalex_W7225099796",
+    "match_dem_011_ach_openalex_W7225097813",
+    "match_dem_012_ach_openalex_W7223468809",
+    "match_dem_013_ach_openalex_W7214445809",
+    "match_dem_014_ach_openalex_W4323817440",
+    "match_dem_015_ach_openalex_W4390871224",
+    "match_dem_016_ach_openalex_W3217544085",
+    "match_dem_017_ach_openalex_W4408410682",
+    "match_dem_018_ach_openalex_W4413607194",
+    "match_dem_019_ach_openalex_W4385329965",
+    "match_dem_020_ach_openalex_W7223720797",
+    "match_dem_005_ach_openalex_W4200428349"
+  ],
+  "git_commit": "0009aad",
   "args": {
     "version": "v0.1.2",
     "matches": null,
@@ -24,6 +52,8 @@
     "achievements": null,
     "output": null,
     "model": null,
-    "limit": 20
+    "limit": null,
+    "per_demand": null,
+    "match_ids": "match_dem_001_ach_openalex_W4210844117,match_dem_002_ach_openalex_W4400777332,match_dem_003_ach_openalex_W4395007587,match_dem_004_ach_openalex_W4393232142,match_dem_006_ach_openalex_W2999393849,match_dem_007_ach_openalex_W4402616307,match_dem_008_ach_openalex_W4396666593,match_dem_009_ach_openalex_W7162403468,match_dem_010_ach_openalex_W7225099796,match_dem_011_ach_openalex_W7225097813,match_dem_012_ach_openalex_W7223468809,match_dem_013_ach_openalex_W7214445809,match_dem_014_ach_openalex_W4323817440,match_dem_015_ach_openalex_W4390871224,match_dem_016_ach_openalex_W3217544085,match_dem_017_ach_openalex_W4408410682,match_dem_018_ach_openalex_W4413607194,match_dem_019_ach_openalex_W4385329965,match_dem_020_ach_openalex_W7223720797,match_dem_005_ach_openalex_W4200428349"
   }
 }
