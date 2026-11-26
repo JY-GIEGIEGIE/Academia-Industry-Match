@@ -129,17 +129,25 @@ def main() -> int:
         )
         has_binding = has_users and has_publisher_a and has_publisher_d
         if has_binding:
-            bound_a = one("SELECT count(*) FROM achievement WHERE publisher_user_id IS NOT NULL")
-            bound_d = one("SELECT count(*) FROM demand WHERE publisher_user_id IS NOT NULL")
+            bound_a = one(
+                "SELECT count(*) FROM achievement "
+                "WHERE publisher_user_id = 'user_research_demo'"
+            )
+            bound_d = one(
+                "SELECT count(*) FROM demand "
+                "WHERE publisher_user_id = 'user_enterprise_demo'"
+            )
             valid_a = one(
                 "SELECT count(*) FROM achievement a "
                 "JOIN app_user u ON u.user_id = a.publisher_user_id "
-                "WHERE a.published_at IS NOT NULL AND u.role = 'researcher'"
+                "WHERE a.publisher_user_id = 'user_research_demo' "
+                "AND a.published_at IS NOT NULL AND u.role = 'researcher'"
             )
             valid_d = one(
                 "SELECT count(*) FROM demand d "
                 "JOIN app_user u ON u.user_id = d.publisher_user_id "
-                "WHERE d.published_at IS NOT NULL AND u.role = 'enterprise'"
+                "WHERE d.publisher_user_id = 'user_enterprise_demo' "
+                "AND d.published_at IS NOT NULL AND u.role = 'enterprise'"
             )
             print(f"  {'bound achievement':24} {bound_a:>5} / {1:<5} "
                   f"{'OK' if bound_a == 1 else 'WARN'}")
