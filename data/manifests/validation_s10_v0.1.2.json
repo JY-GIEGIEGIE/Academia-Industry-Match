@@ -1,0 +1,39 @@
+{
+  "code_commit": "0009aad",
+  "b2": {
+    "rows": 4052,
+    "unique_match_ids": 4052,
+    "models": [
+      "b2"
+    ],
+    "prompt_versions": [
+      "b2-rule-v1"
+    ],
+    "risk_null": 4052,
+    "evidence_null": 4052,
+    "hard_filter_expected": 4052,
+    "hard_filter_matches_expected": true
+  },
+  "p1": {
+    "rows": 20,
+    "demands": 20,
+    "reranked": 20,
+    "fallback_b2": 0,
+    "source_refs": {
+      "achievement.abstract_original": 30,
+      "demand.pain_point": 9,
+      "demand.expected_solution": 19,
+      "achievement.title_original": 2,
+      "demand.title": 1
+    },
+    "snippets": 61,
+    "max_reason_chars": 100,
+    "max_snippet_chars": 200,
+    "invalid": []
+  },
+  "demo_pair": {
+    "match_id": "match_dem_005_ach_openalex_W4200428349",
+    "present": true,
+    "has_analysis": true
+  }
+}
