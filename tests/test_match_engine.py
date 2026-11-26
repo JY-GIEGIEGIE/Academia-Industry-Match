@@ -2,7 +2,12 @@ import unittest
 from unittest import mock
 
 # 与实际实现对齐的导入：函数名一致，签名见各测试。
-from scripts.match.b2_matcher import normalize_cosine, match_demand
+from scripts.match.b2_matcher import (
+    B2_MODEL,
+    B2_PROMPT_VERSION,
+    match_demand,
+    normalize_cosine,
+)
 from scripts.match.p1_rerank import rerank_one
 from backend.tasks import _run_match
 
@@ -21,7 +26,7 @@ class TestB2Matcher(unittest.TestCase):
         self.assertEqual(normalize_cosine(-1.0), 0.0)  # 负数 clamp 到 0
 
     def test_match_id_format_and_hard_filter(self):
-        """match_id 格式 + primary tech_field 硬过滤 + risk/evidence 为 null。"""
+        """match_id 格式 + primary tech_field 硬过滤 + B2 来源字段非空。"""
         demand = {"demand_id": "dem_001", "tech_fields": ["cathode_material"], "required_trl": 5}
         # 成果 primary tech_field
         ach_primary = {
@@ -44,6 +49,8 @@ class TestB2Matcher(unittest.TestCase):
         self.assertNotIn("ach_002", ach_ids)  # 硬过滤：tech_field 对不上直接 pass
         self.assertIsNone(results[0]["risk"])
         self.assertIsNone(results[0]["evidence"])
+        self.assertEqual(results[0]["model"], B2_MODEL)
+        self.assertEqual(results[0]["prompt_version"], B2_PROMPT_VERSION)
 
 
 class TestP1Rerank(unittest.TestCase):

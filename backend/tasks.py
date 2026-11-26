@@ -5,7 +5,8 @@
       插入再叠加 ON CONFLICT (match_id) DO NOTHING 兜底，防止重复执行写脏数据。
 状态：pipeline_run.status 启动写 running，结束写 success（P1 全部成功）或 partial（P1 失败回退 B2）。
 
-依赖迁移 0003（match_score.risk/evidence/model/prompt_version 可空）；B2 阶段这三者为 NULL。
+依赖迁移 0003（match_score.risk/evidence 可空）；B2 阶段 risk/evidence 为 NULL，
+model/prompt_version 写 b2 / b2-rule-v1，P1 成功后覆盖为真实精排模型与 Prompt 版本。
 """
 
 from __future__ import annotations

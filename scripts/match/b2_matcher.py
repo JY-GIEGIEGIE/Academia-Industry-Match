@@ -11,7 +11,8 @@
   2. 严格硬过滤：成果的 primary tech_field 必须命中需求 tech_fields，否则 pass。
   3. 对通过过滤的 pair 算余弦相似度，归一化到 0—100 分。
   4. match_id = f"match_{demand_id}_{achievement_id}"（同一 pair 两端唯一）。
-  5. 生成规则化 reason；risk / evidence 置为 null（B2 未精排，见 API 契约 §6.4）。
+  5. 生成规则化 reason；risk / evidence 置为 null，model / prompt_version 写 B2 来源标识
+     （B2 未精排，见 API 契约 §6.4）。
 
 不修改 v0.1.2 processed 数据，只读并产出新的匹配结果。
 
@@ -51,6 +52,9 @@ from config import MANIFEST_DIR, PROCESSED_DIR  # noqa: E402
 SPRINT = "2026-11-29"
 TAXONOMY_VERSION = "v0.1"
 EMBEDDING_MODEL_VERSION = "qwen3.7-text-embedding-flash-1024-v1"
+# B2 未调用 LLM；仍写非空的来源标识，满足 match_score.model/prompt_version 契约。
+B2_MODEL = "b2"
+B2_PROMPT_VERSION = "b2-rule-v1"
 
 
 def _now_utc() -> str:
@@ -193,8 +197,8 @@ def match_demand(
             "reason": reason,
             "risk": None,
             "evidence": None,
-            "model": None,
-            "prompt_version": None,
+            "model": B2_MODEL,
+            "prompt_version": B2_PROMPT_VERSION,
             "dataset_version": dataset_version,
             "taxonomy_version": TAXONOMY_VERSION,
             "embedding_model_version": EMBEDDING_MODEL_VERSION,
