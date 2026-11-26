@@ -4,6 +4,12 @@
   "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
   "sprint": "2026-11-22",
   "source": "v0.1.1 + application_scenario confidence gate 0.9",
+  "package": {
+    "filename": "S-08_v0.1.2_2026-11-23.zip",
+    "version": "v0.1.2",
+    "bytes": 2493176,
+    "sha256": "0ff5708257a0c2f4464483378e14239096e23d8a8bd6a2a551345900d5a5904a"
+  },
   "private_root_in_package": "data/processed/",
   "files": [
     {

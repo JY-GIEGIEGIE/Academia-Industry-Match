@@ -1,5 +1,5 @@
-# 本地统一的 PostgreSQL 16 + pgvector 环境
-# 启动：docker compose up -d db
+# 本地统一的 PostgreSQL 16 + pgvector 与 Redis 环境
+# 启动：docker compose up -d db redis
 # 停止：docker compose down
 # 注意：首次启动才会执行 db/init 下的初始化 SQL；已有 volume 不会重复执行。
 name: academia-industry-match
@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-dev}
       TZ: Asia/Shanghai
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - aim_pgdata:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
@@ -26,5 +26,23 @@ services:
       retries: 20
       start_period: 10s
 
+  # S-12：Celery 的 broker/result backend。api/worker/web 待 S-11/S-14
+  # 交付 backend/ 与前端产物后再加入，避免把不存在的 build context 写进默认启动。
+  redis:
+    image: redis:7-alpine
+    container_name: aim-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - aim_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
 volumes:
   aim_pgdata:
+  aim_redisdata:
