@@ -1,0 +1,29 @@
+{
+  "sprint": "2026-11-29",
+  "task": "S-10",
+  "stage": "match",
+  "status": "success",
+  "dataset_version": "v0.1.2",
+  "taxonomy_version": "v0.1",
+  "model": "qwen3.8-flash",
+  "prompt_version": "v0.1",
+  "matches_path": "data\\processed\\matches_b2_v0.1.2.jsonl",
+  "output_path": "data\\processed\\matches_p1_v0.1.2.jsonl",
+  "input_matches": 4052,
+  "processed": 20,
+  "reranked": 20,
+  "fallback_b2": 0,
+  "skipped_missing_context": 0,
+  "git_commit": "af01b75",
+  "args": {
+    "version": "v0.1.2",
+    "matches": null,
+    "demands": null,
+    "labels": null,
+    "profiles": null,
+    "achievements": null,
+    "output": null,
+    "model": null,
+    "limit": 20
+  }
+}

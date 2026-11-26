@@ -1,0 +1,32 @@
+{
+  "sprint": "2026-11-29",
+  "task": "S-10",
+  "stage": "match",
+  "status": "success",
+  "dataset_version": "v0.1.2",
+  "taxonomy_version": "v0.1",
+  "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
+  "match_id_rule": "match_{demand_id}_{achievement_id}",
+  "hard_filter": "achievement primary tech_field in demand tech_fields",
+  "labels_path": "data\\processed\\achievements_labeled_v0.1.2.jsonl",
+  "demands_path": "data\\processed\\demands_v0.1.2.jsonl",
+  "profiles_path": "data\\processed\\capability_profiles_v0.1.2.jsonl",
+  "embeddings_path": "data\\processed\\embeddings_v0.1.2.jsonl",
+  "output_path": "data\\processed\\matches_b2_v0.1.2.jsonl",
+  "input_achievements": 300,
+  "input_demands": 100,
+  "profiles_count": 300,
+  "achievements_with_vector": 300,
+  "demands_without_vector": 0,
+  "output_matches": 4052,
+  "git_commit": "af01b75",
+  "args": {
+    "version": "v0.1.2",
+    "labels": null,
+    "demands": null,
+    "profiles": null,
+    "embeddings": null,
+    "output": null,
+    "top_k": null
+  }
+}
