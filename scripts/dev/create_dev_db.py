@@ -9,8 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import psycopg
-
 try:  # direct script execution: python scripts/dev/create_dev_db.py
     from common import (
         DEFAULT_DB_NAME,
@@ -107,6 +105,8 @@ def preflight_hashes(paths: dict[str, Path], zip_path: Path | None) -> dict:
 
 
 def create_database(dsn: str, db_name: str, recreate: bool, allow_non_dev: bool = False) -> None:
+    import psycopg  # lazy import: tests can import this module without DB deps
+
     if recreate and not allow_non_dev and not db_name.startswith("s2_mvp_"):
         raise SystemExit(
             f"refusing to drop non-development database: {db_name} "
