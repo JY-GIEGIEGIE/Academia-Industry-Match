@@ -12,3 +12,7 @@ frontend
 tmp
 **/__pycache__
 *.pyc
+
+# 私密交接包/压缩包不进入 build context
+*.zip
+S-*.zip
