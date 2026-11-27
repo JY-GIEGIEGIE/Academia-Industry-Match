@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from backend.auth import router as auth_router
 from backend.routers.achievements import router as achievements_router
 from backend.routers.demands import router as demands_router
+from backend.routers.matches import router as matches_router
 from backend.routers.pipeline_runs import router as pipeline_runs_router
 from backend.routers.publishing import router as publishing_router
 from backend.routers.tags import router as tags_router
@@ -43,6 +44,7 @@ app.include_router(achievements_router)
 app.include_router(demands_router)
 app.include_router(tags_router)
 app.include_router(taxonomy_router)
+app.include_router(matches_router)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(
