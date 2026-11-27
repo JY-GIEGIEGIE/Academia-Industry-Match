@@ -27,6 +27,8 @@ from backend.routers.achievements import router as achievements_router
 from backend.routers.demands import router as demands_router
 from backend.routers.pipeline_runs import router as pipeline_runs_router
 from backend.routers.publishing import router as publishing_router
+from backend.routers.tags import router as tags_router
+from backend.routers.taxonomy import router as taxonomy_router
 from backend.database import get_db
 
 app = FastAPI(
@@ -39,6 +41,8 @@ app.include_router(publishing_router)
 app.include_router(pipeline_runs_router)
 app.include_router(achievements_router)
 app.include_router(demands_router)
+app.include_router(tags_router)
+app.include_router(taxonomy_router)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(
