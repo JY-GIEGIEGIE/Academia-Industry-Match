@@ -5,15 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "dev:mock": "VITE_API_MODE=mock vite --host 127.0.0.1",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --import tsx --test src/mock/api.test.ts"
+    "test": "node --import tsx --test src/mock/api.test.ts src/api/client.test.ts src/composables/usePipelineRun.test.ts src/utils/display.test.ts src/utils/recommendationsRoute.test.ts"
   },
   "dependencies": {
+    "element-plus": "^2.14.9",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

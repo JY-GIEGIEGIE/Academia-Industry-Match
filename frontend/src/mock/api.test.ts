@@ -95,7 +95,7 @@ test('achievement and demand lists use the contract pagination shape', async () 
     (e) => e instanceof ApiError && e.code === 40001,
   )
 })
-test('both perspectives resolve the same pair and summary does not leak detail fields', async () => {
+test('recommendations for both roles resolve the same pair with summary fields', async () => {
   const pair = fixtures.matches[0]
   const enterprise = await fastApi.getMatches('enterprise', pair.demand_id, { page_size: 20 })
   const research = await fastApi.getMatches('research', pair.achievement_id, { page_size: 20 })

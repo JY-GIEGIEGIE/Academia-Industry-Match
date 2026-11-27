@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { api } from '../mock/api'
-import { catalogReady, label, labels, safeSource } from '../catalog'
+import { api, apiMode } from '../api'
+import { auth } from '../auth'
+import { loadTaxonomy, label, labels, safeSource } from '../catalog'
 import type { Achievement, Demand, Match, RiskDimension } from '../types'
 import Score from '../components/Score.vue'
 import Icon from '../components/Icon.vue'
 import RiskRadar from '../components/RiskRadar.vue'
+import IntentPanel from '../components/IntentPanel.vue'
+import { formatMetricMatched, formatMetricValue, formatSnippetSource } from '../utils/display'
+import { recommendationsRoute } from '../utils/recommendationsRoute'
 const route = useRoute()
+const backToRecommendations = computed(() =>
+  recommendationsRoute(auth.user?.role ?? 'enterprise', route.query),
+)
+const isMock = apiMode === 'mock'
 const busy = ref(true),
   error = ref('')
 const match = ref<Match | null>(null),
@@ -20,7 +28,15 @@ const dimensions: { key: RiskDimension; name: string }[] = [
   { key: 'collaboration', name: '合作风险' },
 ]
 const usableRisk = computed(() => (!match.value?.is_stale ? match.value?.risk : null))
-const usableEvidence = computed(() => (!match.value?.is_stale ? match.value?.evidence : null))
+const usableEvidence = computed(() => {
+  const evidence = match.value?.evidence
+  if (match.value?.is_stale || !evidence) return null
+  return evidence.snippets?.length ||
+    evidence.metric_matches?.length ||
+    evidence.tag_matches?.length
+    ? evidence
+    : null
+})
 let revision = 0
 async function load() {
   const request = ++revision
@@ -28,8 +44,8 @@ async function load() {
   error.value = ''
   match.value = null
   try {
-    await catalogReady
-    const m = await api.getMatch(String(route.params.id || ''))
+    const [m] = await Promise.all([api.getMatch(String(route.params.id || '')), loadTaxonomy()])
+    if (request !== revision) return
     const [a, d] = await Promise.all([
       api.getAchievement(m.data.achievement_summary.achievement_id),
       api.getDemand(m.data.demand_summary.demand_id),
@@ -51,9 +67,7 @@ watch(() => route.params.id, load, { immediate: true })
   <div v-else-if="error" class="empty-state" role="alert">
     <h1>无法显示匹配详情</h1>
     <p>{{ error }}</p>
-    <RouterLink class="primary-button" :to="{ path: '/recommendations', query: route.query }"
-      >返回推荐列表</RouterLink
-    >
+    <RouterLink class="primary-button" :to="backToRecommendations">返回推荐列表</RouterLink>
   </div>
   <article v-else-if="match && achievement && demand" class="detail-page">
     <header class="detail-heading">
@@ -66,19 +80,31 @@ watch(() => route.params.id, load, { immediate: true })
       </div>
       <Score :value="match.total_score" large :stale="match.is_stale" />
     </header>
-    <p class="score-explainer detail-score-note">
-      适配度为演示数值，表示技术适合程度，不代表成功合作的概率。
-    </p>
     <div class="comparison-grid">
       <section class="comparison-column" aria-labelledby="achievement-heading">
         <div class="section-label">
           <h2 id="achievement-heading">科研成果</h2>
           <span class="data-label">真实论文</span>
+          <el-tag
+            v-if="auth.isResearcher && achievement.publisher_user_id === auth.user?.user_id"
+            effect="plain"
+            size="small"
+            disable-transitions
+            >我已发布</el-tag
+          >
+          <el-tag
+            v-if="achievement.review_status === 'needs_review'"
+            type="warning"
+            effect="light"
+            size="small"
+            disable-transitions
+            >待审核/待复核</el-tag
+          >
         </div>
         <h3 class="object-title">{{ achievement.title_original }}</h3>
         <p v-if="achievement.capability_profile_zh">{{ achievement.capability_profile_zh }}</p>
         <p v-if="achievement.capability_profile_zh" class="small-note">
-          中文说明机器生成，原文为准。
+          中文简介由系统生成，以原文为准。
         </p>
         <dl class="facts-grid">
           <div>
@@ -89,16 +115,20 @@ watch(() => route.params.id, load, { immediate: true })
                   'tech_field',
                   achievement.tech_fields.map((t) => t.code),
                 )
-              }}<span class="small-note">（演示分类）</span>
+              }}
             </dd>
           </div>
           <div>
             <dt>技术成熟度</dt>
-            <dd>{{ achievement.trl === null ? '待评估' : label('trl', achievement.trl) }}</dd>
+            <dd>{{ label('trl', achievement.trl) }}</dd>
           </div>
           <div>
             <dt>知识产权</dt>
-            <dd>{{ label('ip_status', achievement.ip_status) }}</dd>
+            <dd>
+              {{
+                achievement.ip_status ? label('ip_status', achievement.ip_status) : '待确认/未知'
+              }}
+            </dd>
           </div>
           <div>
             <dt>发表年份</dt>
@@ -116,7 +146,7 @@ watch(() => route.params.id, load, { immediate: true })
         <details class="source-disclosure">
           <summary>查看原文摘要与来源</summary>
           <p class="abstract-text">{{ achievement.abstract_original || '尚无摘要' }}</p>
-          <p class="small-note">此处为受限摘要样例，完整内容请查看原始来源。</p>
+          <p v-if="isMock" class="small-note">如需完整论文内容，请查看原始来源。</p>
           <a
             v-if="safeSource(achievement.source_url)"
             :href="safeSource(achievement.source_url)"
@@ -132,6 +162,13 @@ watch(() => route.params.id, load, { immediate: true })
         <div class="section-label">
           <h2 id="demand-heading">企业需求</h2>
           <span class="data-label">模拟资料</span>
+          <el-tag
+            v-if="auth.isEnterprise && demand.publisher_user_id === auth.user?.user_id"
+            effect="plain"
+            size="small"
+            disable-transitions
+            >我已发布</el-tag
+          >
         </div>
         <h3 class="object-title">{{ demand.title }}</h3>
         <p>{{ demand.pain_point }}</p>
@@ -193,29 +230,25 @@ watch(() => route.params.id, load, { immediate: true })
         </details>
       </section>
     </div>
+    <IntentPanel :achievement="achievement" :demand="demand" :match-id="match.match_id" />
     <section class="detail-section" aria-labelledby="reason-heading">
       <div class="section-label">
         <h2 id="reason-heading">为什么推荐</h2>
-        <span class="small-note">理由与分析仅用于演示</span>
       </div>
       <p class="detail-reason">
-        {{
-          match.is_stale
-            ? '当前记录已失效，原推荐理由待重算。请等待后续真实匹配结果更新。'
-            : match.reason
-        }}
+        {{ match.is_stale ? '当前配对已失效，需重新计算推荐理由。' : match.reason }}
       </p>
       <template v-if="usableEvidence">
         <div class="evidence-grid">
           <blockquote
-            v-for="snippet in usableEvidence.snippets"
-            :key="snippet.side + snippet.field"
+            v-for="(snippet, idx) in usableEvidence.snippets"
+            :key="snippet.source_ref + '-' + idx"
           >
             <span class="quote-label">{{
               snippet.side === 'achievement' ? '成果原文' : '需求原文'
             }}</span>
             <p>{{ snippet.text }}</p>
-            <cite>{{ snippet.side === 'achievement' ? '来源：论文标题' : '来源：需求痛点' }}</cite>
+            <cite>{{ formatSnippetSource(snippet) }}</cite>
           </blockquote>
         </div>
         <h3 class="subheading">技术指标对照</h3>
@@ -232,34 +265,26 @@ watch(() => route.params.id, load, { immediate: true })
             <tbody>
               <tr v-for="metric in usableEvidence.metric_matches" :key="metric.name">
                 <th scope="row">{{ metric.name }}</th>
-                <td>{{ metric.required_value }} {{ metric.unit }}</td>
+                <td>{{ formatMetricValue(metric.required_value, metric.unit, '未指定') }}</td>
                 <td>
-                  {{
-                    metric.achievement_value === undefined
-                      ? '尚无核查数据'
-                      : metric.achievement_value + ' ' + metric.unit
-                  }}
+                  {{ formatMetricValue(metric.achievement_value, metric.unit, '尚无核查数据') }}
                 </td>
-                <td>
-                  {{
-                    metric.matched === undefined ? '尚未核实' : metric.matched ? '符合' : '不符合'
-                  }}
-                </td>
+                <td>{{ formatMetricMatched(metric.matched) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p v-if="!usableEvidence.metric_matches.length" class="small-note">尚无指标对照资料。</p>
+        <p v-if="!usableEvidence.metric_matches?.length" class="small-note">尚无指标对照资料。</p>
       </template>
       <div v-else class="pending-analysis">
         <Icon name="info" />
         <div>
-          <strong>{{ match.is_stale ? '匹配证据待重算' : '匹配证据待精排/评估' }}</strong>
+          <strong>{{ match.is_stale ? '匹配证据待重算' : '暂无精排证据' }}</strong>
           <p>
             {{
               match.is_stale
-                ? '尚无可用的匹配证据，不将中文说明当作原文依据。'
-                : '当前记录尚未完成精排，暂不提供匹配证据结论。'
+                ? '当前配对已失效，需重新计算匹配证据。'
+                : '精排完成后将在此展示原文摘录与指标对照。'
             }}
           </p>
         </div>
@@ -268,7 +293,6 @@ watch(() => route.params.id, load, { immediate: true })
     <section class="detail-section" aria-labelledby="risk-heading">
       <div class="section-label">
         <h2 id="risk-heading">四项风险</h2>
-        <span class="small-note">风险评估仅用于演示</span>
       </div>
       <div v-if="usableRisk" class="risk-layout">
         <RiskRadar :risk="usableRisk" />
@@ -288,8 +312,8 @@ watch(() => route.params.id, load, { immediate: true })
           <p>
             {{
               match.is_stale
-                ? '尚无有效的四维风险数据，不能据此判断风险低。'
-                : '当前记录尚未完成精排，暂不提供风险结论。'
+                ? '当前配对已失效，需重新评估四维风险。'
+                : '精排完成后将在此展示四维风险评估。'
             }}
           </p>
         </div>
@@ -306,8 +330,8 @@ watch(() => route.params.id, load, { immediate: true })
       <p v-else>
         {{
           match.is_stale
-            ? '分析待重算。当前无法提供基于该配对的综合风险结论。'
-            : '精排尚未完成，当前无法提供基于该配对的综合风险结论。'
+            ? '当前配对已失效，重新计算后将更新综合建议。'
+            : '精排完成后将在此展示综合提醒与规避建议。'
         }}
       </p>
     </section>
@@ -322,16 +346,26 @@ watch(() => route.params.id, load, { immediate: true })
           <dt>标签版本</dt>
           <dd>{{ match.taxonomy_version }}</dd>
         </div>
-        <div>
-          <dt>模型与向量</dt>
-          <dd>未运行，当前为演示记录</dd>
+        <div v-if="isMock">
+          <dt>数据来源</dt>
+          <dd>本地模拟数据</dd>
         </div>
+        <template v-else>
+          <div>
+            <dt>匹配模型</dt>
+            <dd>{{ match.model || '未记录' }}</dd>
+          </div>
+          <div>
+            <dt>提示词版本</dt>
+            <dd>{{ match.prompt_version || '未记录' }}</dd>
+          </div>
+          <div>
+            <dt>向量模型版本</dt>
+            <dd>{{ match.embedding_model_version || '未记录' }}</dd>
+          </div>
+        </template>
       </dl>
-      <p class="small-note">
-        匹配记录：{{ match.match_id }}；分析：{{ match.model }}；提示词版本：{{
-          match.prompt_version
-        }}；向量版本：{{ match.embedding_model_version }}。这些演示标识不能作为正式运行记录。
-      </p>
+      <p class="small-note">匹配记录：{{ match.match_id }}</p>
     </details>
   </article>
 </template>
