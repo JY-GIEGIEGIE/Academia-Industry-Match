@@ -13,6 +13,7 @@
 # ============================================================
 
 import os
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -24,6 +25,13 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set in .env")
+
+database_name = urlparse(DATABASE_URL).path.lstrip("/")
+if not database_name.startswith("s2_mvp_"):
+    raise RuntimeError(
+        "DATABASE_URL must point to an s2_mvp_* development database; "
+        f"got {database_name or '<unknown>'}"
+    )
 
 # SQLAlchemy requires the psycopg driver explicitly.
 if DATABASE_URL.startswith("postgresql://"):
