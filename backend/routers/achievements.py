@@ -1,3 +1,20 @@
+# ============================================================
+# 科研成果查询 API
+#
+# 功能说明：
+# 1. 提供科研成果列表与详情查询接口
+# 2. 支持技术领域、发表年份、TRL 及关键词筛选
+# 3. 支持发布状态筛选（all / unpublished / mine）及分页查询
+# 4. 聚合成果标签、技术成熟度、中文能力画像和抽取结果
+# 5. 保留原始摘要与证据信息，未知 TRL 不得填充为 0
+# 6. 按照数据 API v0.1.2 契约返回标准响应结构
+#
+# 数据来源：achievement、achievement_tag、
+#           achievement_text、achievement_extraction
+# 接口：
+#   GET /api/v1/achievements
+#   GET /api/v1/achievements/{achievement_id}
+# ============================================================
 
 from datetime import datetime
 from typing import Any, Literal

@@ -1,3 +1,19 @@
+# ============================================================
+# FastAPI 应用入口与统一异常处理
+#
+# 功能说明：
+# 1. 创建 FastAPI v0.1.2 应用实例并注册业务路由
+# 2. 集成用户认证、成果与需求发布及查询接口
+# 3. 提供匹配任务状态查询及数据库健康检查
+# 4. 统一处理 HTTP 错误和 Pydantic 参数校验错误
+# 5. 按照数据 API 契约返回 code、message、data 结构
+# 6. 自定义 OpenAPI 文档，规范 422 及认证错误示例
+# 7. 通过 /docs 提供 Swagger 接口测试与联调入口
+#
+# 接口基础路径：/api/v1
+# ============================================================
+
+import logging
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -8,6 +24,7 @@ from sqlalchemy.orm import Session
 
 from backend.auth import router as auth_router
 from backend.routers.achievements import router as achievements_router
+from backend.routers.demands import router as demands_router
 from backend.routers.pipeline_runs import router as pipeline_runs_router
 from backend.routers.publishing import router as publishing_router
 from backend.database import get_db
@@ -21,6 +38,7 @@ app.include_router(auth_router)
 app.include_router(publishing_router)
 app.include_router(pipeline_runs_router)
 app.include_router(achievements_router)
+app.include_router(demands_router)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(
@@ -59,6 +77,31 @@ async def validation_exception_handler(
         content={
             "code": 42201,
             "message": "Validation error",
+            "data": None,
+        },
+    )
+
+
+logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(Exception)
+async def internal_exception_handler(
+    request: Request,
+    exc: Exception,
+):
+    logger.exception(
+        "Unhandled error: %s %s",
+        request.method,
+        request.url.path,
+        exc_info=(type(exc), exc, exc.__traceback__),
+    )
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "code": 50001,
+            "message": "Internal server error",
             "data": None,
         },
     )

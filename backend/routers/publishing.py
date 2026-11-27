@@ -1,3 +1,21 @@
+# ============================================================
+# 科研成果与企业需求发布 API
+#
+# 功能说明：
+# 1. 支持发布数据库中已存在的科研成果和企业技术需求
+# 2. 通过 JWT 认证和角色权限校验限制发布操作
+# 3. 科研人员发布成果，企业用户发布技术需求
+# 4. 保存发布者 ID、发布时间及对应业务状态
+# 5. 防止重复发布，并区分记录不存在与发布冲突
+# 6. 发布成功后通过 Celery 异步触发 S-10 匹配任务
+# 7. 返回 run_id，供前端查询匹配任务状态
+#
+# 数据来源：achievement、demand
+# 异步任务：run_match_for_achievement、run_match_for_demand
+# 接口：
+#   POST /api/v1/achievements
+#   POST /api/v1/demands
+# ============================================================
 
 from typing import Any
 from uuid import uuid4
@@ -7,10 +25,45 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from backend.auth import require_role
+from backend.auth import ErrorResponse, require_role
 from backend.database import get_db
 
 router = APIRouter(prefix="/api/v1", tags=["Publishing"])
+
+CELERY_RETRY_POLICY = {
+    "max_retries": 3,
+    "interval_start": 0,
+    "interval_step": 1,
+    "interval_max": 3,
+}
+
+def error_responses(role_description: str):
+    return {
+        401: {
+            "model": ErrorResponse,
+            "description": "Not authenticated",
+        },
+        403: {
+            "model": ErrorResponse,
+            "description": role_description,
+        },
+        404: {
+            "model": ErrorResponse,
+            "description": "Record not found",
+        },
+        409: {
+            "model": ErrorResponse,
+            "description": "Record already published",
+        },
+        422: {
+            "model": ErrorResponse,
+            "description": "Invalid publication request",
+        },
+        503: {
+            "model": ErrorResponse,
+            "description": "Matching queue unavailable",
+        },
+    }
 
 
 class AchievementPublishRequest(BaseModel):
@@ -143,13 +196,7 @@ def publish_record(
 @router.post(
     "/achievements",
     response_model=AchievementPublishResponse,
-    responses={
-        401: {"description": "Not authenticated"},
-        403: {"description": "Researcher role required"},
-        404: {"description": "Achievement not found"},
-        409: {"description": "Already published"},
-        503: {"description": "Matching queue unavailable"},
-    },
+    responses=error_responses("Researcher role required"),
 )
 def publish_achievement(
     request: AchievementPublishRequest,
@@ -167,9 +214,10 @@ def publish_achievement(
     )
 
     try:
-        run_match_for_achievement.delay(
-            request.achievement_id,
-            run_id,
+        run_match_for_achievement.apply_async(
+            args=[request.achievement_id, run_id],
+            retry=True,
+            retry_policy=CELERY_RETRY_POLICY,
         )
     except Exception:
         raise HTTPException(
@@ -190,13 +238,7 @@ def publish_achievement(
 @router.post(
     "/demands",
     response_model=DemandPublishResponse,
-    responses={
-        401: {"description": "Not authenticated"},
-        403: {"description": "Enterprise role required"},
-        404: {"description": "Demand not found"},
-        409: {"description": "Already published"},
-        503: {"description": "Matching queue unavailable"},
-    },
+    responses=error_responses("Enterprise role required"),
 )
 def publish_demand(
     request: DemandPublishRequest,
@@ -214,9 +256,10 @@ def publish_demand(
     )
 
     try:
-        run_match_for_demand.delay(
-            request.demand_id,
-            run_id,
+        run_match_for_demand.apply_async(
+            args=[request.demand_id, run_id],
+            retry=True,
+            retry_policy=CELERY_RETRY_POLICY,
         )
     except Exception:
         raise HTTPException(

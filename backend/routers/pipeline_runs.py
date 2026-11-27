@@ -1,3 +1,18 @@
+# ============================================================
+# 匹配任务状态查询 API
+#
+# 功能说明：
+# 1. 根据 run_id 查询异步匹配任务的执行状态
+# 2. 返回任务 ID、阶段、状态、开始时间及结束时间
+# 3. 支持 running、success、partial、failed 四种状态
+# 4. 通过 JWT 认证限制未登录用户访问
+# 5. 不向前端暴露内部错误日志及任务配置信息
+# 6. 使用统一 API v0.1.2 响应格式
+#
+# 数据来源：pipeline_run
+# 接口：
+#   GET /api/v1/pipeline-runs/{run_id}
+# ============================================================
 
 from datetime import datetime
 from typing import Literal
