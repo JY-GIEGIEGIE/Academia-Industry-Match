@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from backend.auth import router as auth_router
+from backend.routers.publishing import router as publishing_router
 from backend.database import get_db
 
 app = FastAPI(
@@ -16,6 +17,7 @@ app = FastAPI(
 
 app.include_router(auth_router)
 
+app.include_router(publishing_router)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(
