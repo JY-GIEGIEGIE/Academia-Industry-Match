@@ -1,24 +1,24 @@
-# 数据 API 契约 v0.1
+# 数据 API 契约 v0.1.2
 
 > 项目：技术转化智能匹配与产学研对接系统（课题 7，G04）
-> 版本：v0.1
-> 日期：2026-11-21
-> 状态：v0.1，评审补全版（待 FE/BE 联调确认）
+> 版本：v0.1.2
+> 日期：2026-11-26
+> 状态：接口契约更新草稿（2026-11-26）；已对齐接口按交接约定，待 OpenAPI 与联调验证
 > 负责人：朱柔璇（BE1）
 > 关联文档：`data/spec/data_contract_v0.1.md`、`data/spec/taxonomy_v0.1.md`
 
 ## 0. 文档概述
 
-本文档定义科研成果、企业技术需求、标签及匹配结果的数据 API 接口规范，明确前后端数据交互的字段名称、字段类型、请求参数、响应格式及错误处理规则。
+本文档定义科研成果、企业技术需求、标签、匹配结果、身份认证、发布流程与合作意向的数据 API 接口规范，明确前后端数据交互的字段名称、字段类型、请求参数、响应格式及错误处理规则。
 
-本次冲刺主要完成以下四类 API 的字段定义：
+本契约按以下四类业务数据组织接口，并在相关章节定义认证、发布、匹配任务和合作意向：
 
 1. 科研成果 API（Achievement API）
 2. 企业需求 API（Demand API）
 3. 标签 API（Tag API）
 4. 匹配结果 API（Match API）
 
-本次冲刺不要求完成全部 CRUD 接口、身份认证、实际数据库查询或匹配算法实现。
+接口由 FastAPI 服务实现，并从真实开发库查询业务数据；匹配计算由 Celery 任务执行，不由 API 重复实现匹配算法。运行数据基线为 `v0.1.2`，开发库为 `s2_mvp_20261125`；不得写入冻结验收库 `s08_v012_20261123`。此前定义的字段和响应结构继续有效，新增接口以已对齐约定为基础，并在实现和联调时验证。
 
 ## 1. 设计原则
 
@@ -33,9 +33,7 @@
 
 ### 2.1 API 基础路径
 
-建议统一使用 `/api/v1` 作为 API 基础路径。
-
-本文档中的接口路径、分页方式及通用响应格式为提出的初步设计方案，需与 BE2、FE 评审确认后正式采用。
+统一使用 `/api/v1` 作为 API 基础路径。通用分页、响应格式及错误处理规范适用于以下接口；尚未完成联调的实现细节以最终 OpenAPI 为准。
 
 ### 2.2 通用响应格式
 
@@ -108,6 +106,28 @@
 | 503 | 50301 | 服务暂时不可用 |
 
 
+### 2.5 身份认证
+
+认证接口统一使用 §2.1 的 `/api/v1` 前缀、§2.2 的响应格式和 §2.4 的错误码。请求与响应字段采用 `snake_case`，时间字段使用 ISO 8601。原有 GET 接口保持不变。
+
+| 方法 | 接口路径 | 功能 |
+|---|---|---|
+| POST | `/api/v1/auth/login` | 演示账号登录 |
+| GET | `/api/v1/auth/me` | 获取当前登录用户，需认证 |
+
+`POST /api/v1/auth/login` 请求体为 `{username,password}`，成功响应的 `data` 为 `{token,user}`；`GET /api/v1/auth/me` 的 `data` 为当前 `user`。`user` 对象包含以下字段：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| user_id | string | 用户唯一标识，取自 `app_user.user_id` |
+| username | string | 登录用户名 |
+| role | string | 用户角色：`researcher` / `enterprise` |
+| display_name | string | 展示名称 |
+
+演示账号为 `research_demo`（科研端）和 `enterprise_demo`（企业端）；S-12 种子数据对应的 `user_id` 分别为 `user_research_demo`、`user_enterprise_demo`，实际以数据库记录为准。密码不在接口文档和仓库中明文保存；密码校验与 S-12 种子脚本的 `pbkdf2_sha256$260000$<salt_hex>$<digest_hex>` 格式兼容。
+
+认证方案采用 Bearer JWT：有效期 2 小时；需认证的请求携带 `Authorization: Bearer <token>`；前端将 Token 暂存于 `sessionStorage`，页面刷新后调用 `/auth/me` 恢复用户状态；Token 失效返回 HTTP 401，前端清理登录态。MVP 不提供注册、刷新 Token 或找回密码接口。JWT 有效期与 Token 保存方式以最终前后端联调确认结果为准。
+
 ## 3. 科研成果 API
 
 ### 3.1 接口列表
@@ -116,6 +136,7 @@
 |---|---|---|
 | GET | `/api/v1/achievements` | 获取成果列表 |
 | GET | `/api/v1/achievements/{achievement_id}` | 获取成果详情 |
+| POST | `/api/v1/achievements` | 发布已有科研成果并触发匹配 |
 
 ### 3.2 成果列表接口
 
@@ -134,6 +155,7 @@
 | trl_min | integer | 最低 TRL |
 | trl_max | integer | 最高 TRL |
 | keyword | string | 标题或技术描述关键词 |
+| publication_status | enum(`all`, `unpublished`, `mine`) | 默认 `all`；`unpublished` 为 `publisher_user_id IS NULL`；`mine` 为当前登录用户发布的数据（需认证） |
 
 
 **请求示例：**
@@ -160,6 +182,8 @@
 | application_scenarios | array | 应用场景 code 数组 |
 | is_simulated | boolean | 是否为模拟数据 |
 | dataset_version | string | 数据集版本 |
+| publisher_user_id | string / null | 发布者 `app_user.user_id`；未绑定为 `null` |
+| published_at | string (ISO 8601) / null | 发布时间；未绑定为 `null` |
 
 > `abstract_preview` 只用于列表卡片；详情接口返回完整 `abstract_original`。`tech_fields` / `application_scenarios` 的 code 中文 label 由 `/api/v1/taxonomy` 提供。
 
@@ -226,6 +250,22 @@
 
 注：以上为成果详情示例；列表接口返回 §3.3 的 `achievement_summary` 字段。示例数据仅用于说明响应结构，不代表真实科研成果或实际抽取结果。
 
+### 3.5 成果发布
+
+`POST /api/v1/achievements` 由研究人员发布既有成果并触发匹配。
+
+请求体：
+
+```json
+{"achievement_id":"ach_openalex_W123456","updates":{}}
+```
+
+成功时 `data` 返回 `achievement_id` 和 `run_id`。`run_id` 由发布 API 生成并传给 Celery 任务，具体匹配调用见 §6.7。角色仅允许 `researcher`；发布设置 `publisher_user_id`、`published_at`、`achievement.clean_status='published'`。已被其他用户发布的记录不可重复认领，返回 409。
+
+**发布约束：** 从 v0.1.2 数据池选择已存在的成果，`updates={}`，暂不开放改变抽取、标签、画像或向量的文本编辑；未改文本可复用既有标签和 embedding。后续如允许修改正文，必须接入重新抽取与向量化流程。注意：临时演示绑定脚本仅写发布者和时间，可能仍保留 `clean_status='cleaned'`；真实发布 API 需按发布接口状态约定单独更新。
+
+**列表与详情：** §3.2 新增 `publication_status` 筛选，§3.3 的 `achievement_summary` 及详情均可返回 `publisher_user_id`、`published_at`，用于前端选择未发布记录及跳转到本人已发布成果。上述字段来自 0004 迁移，不新增数据库列。
+
 ## 4. 企业需求 API
 
 ### 4.1 接口列表
@@ -234,6 +274,7 @@
 |---|---|---|
 | GET | `/api/v1/demands` | 获取需求列表 |
 | GET | `/api/v1/demands/{demand_id}` | 获取需求详情 |
+| POST | `/api/v1/demands` | 发布已有企业需求并触发匹配 |
 
 ### 4.2 需求列表筛选参数
 
@@ -246,6 +287,7 @@
 | region | string | 意向地区 |
 | status | string | 需求状态 |
 | cooperation_mode | string | 合作模式 code；匹配 demand.cooperation_modes 包含该 code 的需求 |
+| publication_status | enum(`all`, `unpublished`, `mine`) | 默认 `all`；筛选逻辑与 §3.2 相同，依据 `publisher_user_id`，不以 `demand.status` 代替发布归属 |
 
 筛选规则说明：
 
@@ -274,6 +316,8 @@ required_trl 表示企业需求可接受的最低技术成熟度。API 列表筛
 | is_simulated          | boolean | 是 | 是否为模拟数据   |
 | source_note           | string | 是 | 数据来源说明    |
 | dataset_version       | string | 是 | 数据版本      |
+| publisher_user_id | string / null | 否（可空） | 发布者 `app_user.user_id`，未绑定为 `null` |
+| published_at | string (ISO 8601) / null | 否（可空） | 发布时间，未绑定为 `null` |
 
 **API 聚合展示字段：**
 
@@ -286,7 +330,7 @@ required_trl 表示企业需求可接受的最低技术成熟度。API 列表筛
 | enterprise.industry | string | `enterprise.industry` | 企业行业枚举 code |
 | enterprise.size | string | `enterprise.size` | 企业规模枚举 code：`large` / `medium` / `small` |
 
-`enterprise` 为 API 聚合对象，不属于 `demand` 实体的原始字段，不修改现有数据契约；原 `enterprise_display_name` 由 `enterprise.display_name` 替代，不再单独返回。API 不返回企业真实名称 `legal_name`。兼容性说明：v0.1 初版曾返回 `enterprise_display_name`；本版改为 `enterprise.display_name`，FE 以本版为准。
+`enterprise` 为 API 聚合对象，不属于 `demand` 实体的原始字段，不修改现有数据契约；原 `enterprise_display_name` 由 `enterprise.display_name` 替代，不再单独返回。API 不返回企业真实名称 `legal_name`。兼容性说明：v0.1 初版曾返回 `enterprise_display_name`；本版改为 `enterprise.display_name`，以本版为准。
 
 需求列表和匹配列表中的 `demand_summary` 至少包含：`demand_id`、`enterprise_id`、`title`、`pain_point`、`required_trl`、`tech_fields`、`application_scenarios`、`is_simulated`、`dataset_version` 和 `enterprise`；详情接口返回完整字段。
 
@@ -329,6 +373,20 @@ required_trl 表示企业需求可接受的最低技术成熟度。API 列表筛
 ```
 
 注：以上为需求详情示例；列表接口返回 §4.3 的 `demand_summary` 字段。示例是演示性模拟需求。
+
+### 4.5 需求发布
+
+`POST /api/v1/demands` 由企业用户发布既有需求并触发匹配。
+
+请求体：
+
+```json
+{"demand_id":"dem_005","updates":{}}
+```
+
+成功时 `data` 返回 `demand_id` 和 `run_id`。仅 `enterprise` 角色可发布需求；写入 `publisher_user_id`、`published_at`，设置 `demand.status='active'`，并触发 §6.7 的匹配任务。已有其他发布者时返回 409。MVP 沿用原有记录、`updates={}` 的发布方案；若修改影响标签/向量的文本，须重新处理，不得直接复用失效数据。
+
+ `GET /api/v1/demands` 支持 §4.2 的 `publication_status=all|unpublished|mine` 筛选；需求列表 `demand_summary` 和详情增加 `publisher_user_id`、`published_at`。两字段来自 0004 迁移；企业摘要 `enterprise` 的既定隐私和结构不变。
 
 ## 5. 标签与枚举 API
 
@@ -439,8 +497,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 
 - `region` 对应 taxonomy 中的 `target_region`，`industry` 对应 `target_industry`；API 统一使用 `region` / `industry` 字段名。
 - `dimensions` 必须包含上表全部 11 个维度，每个 `values` 必须覆盖对应枚举全集；只返回 `tech_field` 视为契约未实现。
-- `values` 顺序固定，FE 不应硬编码；`label` 由后端返回，前端不得自行维护中文映射。
-- `taxonomy_version` 必须返回；枚举或 label 变化时升级版本，FE 用它判断缓存是否失效。
+- `values` 顺序固定，前端不应硬编码；`label` 由后端返回，前端不得自行维护中文映射。
+- `taxonomy_version` 必须返回；枚举或 label 变化时升级版本，前端用它判断缓存是否失效。
 - `dimension` 只允许上表中的值，未知值返回 `40001`。
 - `achievement_tag.dimension` 仍只允许 `tech_field`、`application_scenario`、`cooperation_mode` 三个值；其余维度是 API 筛选/展示用枚举，不是标签表的维度。
 
@@ -488,8 +546,9 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | GET | `/api/v1/demands/{demand_id}/matches` | 根据需求获取推荐成果 |
 | GET | `/api/v1/achievements/{achievement_id}/matches` | 根据成果获取适配需求 |
 | GET | `/api/v1/matches/{match_id}` | 获取匹配详情 |
+| GET | `/api/v1/pipeline-runs/{run_id}` | 查询匹配任务状态 |
 
-本冲刺仅定义字段和响应结构，不实现完整匹配引擎。
+匹配查询读取数据库中的 `match_score`；匹配引擎通过异步任务执行，任务状态由 §6.7 规定。
 
 ### 6.2 匹配结果列表查询参数
 
@@ -521,7 +580,6 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | tag_score | number | 是 | 标签分数，0–100 |
 | semantic_score | number | 是 | 语义分数，0–100 |
 | llm_score | number / null | 否 | LLM 精排分数 |
-| risk_overall_score | integer / null | 否 | 列表卡片用的综合风险分，1=低风险，5=高风险；不返回四维详情 |
 | reason | string | 是 | 推荐理由 |
 | achievement_summary | object | 是 | 成果摘要，结构见 §3.3；不含作者/机构 |
 | demand_summary | object | 是 | 需求摘要，结构见 §4.3；含 `enterprise` 对象 |
@@ -531,8 +589,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 说明：
 
 - 列表只返回卡片展示所需字段；完整 `risk`、`evidence`、模型版本信息只在 `GET /api/v1/matches/{match_id}` 详情返回，避免列表响应过大。
-- `achievement_summary` / `demand_summary` 使用 §3.3 / §4.3 的列表字段；FE 一次列表请求即可渲染推荐卡片，不需要 N+1 请求详情。
-- 如果列表需要风险徽标，可在 `achievement_summary` 之外增加轻量 `risk_overall_score`（1—5，可空），但不要返回四维详情。
+- `achievement_summary` / `demand_summary` 使用 §3.3 / §4.3 的列表字段；前端一次列表请求即可渲染推荐卡片，不需要 N+1 请求详情。
+- 本轮列表接口不返回综合风险评分字段；详情接口返回完整四维 `risk`，前端可据此展示风险信息。若后续需要列表风险徽标，应先由后端明确计算规则并更新契约。
 
 ### 6.4 匹配详情字段与 `risk` / `evidence` 结构
 
@@ -542,8 +600,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 |---|---|---|---|
 | risk | object / null | 是 | 四维风险；`is_stale=true` 或未精排时为 `null` |
 | evidence | object / null | 是 | 匹配证据；`is_stale=true` 或未精排时为 `null` |
-| model | string | 是 | 精排模型名称/版本 |
-| prompt_version | string | 是 | 精排 Prompt 版本 |
+| model | string | 是 | 匹配阶段标识：B2 为 `b2`；P1 为 `qwen3.8-flash` |
+| prompt_version | string | 是 | 规则/Prompt 版本：B2 为 `b2-rule-v1`；P1 为 `v0.1` |
 | dataset_version | string | 是 | 数据版本 |
 | taxonomy_version | string | 是 | 标签体系版本 |
 | embedding_model_version | string | 是 | 向量模型版本 |
@@ -777,8 +835,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
         }
       ]
     },
-    "model": "example-reranker",
-    "prompt_version": "example-prompt-v1",
+    "model": "qwen3.8-flash",
+    "prompt_version": "v0.1",
     "dataset_version": "v0.1",
     "taxonomy_version": "v0.1",
     "embedding_model_version": "qwen3.7-text-embedding-flash-1024-v1",
@@ -788,7 +846,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 }
 ```
 
-注：评分、风险、模型版本及其他值均为演示数据，实际取值由匹配引擎和数据库记录确定。`model`、`prompt_version`、`is_stale` 等字段在正式实现时必须使用真实运行记录，不得将示例占位值作为实际匹配结果入库。
+注：评分、风险、模型版本及其他值均为演示数据，实际取值由匹配引擎和数据库记录确定。`model`、`prompt_version`、`is_stale` 等字段在正式实现时必须使用真实运行记录，不能仅依据示例值生成数据库记录。
 
 ### 6.6 版本一致性
 
@@ -802,12 +860,90 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 
 `total_score` 表示技术适配度，不代表合作成交概率。
 
+### 6.7 匹配任务与运行状态
+
+匹配查询采用 §6.1 的双向 GET 接口和 §6.3–§6.5 的风险/证据结构；实际匹配结果以 `match_score` 表为准，使用 `match_id = match_{demand_id}_{achievement_id}`，同一成果—需求 pair 在两端使用相同的 `match_id`、评分和详情。
+
+`GET /api/v1/pipeline-runs/{run_id}` 成功返回 `data` 字段：`run_id`、`stage`、`status`、`started_at`、`finished_at`；`stage='match'`。本轮不公开 `error`、`input_count`、`output_count`，异常详情以服务端日志排查；未定义进度百分比。已确认状态及语义：
+
+| status | 语义 |
+|---|---|
+| `running` | 执行中，`finished_at=null` |
+| `success` | B2 与 P1 全部完成 |
+| `partial` | B2 完成，至少一条 P1 失败回退 |
+| `failed` | B2 执行异常 |
+
+**任务调用约定：** Celery app `backend.worker:celery_app`；函数位于 `backend/tasks.py`：
+
+```python
+from backend.tasks import run_match_for_achievement, run_match_for_demand
+
+run_match_for_achievement.delay(achievement_id, run_id)
+run_match_for_demand.delay(demand_id, run_id)
+```
+
+其中 `run_id` 由 S-11 发布 API 生成并传入，任务内部创建/更新 `pipeline_run` 记录，结果写入 `match_score`。API 返回业务 `run_id` 供前端轮询，而不是 Celery task id；发布后应在数据库事务提交后再入队。S-10 任务内通过 `match_id` 查重和 `ON CONFLICT DO NOTHING` 防止重复插入。
+
+**匹配值及版本（v0.1.2）：** `total_score`、`tag_score`、`semantic_score` 均为 0–100；B2 阶段 `total_score=semantic_score`、`tag_score=100`；`llm_score=null`；B2 时 `model='b2'`、`prompt_version='b2-rule-v1'`、`risk=null`、`evidence=null`；P1 成功后填充 `risk`、`evidence`，并记录 `model='qwen3.8-flash'`、`prompt_version='v0.1'`。实际结果的 `dataset_version='v0.1.2'`、`taxonomy_version='v0.1'`、`embedding_model_version='qwen3.7-text-embedding-flash-1024-v1'`。风险四维、证据字段和 1–5 风险刻度遵循 §6.4。
+
+**空值与审核状态规则：** `trl=null` 保留，不改为 0；缺失应用场景不补造；`needs_review` 原样保留，不视作审核通过；B2 回退时 `risk/evidence=null`，不得伪造精排风险或证据。前端显示：TRL「待评估」、场景「待确认/未知」、审核「待审核/待复核」、未精排风险「待精排/评估」、无证据「暂无精排证据」。如 `is_stale=true`，按 §6.4 的原约定显示「待重算」，不能误标为普通未精排。
+
+**数据与部署依赖：** 匹配联调使用 `matches_p1_v0.1.2.jsonl` 的 20 条 P1 样例。数据库使用 `s2_mvp_20261125`；0003 迁移要求 `risk`、`evidence` 可空，并提供双方 Top-K 索引。`model`、`prompt_version` 在匹配结果中均为必填字符串，0003 迁移仅将 `risk`、`evidence` 改为可空；最终 S-10 包中的 4052 条 B2 记录采用 `b2` / `b2-rule-v1`。任务状态查询建议：每 2 秒轮询，60 秒后仍运行则显示处理提示，不把尚未完成的任务当成失败。由于任务内部创建 `pipeline_run`，发布后极短时间尚未出现记录的处理需由接口联调明确，不改变已确认状态枚举。
+
+### 6.8 合作意向 API
+
+相关数据由 `0004_users_publish_intent.sql` 建表，`intent` 对 `(achievement_id,demand_id)` 设唯一约束；状态为 `expressed`、`confirmed`、`declined`、`closed`。以下新增接口遵守 §2 的统一 JSON 与错误格式。
+
+| 方法 | 接口路径 | 功能 |
+|---|---|---|
+| POST | `/api/v1/intents` | 表达合作意向 |
+| GET | `/api/v1/intents` | 分页查询当前用户有权查看的意向 |
+| POST | `/api/v1/intents/{id}/confirm` | 非发起方确认意向 |
+| POST | `/api/v1/intents/{id}/decline` | 非发起方拒绝意向（本轮可选，非冻结核心接口） |
+| GET | `/api/v1/intents/{id}/contact` | 确认后获取 mock 联系方式 |
+
+**POST `/intents`**：请求 `{achievement_id,demand_id}`，`initiator_user_id` 从认证用户确定而非由前端传递。成功返回 `intent_id`、`achievement_id`、`demand_id`、`initiator_user_id`、`status='expressed'`、`contact_revealed=false`；重复 pair 返回 HTTP 409。仅相关发布者可发起。
+
+**GET `/intents` 筛选参数：**
+
+| 参数 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `page` | integer | 1 | 分页；沿用 §2.3 |
+| `page_size` | integer | 20 | 最大建议 100 |
+| `status` | enum / null | 无 | 可按 `expressed/confirmed/declined/closed` 筛选 |
+| `achievement_id` | string / null | 无 | 按成果 ID 筛选 |
+| `demand_id` | string / null | 无 | 按需求 ID 筛选 |
+
+`achievement_id` 与 `demand_id` 可独立使用，两个同时出现时使用 AND 条件。仍先校验登录用户的意向访问权限，不允许通过 ID 筛选绕过授权。返回第 2.3 节的 `{items,pagination}`，`items[]` 至少包括：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `intent_id` | string | 意向 ID |
+| `achievement_id` | string | 成果 ID |
+| `demand_id` | string | 需求 ID |
+| `initiator_user_id` | string | 发起用户 ID |
+| `status` | string | 意向状态 |
+| `contact_revealed` | boolean | 是否可查看演示联系方式 |
+| `created_at` | string (ISO 8601) | 创建时间 |
+| `updated_at` | string (ISO 8601) | 更新时间 |
+| `match_id` | string | 关联的匹配 ID，遵守 §6.7 的 pair 规则 |
+| `achievement_title` | string | 从 `achievement.title_original` 关联取得 |
+| `demand_title` | string | 从 `demand.title` 关联取得 |
+
+`match_id`、`achievement_title`、`demand_title` 为 API 聚合展示字段，使用关联查询或既定 pair 规则生成，不在 `intent` 表新增列。示例：`GET /api/v1/intents?achievement_id=ach_openalex_W123456&demand_id=dem_005`。
+
+**POST `/intents/{id}/confirm`**：仅相关的非发起方可将 `expressed` 确认为 `confirmed`，同一次持久化更新中设置 `contact_revealed=true`；返回 `intent_id`、`status`、`contact_revealed`。
+
+**POST `/intents/{id}/decline`**（本轮可选）：意向拒绝接口；仅相关的非发起方可拒绝 `expressed`，设置 `status='declined'`、`contact_revealed=false`，非法状态转换返回 409。该接口不属于本轮冻结的 S-11 核心接口；如开发时间不足可暂不实现，不影响表达、查询、确认、联系方式等核心流程；若实现则不改变 `intent` 表已批准的状态枚举。
+
+**GET `/intents/{id}/contact`**：仅 `status='confirmed'`、`contact_revealed=true`，且当前用户为相关方时返回 `{intent_id,is_mock:true,email,phone}` 的演示数据；未确认或越权返回 403，不返回真实联系人信息，前端标注「演示联系方式」。
+
 ## 7. 数据安全与隐私
 
 ### 7.1 企业信息保护
 
 - 对外只返回 `display_name`，不返回 `legal_name`。
-- 不采集或展示联系人电话、电子邮箱、微信等个人信息。
+- 不采集或展示真实联系人的电话、电子邮箱、微信等个人信息；已确认意向仅可按 §6.8 返回明确标识 `is_mock=true` 的演示联系方式。
 - 模拟需求与企业必须带有 `is_simulated=true`。
 - 前端应明确显示“模拟数据”标识。
 
@@ -828,4 +964,4 @@ OpenAlex 元数据可以用于项目，但科研摘要可能受出版商版权�
 | 版本 | 变更内容 | 负责人 |
 |---|---|---|
 | v0.1 | 初版：成果、需求、标签、匹配结果 API 字段契约及通用接口规范 | 朱柔璇 |
-| v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇（原稿）、贾越（评审补全） |
+| v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇（原稿）、贾越（评审补全） || v0.1.2（2026-11-26，S-11 补充） | 保留原章节及已审核字段；按 S-12/S-10/S-14 交接补充认证、发布、Celery 状态、合作意向及空值规则；纳入 FE 追加的发布者信息和意向筛选/标题字段；按最终 S-10 包修正 B2 `model=b2`、`prompt_version=b2-rule-v1`，P1 `model=qwen3.8-flash`、`prompt_version=v0.1`；简化任务状态响应、移除未定义的列表综合风险分并标注拒绝意向接口为可选 | 朱柔璇（BE1）         |
