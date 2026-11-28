@@ -1,24 +1,9 @@
 import { createApp } from 'vue'
-import { createRouter, createWebHashHistory } from 'vue-router'
+import ElementPlus from 'element-plus'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
-import Recommendations from './views/Recommendations.vue'
-import MatchDetail from './views/MatchDetail.vue'
+import { router } from './router'
+import 'element-plus/dist/index.css'
 import './style.css'
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [
-    { path: '/', redirect: '/recommendations' },
-    { path: '/recommendations', component: Recommendations },
-    { path: '/matches/:id', component: MatchDetail },
-    { path: '/:pathMatch(.*)*', component: MatchDetail },
-  ],
-  scrollBehavior(to, from, saved) {
-    if (saved) return saved
-    if (to.path === from.path) return false
-    return { top: 0 }
-  },
-})
-router.afterEach((to) => {
-  document.title = (to.path.startsWith('/matches/') ? '匹配详情' : '为你推荐') + ' · 产学研对接'
-})
-createApp(App).use(router).mount('#app')
+
+createApp(App).use(ElementPlus, { locale: zhCn }).use(router).mount('#app')

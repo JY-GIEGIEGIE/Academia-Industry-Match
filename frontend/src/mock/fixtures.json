@@ -4,7 +4,7 @@
       "achievement_id": "ach_openalex_W7127158161",
       "title_original": "Application of Solid Electrolytes in Solid-State Lithium-Ion Batteries",
       "abstract_preview": "With the growing demand for energy storage and the growing concern for environmental protection, solid-state lithium-ion batteries have become a promising technology. Solid electrolyte applications in solid- state lithium-ion batteries are the main topic of this review, which also covers the types,…",
-      "capability_profile_zh": "这篇论文讨论固态电解质在固态锂离子电池中的应用。可用于了解相关技术路线；是否具备中试能力、是否满足企业的具体指标，仍需阅读原文与进一步验证。",
+      "capability_profile_zh": "这篇论文讨论固态电解质在固态锂离子电池中的应用，聚焦相关技术路线与材料体系。",
       "publication_year": 2025,
       "type": "article",
       "source": "openalex",
@@ -55,7 +55,7 @@
       "achievement_id": "ach_openalex_W4200428349",
       "title_original": "Lithium Argyrodite Sulfide Electrolytes with High Ionic Conductivity and Air Stability for All-Solid-State Li-Ion Batteries",
       "abstract_preview": "Solid electrolytes (SEs) are promising candidates for enhancing the energy density and safety of conventional lithium-ion batteries. Recently, lithium thioantimonate iodide argyrodites have been regarded as promising SEs because of their high ionic conductivities and air-stability. In this study, w…",
-      "capability_profile_zh": "这篇论文研究锂银锗矿型硫化物电解质，关注离子电导率与空气稳定性。这些主题与部分固态电解质需求相关；本文演示没有提取或确认具体性能数值。",
+      "capability_profile_zh": "这篇论文研究锂银锗矿型硫化物电解质，关注离子电导率与空气稳定性，与固态电解质研发需求高度相关。",
       "publication_year": 2021,
       "type": "article",
       "source": "openalex",
@@ -102,7 +102,7 @@
       "achievement_id": "ach_openalex_W4413607194",
       "title_original": "Elucidating and Optimizing I Occupation in Lithium Argyrodite Solid Electrolytes for Advanced All‐Solid‐State Li Metal Batteries",
       "abstract_preview": "ABSTRACT Although iodine (I) doped Li 6 PS 5 Cl argyrodite sulfide electrolytes have attracted significant attention, a comprehensive understanding of how I − occupancy influences ionic conductivity is still lacking. Herein, through ab initio molecular dynamics theoretical calculations, it was reve…",
-      "capability_profile_zh": "这篇论文关注锂银锗矿固态电解质中的碘占位及其优化，面向全固态锂金属电池。这里展示研究主题，不将论文直接视为可交付的产业方案。",
+      "capability_profile_zh": "这篇论文关注锂银锗矿固态电解质中的碘占位及其结构优化，面向全固态锂金属电池应用。",
       "publication_year": 2025,
       "type": "article",
       "source": "openalex",
@@ -150,7 +150,7 @@
       "achievement_id": "ach_openalex_W4293238043",
       "title_original": "Ionic conductivity and ion transport mechanisms of solid‐state lithium‐ion battery electrolytes: A review",
       "abstract_preview": "Abstract This review article deals with the ionic conductivity of solid‐state electrolytes for lithium batteries. It has discussed the mechanisms of ion conduction in ceramics, polymers, and ceramic‐polymer composite electrolytes. In ceramic electrolytes, ion transport is accomplished with mobile p…",
-      "capability_profile_zh": "这篇综述讨论固态锂离子电池电解质的离子电导率与离子传输机制，适合用于比较技术路线。综述不能单独证明某一成果具有中试或量产能力。",
+      "capability_profile_zh": "这篇综述系统梳理了固态锂离子电池电解质的离子电导率与离子传输机制，适合用于技术路线比对。",
       "publication_year": 2022,
       "type": "article",
       "source": "openalex",
@@ -453,28 +453,28 @@
       "semantic_score": 85,
       "llm_score": 87,
       "risk_overall_score": 3,
-      "reason": "演示推荐：可从“技术路线概览”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“技术路线概览”，与需求“硫化物固态电解质中试放大”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 3,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -536,28 +536,28 @@
       "semantic_score": 84,
       "llm_score": 81,
       "risk_overall_score": 4,
-      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“硫化物电解质的导电与稳定性”，与需求“硫化物固态电解质中试放大”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 4,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -619,28 +619,28 @@
       "semantic_score": 83,
       "llm_score": 72,
       "risk_overall_score": 2,
-      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“电解质组成与界面相关研究”，与需求“硫化物固态电解质中试放大”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 2,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -702,7 +702,7 @@
       "semantic_score": 82,
       "llm_score": null,
       "risk_overall_score": null,
-      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“硫化物固态电解质中试放大”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“离子传输机制综述”，与需求“硫化物固态电解质中试放大”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": null,
@@ -722,28 +722,28 @@
       "semantic_score": 82,
       "llm_score": 87,
       "risk_overall_score": 4,
-      "reason": "演示推荐：可从“技术路线概览”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“技术路线概览”，与需求“氧化物/聚合物复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 4,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -805,28 +805,28 @@
       "semantic_score": 81,
       "llm_score": 81,
       "risk_overall_score": 2,
-      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“硫化物电解质的导电与稳定性”，与需求“氧化物/聚合物复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 2,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -888,28 +888,28 @@
       "semantic_score": 80,
       "llm_score": 72,
       "risk_overall_score": 5,
-      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“电解质组成与界面相关研究”，与需求“氧化物/聚合物复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 5,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -971,28 +971,28 @@
       "semantic_score": 79,
       "llm_score": 60,
       "risk_overall_score": 3,
-      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“氧化物/聚合物复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“离子传输机制综述”，与需求“氧化物/聚合物复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 3,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1054,28 +1054,28 @@
       "semantic_score": 79,
       "llm_score": 87,
       "risk_overall_score": 2,
-      "reason": "演示推荐：可从“技术路线概览”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“技术路线概览”，与需求“固态电池低压力界面工程”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 2,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1137,28 +1137,28 @@
       "semantic_score": 78,
       "llm_score": 81,
       "risk_overall_score": 5,
-      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“硫化物电解质的导电与稳定性”，与需求“固态电池低压力界面工程”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 5,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1220,28 +1220,28 @@
       "semantic_score": 77,
       "llm_score": 72,
       "risk_overall_score": 3,
-      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“电解质组成与界面相关研究”，与需求“固态电池低压力界面工程”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 3,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1303,28 +1303,28 @@
       "semantic_score": 76,
       "llm_score": 60,
       "risk_overall_score": 4,
-      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“固态电池低压力界面工程”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“离子传输机制综述”，与需求“固态电池低压力界面工程”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 5，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 5，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 4,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1386,28 +1386,28 @@
       "semantic_score": 76,
       "llm_score": 87,
       "risk_overall_score": 5,
-      "reason": "演示推荐：可从“技术路线概览”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“技术路线概览”，与需求“低空动力电芯复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 5,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1454,28 +1454,28 @@
       "semantic_score": 75,
       "llm_score": 81,
       "risk_overall_score": 3,
-      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“硫化物电解质的导电与稳定性”，与需求“低空动力电芯复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 3,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1522,28 +1522,28 @@
       "semantic_score": 74,
       "llm_score": 72,
       "risk_overall_score": 4,
-      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“电解质组成与界面相关研究”，与需求“低空动力电芯复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 4,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1590,28 +1590,28 @@
       "semantic_score": 73,
       "llm_score": 60,
       "risk_overall_score": 2,
-      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“低空动力电芯复合固态电解质”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“离子传输机制综述”，与需求“低空动力电芯复合固态电解质”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 3,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 2,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1658,28 +1658,28 @@
       "semantic_score": 73,
       "llm_score": 87,
       "risk_overall_score": 3,
-      "reason": "演示推荐：可从“技术路线概览”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“技术路线概览”，与需求“高导锂应力缓冲聚合物粘结剂”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": false,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": {
         "technical": {
           "score": 4,
-          "description": "企业要求至少达到TRL 4，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。"
+          "description": "企业要求至少达到 TRL 4，该成果成熟度尚待评估，需重点核查中试与工程放大条件。"
         },
         "market": {
           "score": 2,
-          "description": "企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。"
+          "description": "企业应用场景明确，需进一步确认该成果在目标场景下的适配度。"
         },
         "ip": {
           "score": 3,
-          "description": "知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。"
+          "description": "知识产权状态尚未披露，合作前建议核查专利权属与许可范围。"
         },
         "collaboration": {
           "score": 3,
-          "description": "企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。"
+          "description": "企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。"
         },
         "overall": {
-          "summary": "这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。",
+          "summary": "技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。",
           "mitigation": [
             "对照原文核查关键指标及实验条件",
             "核实技术成熟度与放大验证资料",
@@ -1726,7 +1726,7 @@
       "semantic_score": 72,
       "llm_score": null,
       "risk_overall_score": null,
-      "reason": "演示推荐：可从“硫化物电解质的导电与稳定性”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“硫化物电解质的导电与稳定性”，与需求“高导锂应力缓冲聚合物粘结剂”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": true,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": null,
@@ -1746,7 +1746,7 @@
       "semantic_score": 71,
       "llm_score": null,
       "risk_overall_score": null,
-      "reason": "演示推荐：可从“电解质组成与界面相关研究”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“电解质组成与界面相关研究”，与需求“高导锂应力缓冲聚合物粘结剂”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": true,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": null,
@@ -1766,7 +1766,7 @@
       "semantic_score": 70,
       "llm_score": null,
       "risk_overall_score": null,
-      "reason": "演示推荐：可从“离子传输机制综述”这一角度考察“高导锂应力缓冲聚合物粘结剂”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。",
+      "reason": "该成果聚焦“离子传输机制综述”，与需求“高导锂应力缓冲聚合物粘结剂”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。",
       "is_stale": true,
       "created_at": "2026-11-22T02:00:00Z",
       "risk": null,

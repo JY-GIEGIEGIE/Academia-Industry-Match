@@ -9,6 +9,43 @@
   --muted: #637489;
   --line: #dde5ee;
   --accent: #197b6a;
+  --el-font-family: 'Microsoft YaHei UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --el-color-primary: #197b6a;
+  --el-color-primary-light-3: #237e6f;
+  --el-color-primary-light-5: #8cbaaf;
+  --el-color-primary-light-7: #b9d7cf;
+  --el-color-primary-light-8: #d0e5df;
+  --el-color-primary-light-9: #edf5f2;
+  --el-color-primary-dark-2: #145f53;
+  --el-color-success: #197b6a;
+  --el-color-success-light-8: #d0e5df;
+  --el-color-success-light-9: #edf5f2;
+  --el-color-warning: #865610;
+  --el-color-warning-light-8: #eedbbd;
+  --el-color-warning-light-9: #faf3e6;
+  --el-color-danger: #a13535;
+  --el-color-danger-light-8: #f1d5d5;
+  --el-color-danger-light-9: #fbefef;
+  --el-color-info: #637489;
+  --el-color-info-light-8: #dde5ee;
+  --el-color-info-light-9: #f4f7fa;
+  --el-text-color-primary: #20364f;
+  --el-text-color-regular: #20364f;
+  --el-text-color-secondary: #637489;
+  --el-text-color-placeholder: #637489;
+  --el-border-color: #dde5ee;
+  --el-border-color-light: #dde5ee;
+  --el-border-color-lighter: #e8edf3;
+  --el-border-color-extra-light: #f4f7fa;
+  --el-border-color-hover: #9aabbd;
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f4f7fa;
+  --el-fill-color: #f4f7fa;
+  --el-fill-color-light: #f4f7fa;
+  --el-fill-color-lighter: #f4f7fa;
+  --el-fill-color-blank: #ffffff;
+  --el-border-radius-base: 4px;
+  --el-box-shadow-light: 0 0 0 1px var(--line);
   font-size: 15px;
   line-height: 1.75;
   -webkit-font-smoothing: antialiased;
@@ -24,7 +61,7 @@ a {
   color: inherit;
   text-decoration: none;
 }
-button,
+button:not(.el-button),
 select {
   font: inherit;
 }
@@ -34,14 +71,14 @@ summary,
 select {
   -webkit-tap-highlight-color: transparent;
 }
-button,
+button:not(.el-button),
 select {
   color: var(--ink);
 }
 button {
   cursor: pointer;
 }
-button:disabled {
+button:disabled:not(.el-button, .btn-prev, .btn-next) {
   cursor: default;
   opacity: 0.42;
 }
@@ -115,27 +152,62 @@ h4 {
   font-weight: 700;
   font-size: 23px;
   letter-spacing: -0.8px;
+  white-space: nowrap;
 }
-.perspective-tabs {
+.primary-nav {
   display: flex;
-  background: #f4f7fa;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 4px;
-  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-inline: auto;
 }
-.perspective-tabs button {
-  border: 0;
-  background: transparent;
-  padding: 7px 23px;
-  font-size: 14px;
+.primary-nav a {
+  padding: 6px 10px;
   border-radius: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  white-space: nowrap;
 }
-.perspective-tabs button.active {
+.primary-nav a:hover,
+.primary-nav .router-link-active,
+.primary-nav .nav-active {
   color: var(--accent);
-  background: #fff;
-  font-weight: 600;
-  box-shadow: 0 1px 3px #20364f10;
+  background: var(--el-color-primary-light-9);
+}
+.header-user {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  min-width: 0;
+}
+.header-user-name {
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-user .role-badge {
+  --el-tag-text-color: var(--accent);
+}
+.tool-panel {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background-color: var(--surface);
+}
+.tool-panel .el-alert--info.is-light {
+  color: var(--ink);
+}
+.tool-panel .el-pagination {
+  --el-pagination-border-radius: 4px;
+  --el-pagination-item-gap: 4px;
+}
+.tool-panel .el-button:focus-visible,
+.header-user .el-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .page-shell {
   max-width: 1280px;
@@ -177,7 +249,10 @@ h4 {
   padding: 24px;
 }
 .context-panel h2 {
-  margin-bottom: 22px;
+  margin-bottom: 6px;
+}
+.context-intro {
+  margin-bottom: 16px;
 }
 .field-label {
   display: block;
@@ -503,6 +578,8 @@ dd {
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
 }
 .detail-heading p {
   color: var(--muted);
@@ -763,6 +840,9 @@ td {
     padding-left: 24px;
     padding-right: 24px;
   }
+  .header-inner {
+    gap: 12px;
+  }
   .recommendation-layout {
     grid-template-columns: 245px minmax(0, 1fr);
     gap: 20px;
@@ -784,16 +864,28 @@ td {
 }
 @media (max-width: 760px) {
   .header-inner {
-    min-height: 68px;
-    padding: 0 18px;
-    gap: 12px;
+    padding: 12px 18px;
+    gap: 10px 12px;
+    flex-wrap: wrap;
   }
   .brand {
     font-size: 20px;
   }
-  .perspective-tabs button {
-    padding: 6px 14px;
-    font-size: 13px;
+  .header-user {
+    margin-left: auto;
+  }
+  .primary-nav {
+    margin-inline: 0;
+    order: 1;
+  }
+  .primary-nav a {
+    padding-inline: 7px;
+  }
+  .header-inner .back-link {
+    order: 2;
+  }
+  .tool-panel {
+    padding: 16px;
   }
   .page-shell {
     padding: 18px 16px 0;
@@ -835,7 +927,7 @@ td {
     display: block;
   }
   .context-content h2 {
-    display: none;
+    font-size: 17px;
   }
   .context-summary {
     padding-top: 17px;

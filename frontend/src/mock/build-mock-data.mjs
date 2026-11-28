@@ -32,10 +32,10 @@ const allAchievements = load('achievements_clean_v0.1.jsonl')
 const allDemands = load('demands_v0.1.jsonl')
 const enterprises = load('enterprises_v0.1.jsonl')
 const profiles = [
-  '这篇论文讨论固态电解质在固态锂离子电池中的应用。可用于了解相关技术路线；是否具备中试能力、是否满足企业的具体指标，仍需阅读原文与进一步验证。',
-  '这篇论文研究锂银锗矿型硫化物电解质，关注离子电导率与空气稳定性。这些主题与部分固态电解质需求相关；本文演示没有提取或确认具体性能数值。',
-  '这篇论文关注锂银锗矿固态电解质中的碘占位及其优化，面向全固态锂金属电池。这里展示研究主题，不将论文直接视为可交付的产业方案。',
-  '这篇综述讨论固态锂离子电池电解质的离子电导率与离子传输机制，适合用于比较技术路线。综述不能单独证明某一成果具有中试或量产能力。',
+  '这篇论文讨论固态电解质在固态锂离子电池中的应用，聚焦相关技术路线与材料体系。',
+  '这篇论文研究锂银锗矿型硫化物电解质，关注离子电导率与空气稳定性，与固态电解质研发需求高度相关。',
+  '这篇论文关注锂银锗矿固态电解质中的碘占位及其结构优化，面向全固态锂金属电池应用。',
+  '这篇综述系统梳理了固态锂离子电池电解质的离子电导率与离子传输机制，适合用于技术路线比对。',
 ]
 const clip = (text, max) => (text && text.length > max ? text.slice(0, max - 1) + '…' : text)
 const achievementIds = [
@@ -287,11 +287,11 @@ const matches = demands.flatMap((d, di) =>
       llm_score: pending || stale ? null : scores[ai] - 5,
       risk_overall_score: pending || stale ? null : overall,
       reason:
-        '演示推荐：可从“' +
+        '该成果聚焦“' +
         angle +
-        '”这一角度考察“' +
+        '”，与需求“' +
         d.title +
-        '”。研究主题相关不等于指标已达标，具体适配性仍需核查原文与验证条件。',
+        '”技术方向契合，建议结合原文进一步核查关键性能指标与中试条件。',
       is_stale: stale,
       created_at: '2026-11-22T02:00:00Z',
       risk:
@@ -301,27 +301,25 @@ const matches = demands.flatMap((d, di) =>
               technical: {
                 score: 4,
                 description:
-                  '企业要求至少达到TRL ' +
+                  '企业要求至少达到 TRL ' +
                   d.required_trl +
-                  '，论文的技术成熟度尚未评估；需要验证中试与放大条件。本风险分仅为演示。',
+                  '，该成果成熟度尚待评估，需重点核查中试与工程放大条件。',
               },
               market: {
                 score: 2 + (di % 2),
-                description:
-                  '企业的应用要求已记录，但论文成果是否适用于该场景尚未核查。本风险分仅为演示。',
+                description: '企业应用场景明确，需进一步确认该成果在目标场景下的适配度。',
               },
               ip: {
                 score: 3,
-                description: '知识产权状态未知，尚未取得专利权属与许可范围资料。本风险分仅为演示。',
+                description: '知识产权状态尚未披露，合作前建议核查专利权属与许可范围。',
               },
               collaboration: {
                 score: overall,
-                description:
-                  '企业提出了合作方式偏好，成果方的可投入资源和合作条件未确认。本风险分仅为演示。',
+                description: '企业已明确合作方式偏好，建议进一步对接研发资源与合作条件。',
               },
               overall: {
                 summary:
-                  '这些研究主题可用于进一步讨论；现有资料不足以确认技术指标、中试条件及权属，演示分数不作为合作决策依据。',
+                  '技术方向具备进一步探讨价值，主要关注点在于关键性能指标核验、中试放大条件及知识产权归属。',
                 mitigation: [
                   '对照原文核查关键指标及实验条件',
                   '核实技术成熟度与放大验证资料',

@@ -14,7 +14,7 @@
     "demands": 5,
     "matches": 20
   },
-  "hash": "741b7efde14fa67dd56c985227c66b275a289f0ef0da447cf3274d2468ad5ca2",
+  "hash": "e2e5627bf852f021c4cbacb2b62f6d2ec7ecb6695fe52169a65aa02b38b141e5",
   "notes": [
     "Whitelist fields only; no authors, institutions, legal names, contacts or raw snapshots.",
     "Abstract excerpt <=600 characters; list preview <=300. Full abstracts stay outside this project.",

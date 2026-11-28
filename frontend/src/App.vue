@@ -1,49 +1,90 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { apiMode } from './api'
+import { auth, logout } from './auth'
 import Icon from './components/Icon.vue'
+import { recommendationsRoute } from './utils/recommendationsRoute'
+
 const route = useRoute(),
   router = useRouter()
-function switchView(view: string) {
-  router.push({ path: '/recommendations', query: { view } })
+const showNavigation = computed(() => auth.isAuthenticated && route.name !== 'login')
+const recommendations = computed(() => recommendationsRoute(auth.user?.role ?? 'enterprise'))
+const backToRecommendations = computed(() =>
+  recommendationsRoute(auth.user?.role ?? 'enterprise', route.query),
+)
+const publishLabel = computed(() => (auth.isResearcher ? '发布成果' : '发布需求'))
+const publishActive = computed(
+  () => route.path === '/publish' || route.path.startsWith('/publish/'),
+)
+const showAchievementFooter = computed(
+  () =>
+    showNavigation.value &&
+    (route.path === '/recommendations' ||
+      route.name === 'match-detail' ||
+      ((route.name === 'publish' || route.name === 'publish-achievement') && auth.isResearcher)),
+)
+
+function signOut() {
+  logout()
+  void router.replace({ name: 'login' })
+}
+function skipToContent() {
+  document.getElementById('main-content')?.focus()
 }
 </script>
 <template>
-  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <a class="skip-link" href="#main-content" @click.prevent="skipToContent">跳到主要内容</a>
   <header class="app-header">
     <div class="header-inner">
-      <RouterLink class="brand" :to="{ path: '/recommendations', query: route.query }"
-        >产学研对接</RouterLink
-      >
-      <nav v-if="route.path === '/recommendations'" class="perspective-tabs" aria-label="使用视角">
-        <button
-          :aria-pressed="route.query.view !== 'research'"
-          :class="{ active: route.query.view !== 'research' }"
-          @click="switchView('enterprise')"
+      <RouterLink class="brand" :to="showNavigation ? recommendations : { name: 'login' }">
+        产学研对接
+      </RouterLink>
+      <template v-if="showNavigation">
+        <nav class="primary-nav" aria-label="主导航">
+          <RouterLink :to="route.path === '/recommendations' ? route.fullPath : recommendations">
+            为你推荐
+          </RouterLink>
+          <RouterLink
+            to="/publish"
+            :class="{ 'nav-active': publishActive }"
+            :aria-current="publishActive ? 'page' : undefined"
+          >
+            {{ publishLabel }}
+          </RouterLink>
+          <RouterLink to="/intents">合作意向</RouterLink>
+        </nav>
+        <RouterLink
+          v-if="route.name === 'match-detail'"
+          class="back-link"
+          :to="backToRecommendations"
         >
-          企业端
-        </button>
-        <button
-          :aria-pressed="route.query.view === 'research'"
-          :class="{ active: route.query.view === 'research' }"
-          @click="switchView('research')"
-        >
-          科研端
-        </button>
-      </nav>
-      <RouterLink v-else class="back-link" :to="{ path: '/recommendations', query: route.query }"
-        ><Icon name="back" />返回推荐列表</RouterLink
-      >
+          <Icon name="back" />返回推荐列表
+        </RouterLink>
+        <div class="header-user">
+          <el-tag
+            v-if="apiMode === 'mock'"
+            type="info"
+            size="small"
+            effect="plain"
+            disable-transitions
+            >本地模拟</el-tag
+          >
+          <el-tag class="role-badge" size="small" effect="plain" disable-transitions>{{
+            auth.isResearcher ? '科研端' : '企业端'
+          }}</el-tag>
+          <span class="header-user-name" :title="auth.user?.username">{{
+            auth.user?.username
+          }}</span>
+          <el-button size="small" @click="signOut">退出登录</el-button>
+        </div>
+      </template>
     </div>
   </header>
   <div class="page-shell">
-    <aside class="demo-notice" aria-label="演示说明">
-      <Icon name="info" />
-      <p><strong>演示说明</strong><span>需求与企业为模拟资料，匹配评分和分析仅用于展示。</span></p>
-    </aside>
     <main id="main-content" tabindex="-1"><RouterView /></main>
-    <footer class="app-footer">
-      <span>原始成果来自 OpenAlex · 中文说明与分类为演示整理，原文为准</span
-      ><span>仅演示推荐与详情流程</span>
+    <footer v-if="showAchievementFooter" class="app-footer">
+      <span>原始成果来自 OpenAlex，以原文为准</span>
     </footer>
   </div>
 </template>

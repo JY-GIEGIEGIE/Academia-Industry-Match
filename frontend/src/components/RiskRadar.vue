@@ -30,7 +30,7 @@ const polygon = computed(() => {
 <template>
   <figure class="radar">
     <svg viewBox="0 0 260 260" role="img" aria-labelledby="radar-title radar-description">
-      <title id="radar-title">四维风险雷达图（演示）</title>
+      <title id="radar-title">四维风险雷达图</title>
       <desc id="radar-description">
         {{
           dimensions.map((d) => d.label + '风险' + risk[d.key].score + '分').join('，')

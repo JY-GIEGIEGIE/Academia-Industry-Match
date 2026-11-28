@@ -30,7 +30,11 @@ export interface Metric {
   unit: string
   evidence?: string
 }
-export interface AchievementSummary {
+export interface Publication {
+  publisher_user_id?: string | null
+  published_at?: string | null
+}
+export interface AchievementSummary extends Publication {
   achievement_id: string
   title_original: string
   abstract_preview: string | null
@@ -58,14 +62,16 @@ export interface Achievement extends AchievementSummary {
   key_metrics: Metric[]
   material_system: string | null
   process: string[]
-  ip_status: string
+  ip_status: string | null
 }
-export interface DemandSummary {
+export type DemandStatus = 'draft' | 'active' | 'expired' | 'closed'
+export interface DemandSummary extends Publication {
   demand_id: string
   enterprise_id: string
   title: string
   pain_point: string
   required_trl: number
+  status?: DemandStatus
   tech_fields: string[]
   application_scenarios: string[]
   is_simulated: boolean
@@ -80,7 +86,7 @@ export interface Demand extends DemandSummary {
   cooperation_modes: string[]
   ip_requirement: string | null
   region: string
-  status: string
+  status: DemandStatus
   valid_until: string
   source_note: string
 }
@@ -93,10 +99,10 @@ export interface Evidence {
   snippets: { side: 'achievement' | 'demand'; field: string; text: string; source_ref: string }[]
   metric_matches: {
     name: string
-    achievement_value?: string | number
-    required_value: string
+    achievement_value?: string | number | null
+    required_value?: string | number | null
     unit: string
-    matched?: boolean
+    matched?: boolean | null
   }[]
 }
 export interface MatchSummary {
@@ -105,7 +111,7 @@ export interface MatchSummary {
   tag_score: number
   semantic_score: number
   llm_score: number | null
-  risk_overall_score: number | null
+  risk_overall_score?: number | null
   reason: string
   achievement_summary: AchievementSummary
   demand_summary: DemandSummary
@@ -130,4 +136,87 @@ export interface Fixtures {
   demands: Demand[]
   matches: SeedPair[]
   taxonomy: Taxonomy
+}
+
+export type UserRole = 'researcher' | 'enterprise'
+export interface User {
+  user_id: string
+  username: string
+  role: UserRole
+  display_name: string
+}
+export interface LoginData {
+  token: string
+  user: User
+}
+export interface PublishAchievementRequest {
+  achievement_id: string
+  updates: Record<string, never>
+}
+export interface PublishDemandRequest {
+  demand_id: string
+  updates: Record<string, never>
+}
+export interface PublishAchievementResult {
+  achievement_id: string
+  run_id: string
+}
+export interface PublishDemandResult {
+  demand_id: string
+  run_id: string
+}
+export interface PipelineRun {
+  run_id: string
+  stage: string
+  status: 'running' | 'success' | 'partial' | 'failed'
+  started_at: string | null
+  finished_at: string | null
+  error?: string | null
+}
+export type IntentStatus = 'expressed' | 'confirmed' | 'declined' | 'closed'
+export interface CreateIntentRequest {
+  achievement_id: string
+  demand_id: string
+}
+export interface Intent extends CreateIntentRequest {
+  intent_id: string
+  match_id: string | null
+  initiator_user_id: string
+  status: IntentStatus
+  contact_revealed?: boolean
+  achievement_title: string
+  demand_title: string
+  created_at: string
+  updated_at: string
+}
+export interface IntentStatusUpdate {
+  intent_id: string
+  status: IntentStatus
+  contact_revealed: boolean
+}
+export type IntentUpdateResult = Intent | IntentStatusUpdate
+
+interface ContactFields {
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+}
+export interface PartyIntentContact {
+  intent_id: string
+  status: 'confirmed'
+  researcher_contact: ContactFields
+  enterprise_contact: ContactFields
+  is_simulated: true
+}
+export interface SimpleIntentContact {
+  intent_id: string
+  is_mock: true
+  email: string
+  phone: string
+}
+export type IntentContactResponse = PartyIntentContact | SimpleIntentContact
+export interface IntentContact {
+  intent_id: string
+  is_simulated: true
+  contacts: (ContactFields & { role?: UserRole })[]
 }
