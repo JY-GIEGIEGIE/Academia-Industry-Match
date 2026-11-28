@@ -1,6 +1,5 @@
-
 # ============================================================
-# 成果与企业需求标签查询 API（S-11 / BE1）
+# 成果与企业需求标签查询 API
 #
 # 功能说明：
 # 1. 查询科研成果和企业技术需求的标签
@@ -15,8 +14,6 @@
 # 接口：
 #   GET /api/v1/achievements/{achievement_id}/tags
 #   GET /api/v1/demands/{demand_id}/tags
-#
-# 关联任务：S-11
 # ============================================================
 
 from datetime import datetime
@@ -40,6 +37,8 @@ router = APIRouter(
 
 class TagItem(BaseModel):
     tag_id: str
+    achievement_id: str | None = None
+    demand_id: str | None = None
     dimension: str
     code: str
     is_primary: bool
@@ -118,6 +117,7 @@ def get_tags(
         text(f"""
             SELECT
                 tag_id,
+                {id_column},
                 dimension,
                 code,
                 is_primary,

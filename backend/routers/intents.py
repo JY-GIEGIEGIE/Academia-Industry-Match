@@ -71,6 +71,7 @@ class IntentData(BaseModel):
     match_id: str | None = None
     initiator_user_id: str
     status: IntentStatus
+    contact_revealed: bool
 
     achievement_title: str
     demand_title: str
@@ -106,17 +107,18 @@ class IntentListResponse(BaseModel):
 class ContactInfo(BaseModel):
     name: str
     email: str
+    phone: str
 
 
 class ContactData(BaseModel):
     intent_id: str
-    status: Literal["confirmed"]
+    status: Literal["confirmed"] = "confirmed"
 
+    # 两个独立的模拟联系人，与 S-14 前端保持一致。
     researcher_contact: ContactInfo
     enterprise_contact: ContactInfo
 
-    is_simulated: bool = True
-
+    is_simulated: Literal[True] = True
 
 class ContactResponse(BaseModel):
     code: Literal[0] = 0
@@ -270,14 +272,13 @@ def to_intent_data(
 ):
     """
     将数据库记录转换为公开 API 响应。
-    不返回内部权限字段或 contact_revealed。
+    移除内部权限字段，保留 contact_revealed 供前端判断联系方式是否开放。
     """
 
     result = dict(row)
 
     result.pop("researcher_id", None)
     result.pop("enterprise_id", None)
-    result.pop("contact_revealed", None)
 
     result["match_id"] = latest_match_id(
         db,
@@ -425,6 +426,7 @@ def create_intent(
 def list_intents(
     achievement_id: str | None = None,
     demand_id: str | None = None,
+    status: IntentStatus | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(
         default=20,
@@ -470,6 +472,11 @@ def list_intents(
         )
         params["demand_id"] = demand_id
 
+    # 按合作意向状态筛选。
+    if status is not None:
+        conditions.append("i.status = :status")
+        params["status"] = status
+
     where_sql = " AND ".join(conditions)
 
     from_sql = """
@@ -504,6 +511,7 @@ def list_intents(
                 i.demand_id,
                 i.initiator_user_id,
                 i.status,
+                i.contact_revealed,
                 i.created_at,
                 i.updated_at,
 
@@ -699,7 +707,7 @@ def get_intent_contact(
             detail="Contacts are available only after confirmation",
         )
 
-    # 3. 返回模拟联系方式，不使用真实个人数据。
+    # 3. 返回双方模拟联系方式，不使用真实个人数据。
     return {
         "code": 0,
         "message": "success",
@@ -709,10 +717,12 @@ def get_intent_contact(
             "researcher_contact": {
                 "name": "科研方演示联系人",
                 "email": "researcher@example.invalid",
+                "phone": "000-0000-0001",
             },
             "enterprise_contact": {
                 "name": "企业方演示联系人",
                 "email": "enterprise@example.invalid",
+                "phone": "000-0000-0002",
             },
             "is_simulated": True,
         },
