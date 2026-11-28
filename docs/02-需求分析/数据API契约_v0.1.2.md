@@ -513,6 +513,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
     "tags": [
       {
         "tag_id": "tag_001",
+        "achievement_id": "ach_openalex_W123456",
         "dimension": "tech_field",
         "code": "electrolyte",
         "is_primary": true,
@@ -899,8 +900,8 @@ run_match_for_demand.delay(demand_id, run_id)
 | POST | `/api/v1/intents` | 表达合作意向 |
 | GET | `/api/v1/intents` | 分页查询当前用户有权查看的意向 |
 | POST | `/api/v1/intents/{id}/confirm` | 非发起方确认意向 |
-| POST | `/api/v1/intents/{id}/decline` | 非发起方拒绝意向（本轮可选，非冻结核心接口） |
-| GET | `/api/v1/intents/{id}/contact` | 确认后获取 mock 联系方式 |
+| POST | `/api/v1/intents/{id}/decline` | 非发起方拒绝意向 |
+| GET | `/api/v1/intents/{id}/contact` | 确认后获取双方模拟联系方式 |
 
 **POST `/intents`**：请求 `{achievement_id,demand_id}`，`initiator_user_id` 从认证用户确定而非由前端传递。成功返回 `intent_id`、`achievement_id`、`demand_id`、`initiator_user_id`、`status='expressed'`、`contact_revealed=false`；重复 pair 返回 HTTP 409。仅相关发布者可发起。
 
@@ -926,24 +927,48 @@ run_match_for_demand.delay(demand_id, run_id)
 | `contact_revealed` | boolean | 是否可查看演示联系方式 |
 | `created_at` | string (ISO 8601) | 创建时间 |
 | `updated_at` | string (ISO 8601) | 更新时间 |
-| `match_id` | string | 关联的匹配 ID，遵守 §6.7 的 pair 规则 |
+| `match_id` | string / null | 当前有效的关联匹配 ID；若无有效匹配结果则为 `null` |
 | `achievement_title` | string | 从 `achievement.title_original` 关联取得 |
 | `demand_title` | string | 从 `demand.title` 关联取得 |
 
-`match_id`、`achievement_title`、`demand_title` 为 API 聚合展示字段，使用关联查询或既定 pair 规则生成，不在 `intent` 表新增列。示例：`GET /api/v1/intents?achievement_id=ach_openalex_W123456&demand_id=dem_005`。
+`match_id`、`achievement_title`、`demand_title` 为 API 聚合展示字段，不在 `intent` 表新增列。`match_id` 依据成果—需求组合查询最新有效（`is_stale=false`）匹配结果；不存在时返回 `null`。示例：`GET /api/v1/intents?achievement_id=ach_openalex_W123456&demand_id=dem_005`。
 
 **POST `/intents/{id}/confirm`**：仅相关的非发起方可将 `expressed` 确认为 `confirmed`，同一次持久化更新中设置 `contact_revealed=true`；返回 `intent_id`、`status`、`contact_revealed`。
 
-**POST `/intents/{id}/decline`**（本轮可选）：意向拒绝接口；仅相关的非发起方可拒绝 `expressed`，设置 `status='declined'`、`contact_revealed=false`，非法状态转换返回 409。该接口不属于本轮冻结的 S-11 核心接口；如开发时间不足可暂不实现，不影响表达、查询、确认、联系方式等核心流程；若实现则不改变 `intent` 表已批准的状态枚举。
+**POST `/intents/{id}/decline`**：意向拒绝接口；仅相关的非发起方可拒绝 `expressed`，设置 `status='declined'`、`contact_revealed=false`，非法状态转换返回 409；返回与意向确认接口相同的意向数据结构，不改变 `intent` 表已批准的状态枚举。
 
-**GET `/intents/{id}/contact`**：仅 `status='confirmed'`、`contact_revealed=true`，且当前用户为相关方时返回 `{intent_id,is_mock:true,email,phone}` 的演示数据；未确认或越权返回 403，不返回真实联系人信息，前端标注「演示联系方式」。
+**GET `/intents/{id}/contact`**：仅 `status='confirmed'`、`contact_revealed=true`，且当前用户为相关方时返回双方独立的模拟联系方式。响应 `data` 包含 `intent_id`、`status='confirmed'`、`researcher_contact`、`enterprise_contact` 和 `is_simulated=true`；双方联系人均包含 `name`、`email`、`phone`。不返回顶层 `email`、`phone` 或 `is_mock`。未确认或越权返回 403，不返回真实联系人信息，前端标注「演示联系方式」。
+
+响应示例：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "intent_id": "intent_example",
+    "status": "confirmed",
+    "researcher_contact": {
+      "name": "科研方演示联系人",
+      "email": "researcher@example.invalid",
+      "phone": "000-0000-0001"
+    },
+    "enterprise_contact": {
+      "name": "企业方演示联系人",
+      "email": "enterprise@example.invalid",
+      "phone": "000-0000-0002"
+    },
+    "is_simulated": true
+  }
+}
+```
 
 ## 7. 数据安全与隐私
 
 ### 7.1 企业信息保护
 
 - 对外只返回 `display_name`，不返回 `legal_name`。
-- 不采集或展示真实联系人的电话、电子邮箱、微信等个人信息；已确认意向仅可按 §6.8 返回明确标识 `is_mock=true` 的演示联系方式。
+- 不采集或展示真实联系人的电话、电子邮箱、微信等个人信息；已确认意向仅可按 §6.8 返回包含双方独立联系人且明确标识 `is_simulated=true` 的演示联系方式。
 - 模拟需求与企业必须带有 `is_simulated=true`。
 - 前端应明确显示“模拟数据”标识。
 
@@ -964,4 +989,6 @@ OpenAlex 元数据可以用于项目，但科研摘要可能受出版商版权�
 | 版本 | 变更内容 | 负责人 |
 |---|---|---|
 | v0.1 | 初版：成果、需求、标签、匹配结果 API 字段契约及通用接口规范 | 朱柔璇 |
-| v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇（原稿）、贾越（评审补全） || v0.1.2（2026-11-26，S-11 补充） | 保留原章节及已审核字段；按 S-12/S-10/S-14 交接补充认证、发布、Celery 状态、合作意向及空值规则；纳入 FE 追加的发布者信息和意向筛选/标题字段；按最终 S-10 包修正 B2 `model=b2`、`prompt_version=b2-rule-v1`，P1 `model=qwen3.8-flash`、`prompt_version=v0.1`；简化任务状态响应、移除未定义的列表综合风险分并标注拒绝意向接口为可选 | 朱柔璇（BE1）         |
+| v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇（原稿）、贾越（评审补全） |
+| v0.1.2（2026-11-26） | 保留原章节及已审核字段；按 S-12/S-10/S-14 交接补充认证、发布、Celery 状态、合作意向及空值规则；纳入 FE 追加的发布者信息和意向筛选/标题字段；按最终 S-10 包修正 B2 `model=b2`、`prompt_version=b2-rule-v1`，P1 `model=qwen3.8-flash`、`prompt_version=v0.1`；简化任务状态响应、移除未定义的列表综合风险分并标注拒绝意向接口为可选 | 朱柔璇（BE1） |
+| v0.1.2（2026-11-28） | 补充标签响应示例的所属对象 ID；明确意向 `match_id` 可空、拒绝接口已实现；将确认后联系人响应统一为科研方与企业方双联系人结构，使用 `is_simulated=true`，移除顶层通用 `email` / `phone` / `is_mock`，同步更新隐私表述。 | 朱柔璇（BE1） |
