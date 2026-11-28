@@ -1,3 +1,5 @@
+BEGIN;
+
 -- S-11 / S-12: 持久化匹配任务投递记录
 
 CREATE TABLE IF NOT EXISTS match_dispatch (
@@ -33,3 +35,5 @@ CREATE TABLE IF NOT EXISTS match_dispatch (
 
 CREATE INDEX IF NOT EXISTS idx_match_dispatch_status
     ON match_dispatch (dispatch_status, updated_at);
+
+COMMIT;

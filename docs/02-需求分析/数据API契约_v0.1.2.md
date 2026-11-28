@@ -875,7 +875,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | `partial` | B2 完成，至少一条 P1 失败回退 |
 | `failed` | B2 执行异常 |
 
-**投递重试接口：** `POST /api/v1/pipeline-runs/{run_id}/retry` 用于发布已提交、但 Celery 投递失败的任务。仅原发布者、且角色与发布对象匹配时可调用；服务端只接受 `retryable` 状态，若任务已产生 `pipeline_run` 或不可重试则返回 409。成功返回 HTTP 202，`data` 为 `{run_id, dispatch_status: "submitted"}`，复用原 `run_id`，不再使用 Celery task id。无投递记录返回 404，非原发布者/角色不符返回 403，重复投递失败返回 503；发布接口返回 503 时，前端可提示用户稍后重试该接口。投递状态由服务端 `match_dispatch` 持久化，不进入公开的匹配结果字段。
+**投递重试接口：** `POST /api/v1/pipeline-runs/{run_id}/retry` 用于发布已提交、但 Celery 投递失败的任务。仅原发布者、且角色与发布对象匹配时可调用；服务端接受 `retryable` 状态，或超过 5 分钟的 `submitting`（视为投递进程中断并可回收）；若任务已产生 `pipeline_run` 或不可重试则返回 409。成功返回 HTTP 202，`data` 为 `{run_id, dispatch_status: "submitted"}`，复用原 `run_id`，不再使用 Celery task id。无投递记录返回 404，非原发布者/角色不符返回 403，重复投递失败返回 503；发布接口返回 503 时，前端可提示用户稍后重试该接口。投递状态由服务端 `match_dispatch` 持久化，不进入公开的匹配结果字段。
 
 **任务调用约定：** Celery app `backend.worker:celery_app`；函数位于 `backend/tasks.py`：
 

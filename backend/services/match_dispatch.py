@@ -28,6 +28,9 @@ CELERY_RETRY_POLICY = {
     "interval_max": 3,
 }
 
+# 超过该时长的 submitting 视为进程中断，可由 retry 重新认领。
+STALE_SUBMITTING_SECONDS = 300
+
 
 def submit_matching_job(db: Session, run_id: str):
     """
@@ -46,10 +49,19 @@ def submit_matching_job(db: Session, run_id: str):
                     updated_at = now(),
                     last_error = NULL
                 WHERE run_id = :run_id
-                  AND dispatch_status IN ('pending', 'retryable')
+                  AND (
+                      dispatch_status IN ('pending', 'retryable')
+                      OR (
+                          dispatch_status = 'submitting'
+                          AND claimed_at < now() - make_interval(secs => :stale_seconds)
+                      )
+                  )
                 RETURNING object_type, object_id
             """),
-            {"run_id": run_id},
+            {
+                "run_id": run_id,
+                "stale_seconds": STALE_SUBMITTING_SECONDS,
+            },
         ).mappings().first()
 
         db.commit()

@@ -14,7 +14,7 @@
 #   GET /api/v1/pipeline-runs/{run_id}
 # ============================================================
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from backend.auth import get_current_user
 from backend.database import get_db
-from backend.services.match_dispatch import submit_matching_job
+from backend.services.match_dispatch import STALE_SUBMITTING_SECONDS, submit_matching_job
 
 router = APIRouter(
     prefix="/api/v1/pipeline-runs",
@@ -110,7 +110,8 @@ def retry_pipeline_run(
                 object_type,
                 object_id,
                 publisher_user_id,
-                dispatch_status
+                dispatch_status,
+                claimed_at
             FROM match_dispatch
             WHERE run_id = :run_id
         """),
@@ -186,8 +187,14 @@ def retry_pipeline_run(
             detail="Matching task already started",
         )
 
-    # 5. 只有可恢复的投递状态允许重试。
-    if row["dispatch_status"] != "retryable":
+    # 5. 接受 retryable，或超过 stale 阈值的 submitting（前一进程中断）。
+    stale_submitting = (
+        row["dispatch_status"] == "submitting"
+        and row["claimed_at"] is not None
+        and (datetime.now(timezone.utc) - row["claimed_at"]).total_seconds()
+        >= STALE_SUBMITTING_SECONDS
+    )
+    if row["dispatch_status"] != "retryable" and not stale_submitting:
         raise HTTPException(
             status_code=409,
             detail="Matching job is not retryable",
