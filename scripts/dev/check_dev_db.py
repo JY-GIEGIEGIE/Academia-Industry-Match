@@ -44,6 +44,8 @@ def main() -> int:
                         help="also require this achievement to be bound to user_research_demo")
     parser.add_argument("--expect-demand-id", default=None,
                         help="also require this demand to be bound to user_enterprise_demo")
+    parser.add_argument("--require-dispatch", action="store_true",
+                        help="require the match_dispatch table and its expected columns")
     args = parser.parse_args()
 
     dsn = args.dsn or dsn_for_db(args.db_name, load_env())
@@ -114,6 +116,34 @@ def main() -> int:
             print(f"  {'intent (informational)':24} {intents:>5}")
         else:
             print(f"  {'intent (informational)':24} {'n/a':>5} (table missing)")
+
+        has_dispatch = bool(
+            conn.execute("SELECT to_regclass('public.match_dispatch') IS NOT NULL").fetchone()[0]
+        )
+        required_dispatch_cols = {
+            "run_id", "object_type", "object_id", "publisher_user_id",
+            "dispatch_status", "attempt_count", "last_error",
+            "claimed_at", "submitted_at", "created_at", "updated_at",
+        }
+        if has_dispatch:
+            dispatch_cols = {
+                row[0] for row in conn.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'match_dispatch'"
+                ).fetchall()
+            }
+            missing_cols = sorted(required_dispatch_cols - dispatch_cols)
+            dispatch_count = one("SELECT count(*) FROM match_dispatch")
+            note = "" if not missing_cols else f" (missing: {', '.join(missing_cols)})"
+            print(f"  {'match_dispatch':24} {dispatch_count:>5}{note}")
+            if args.require_dispatch and missing_cols:
+                failures.append(
+                    f"match_dispatch: missing columns {', '.join(missing_cols)}"
+                )
+        else:
+            print(f"  {'match_dispatch':24} {'n/a':>5} (table missing)")
+            if args.require_dispatch:
+                failures.append("match_dispatch: table missing")
 
         has_publisher_a = bool(
             conn.execute(
