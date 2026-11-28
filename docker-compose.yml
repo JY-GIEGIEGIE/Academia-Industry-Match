@@ -1,5 +1,5 @@
-# 本地统一的 PostgreSQL 16 + pgvector 与 Redis 环境
-# 启动：docker compose up -d db redis
+# 本地统一的 PostgreSQL 16 + pgvector、Redis 与 Celery worker
+# 启动：docker compose up -d
 # 停止：docker compose down
 # 注意：首次启动才会执行 db/init 下的初始化 SQL；已有 volume 不会重复执行。
 name: academia-industry-match
@@ -26,8 +26,8 @@ services:
       retries: 20
       start_period: 10s
 
-  # S-12：Celery 的 broker/result backend。api/worker/web 待 S-11/S-14
-  # 交付 backend/ 与前端产物后再加入，避免把不存在的 build context 写进默认启动。
+  # S-12：Celery broker/result backend。
+  # api/web 仍待 S-11/S-14，交付后再加入默认 Compose。
   redis:
     image: redis:7-alpine
     container_name: aim-redis
@@ -42,6 +42,41 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # S-12：S-10 的 Celery 任务；DATABASE_URL 必须指向 s2_mvp_* 开发库。
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: aim-worker
+    restart: unless-stopped
+    init: true
+    command: ["celery", "-A", "backend.worker", "worker", "--loglevel=info", "--concurrency=1"]
+    environment:
+      TZ: Asia/Shanghai
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aim}:${POSTGRES_PASSWORD:-change-me-local-dev}@db:5432/${DEV_DB_NAME:-s2_mvp_20261125}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      P1_TOP_K: ${P1_TOP_K:-10}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      DASHSCOPE_NATIVE_BASE_URL: ${DASHSCOPE_NATIVE_BASE_URL:-https://dashscope.aliyuncs.com/api/v1}
+      QWEN_CHAT_MODEL: ${QWEN_CHAT_MODEL:-qwen3.8-flash}
+      QWEN_EXTRACT_MODEL: ${QWEN_EXTRACT_MODEL:-qwen3.8-flash}
+      RERANK_MODEL: ${RERANK_MODEL:-qwen3.7-text-rerank}
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A backend.worker inspect ping --timeout 3 | grep -q pong && python backend/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 volumes:
   aim_pgdata:
