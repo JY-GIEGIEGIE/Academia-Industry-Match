@@ -129,7 +129,7 @@ def main() -> int:
             dispatch_cols = {
                 row[0] for row in conn.execute(
                     "SELECT column_name FROM information_schema.columns "
-                    "WHERE table_name = 'match_dispatch'"
+                    "WHERE table_schema = 'public' AND table_name = 'match_dispatch'"
                 ).fetchall()
             }
             missing_cols = sorted(required_dispatch_cols - dispatch_cols)
@@ -148,13 +148,15 @@ def main() -> int:
         has_publisher_a = bool(
             conn.execute(
                 "SELECT count(*) FROM information_schema.columns "
-                "WHERE table_name = 'achievement' AND column_name = 'publisher_user_id'"
+                "WHERE table_schema = 'public' AND table_name = 'achievement' "
+                "AND column_name = 'publisher_user_id'"
             ).fetchone()[0]
         )
         has_publisher_d = bool(
             conn.execute(
                 "SELECT count(*) FROM information_schema.columns "
-                "WHERE table_name = 'demand' AND column_name = 'publisher_user_id'"
+                "WHERE table_schema = 'public' AND table_name = 'demand' "
+                "AND column_name = 'publisher_user_id'"
             ).fetchone()[0]
         )
         has_binding = has_users and has_publisher_a and has_publisher_d
