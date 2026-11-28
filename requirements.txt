@@ -10,7 +10,6 @@ ruff>=0.6,<1
 # S-10 匹配引擎与 Celery 任务依赖
 celery>=5.7,<6
 redis>=6.1,<7
- d
 # S-11 FastAPI / auth runtime dependencies
 fastapi>=0.110,<1
 uvicorn>=0.29,<1
