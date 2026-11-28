@@ -4,13 +4,14 @@
 psycopg[binary]>=3.2,<4
 numpy>=1.26,<3
 rank-bm25>=0.2.2,<1
-pytest>=8,<9
+pytest>=8,<10
+pytest-cov>=7,<8
 ruff>=0.6,<1
 
 # S-10 匹配引擎与 Celery 任务依赖
 celery>=5.7,<6
 redis>=6.1,<7
- d
+
 # S-11 FastAPI / auth runtime dependencies
 fastapi>=0.110,<1
 uvicorn>=0.29,<1
