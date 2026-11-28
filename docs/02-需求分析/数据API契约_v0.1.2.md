@@ -548,6 +548,7 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | GET | `/api/v1/achievements/{achievement_id}/matches` | 根据成果获取适配需求 |
 | GET | `/api/v1/matches/{match_id}` | 获取匹配详情 |
 | GET | `/api/v1/pipeline-runs/{run_id}` | 查询匹配任务状态 |
+| POST | `/api/v1/pipeline-runs/{run_id}/retry` | 重试发布后 Celery 投递失败的匹配任务 |
 
 匹配查询读取数据库中的 `match_score`；匹配引擎通过异步任务执行，任务状态由 §6.7 规定。
 
@@ -874,6 +875,8 @@ API 补充枚举的 label（taxonomy 未单列的 4 组）：
 | `partial` | B2 完成，至少一条 P1 失败回退 |
 | `failed` | B2 执行异常 |
 
+**投递重试接口：** `POST /api/v1/pipeline-runs/{run_id}/retry` 用于发布已提交、但 Celery 投递失败的任务。仅原发布者、且角色与发布对象匹配时可调用；服务端只接受 `retryable` 状态，若任务已产生 `pipeline_run` 或不可重试则返回 409。成功返回 HTTP 202，`data` 为 `{run_id, dispatch_status: "submitted"}`，复用原 `run_id`，不再使用 Celery task id。无投递记录返回 404，非原发布者/角色不符返回 403，重复投递失败返回 503；发布接口返回 503 时，前端可提示用户稍后重试该接口。投递状态由服务端 `match_dispatch` 持久化，不进入公开的匹配结果字段。
+
 **任务调用约定：** Celery app `backend.worker:celery_app`；函数位于 `backend/tasks.py`：
 
 ```python
@@ -991,4 +994,4 @@ OpenAlex 元数据可以用于项目，但科研摘要可能受出版商版权�
 | v0.1 | 初版：成果、需求、标签、匹配结果 API 字段契约及通用接口规范 | 朱柔璇 |
 | v0.1（2026-11-21） | 评审补全：定义 risk/evidence 子结构、taxonomy 完整响应、列表聚合字段 | 朱柔璇（原稿）、贾越（评审补全） |
 | v0.1.2（2026-11-26） | 保留原章节及已审核字段；按 S-12/S-10/S-14 交接补充认证、发布、Celery 状态、合作意向及空值规则；纳入 FE 追加的发布者信息和意向筛选/标题字段；按最终 S-10 包修正 B2 `model=b2`、`prompt_version=b2-rule-v1`，P1 `model=qwen3.8-flash`、`prompt_version=v0.1`；简化任务状态响应、移除未定义的列表综合风险分并标注拒绝意向接口为可选 | 朱柔璇（BE1） |
-| v0.1.2（2026-11-28） | 补充标签响应示例的所属对象 ID；明确意向 `match_id` 可空、拒绝接口已实现；将确认后联系人响应统一为科研方与企业方双联系人结构，使用 `is_simulated=true`，移除顶层通用 `email` / `phone` / `is_mock`，同步更新隐私表述。 | 朱柔璇（BE1） |
+| v0.1.2（2026-11-28） | 补充标签响应示例的所属对象 ID；明确意向 `match_id` 可空、拒绝接口已实现；将确认后联系人响应统一为科研方与企业方双联系人结构，使用 `is_simulated=true`，移除顶层通用 `email` / `phone` / `is_mock`，同步更新隐私表述；补充 `POST /pipeline-runs/{run_id}/retry` 的投递失败重试契约。 | 朱柔璇（BE1） |
