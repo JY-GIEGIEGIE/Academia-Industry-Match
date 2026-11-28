@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from backend.auth import ErrorResponse, require_role
 from backend.database import get_db
+from backend.services.match_dispatch import submit_matching_job
 
 router = APIRouter(prefix="/api/v1", tags=["Publishing"])
 
@@ -183,7 +184,33 @@ def publish_record(
                 detail="Record already published",
             )
 
-        # Persist publication before triggering matching.
+        # 同一数据库事务内保存发布状态和待投递任务。
+        # 确保发布成功时始终有可恢复的匹配任务记录。
+        db.execute(
+            text("""
+                INSERT INTO match_dispatch (
+                    run_id,
+                    object_type,
+                    object_id,
+                    publisher_user_id,
+                    dispatch_status
+                )
+                VALUES (
+                    :run_id,
+                    :object_type,
+                    :object_id,
+                    :publisher_user_id,
+                    'pending'
+                )
+            """),
+            {
+                "run_id": run_id,
+                "object_type": record_type,
+                "object_id": record_id,
+                "publisher_user_id": user_id,
+            },
+        )
+
         db.commit()
 
     except Exception:
@@ -203,7 +230,6 @@ def publish_achievement(
     db: Session = Depends(get_db),
     user: dict = Depends(require_role("researcher")),
 ):
-    from backend.tasks import run_match_for_achievement
 
     run_id = publish_record(
         db=db,
@@ -213,17 +239,7 @@ def publish_achievement(
         updates=request.updates,
     )
 
-    try:
-        run_match_for_achievement.apply_async(
-            args=[request.achievement_id, run_id],
-            retry=True,
-            retry_policy=CELERY_RETRY_POLICY,
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=503,
-            detail="Publication saved, but matching enqueue failed",
-        )
+    submit_matching_job(db, run_id)
 
     return {
         "code": 0,
@@ -245,7 +261,6 @@ def publish_demand(
     db: Session = Depends(get_db),
     user: dict = Depends(require_role("enterprise")),
 ):
-    from backend.tasks import run_match_for_demand
 
     run_id = publish_record(
         db=db,
@@ -255,17 +270,7 @@ def publish_demand(
         updates=request.updates,
     )
 
-    try:
-        run_match_for_demand.apply_async(
-            args=[request.demand_id, run_id],
-            retry=True,
-            retry_policy=CELERY_RETRY_POLICY,
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=503,
-            detail="Publication saved, but matching enqueue failed",
-        )
+    submit_matching_job(db, run_id)
 
     return {
         "code": 0,
